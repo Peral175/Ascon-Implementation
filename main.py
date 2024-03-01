@@ -165,7 +165,7 @@ def int_to_bytes(i, bits):
     :return: byte string corresponding to the integer value
     """
     i = i % 2 ** bits
-    return i.to_bytes(length=(bits // 8))
+    return i.to_bytes(length=(bits // 8), byteorder='big')
 
 
 def bytes_to_int(b):
@@ -174,7 +174,7 @@ def bytes_to_int(b):
     :param b: byte string
     :return: integer value of b
     """
-    return int.from_bytes(b)
+    return int.from_bytes(b, byteorder='big')
 
 
 def bytes_to_state(S):
