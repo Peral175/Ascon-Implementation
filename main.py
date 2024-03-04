@@ -9,7 +9,7 @@ import secrets
 key_len = 128           # upto 160 (?) how does this work?
 nonce_len = 128
 tag_len = 128
-ad_len = 128            # can be of arbitrary size (?) => I think so
+ad_len = 40 # 128            # can be of arbitrary size (?) => I think so
 msg = """Hello World! \nThis message will be encrypted using ASCON encryption before promptly being decrypted.\
 Let's hope the end result of encrypting and decryption will return this original message.\n\r"""
 msg_len = len(msg)
@@ -335,11 +335,15 @@ def verif_dec(K, N, A, C, T):
 
 
 def main():
-    K = secrets.randbits(key_len)
-    N = secrets.randbits(nonce_len)     # todo: verify if fine
-    A = secrets.randbits(ad_len)        # todo: change according to 2.4.2
+    # K = secrets.randbits(key_len)
+    K = 0xb09b82809083974c550bbc8b632f8ffc
+    # N = secrets.randbits(nonce_len)     # todo: verify if fine
+    N = 0x65c703699df2a1a98ae627f6853a0953
+    # A = secrets.randbits(ad_len)        # todo: change according to 2.4.2
+    A = 0x4153434f4e
     # P = secrets.randbits(msg_len)     # todo: some message in bytes ?
-    P = str.encode(msg)
+    # P = str.encode(msg)
+    P = 0x6173636f6e.to_bytes(5, byteorder='big')
     C, T = auth_enc(K, N, A, P)
     print("Plain text: ", P)
     print("Ciphertext: ", C, "\nTag from encryption: ", T)
