@@ -5,7 +5,7 @@ for Master Thesis at the University of Luxembourg.
 """
 import circ_perm
 
-msg = "ascon"
+msg = "ascon12345123456"
 rate = 64  # 64 bits / 8 bytes for ASCON-128
 Key = 0x999cc63e91d1b4dd3e9e2f361dccd251
 Nonce = 0xf794f704aaf2343a9a34a2203fc2162c
@@ -17,6 +17,8 @@ len_a = (bin(AssData).replace("0b", "").__len__() + 1) // 8 * 8
 len_p = (bin(Plaintext).replace("0b", "").__len__() + 1) // 8 * 8
 print(len_k, len_n, len_a, len_p)
 
+
+# todo: rename stuff
 
 def int_to_bytes(i, bits):
     """
@@ -82,28 +84,28 @@ def processing_associated_data(A, s):
 
 
 def processing_plaintext(P, s):
-    pad = b'\x80' + b'\x00' * (rate // 8 - ((len_p // 8) % (rate // 8)) - 1)
+    pad = b'\x80' + b'\x00' * ((rate // 8) - ((len_p // 8) % (rate // 8)) - 1)
     p = int_to_bytes(P, len_p) + pad
     # below we split the plain text into blocks of size equal to rate( = 8 bytes)
     blocks = []
-    for i in range(0, (len_p // 8), rate // 8):  # todo: while loop instead ?
+    for i in range(0, len(p), rate // 8):  # todo: while loop instead ?
         blocks.append(p[i:i + rate // 8])
     C = b""  # empty ciphertext C
     for i in range(len(blocks) - 1):
         # XOR first word with current block of plaintext
         s[0] ^= bytes_to_int(blocks[i])
-        C += s[0]  # add the result to the ciphertext
+        C += int_to_bytes(s[0], 64)  # add the result to the ciphertext
         s = circ_perm.circ_ascon_perm(s, nr_rounds=6)
-        # todo: verify this
-
     s[0] ^= bytes_to_int(blocks[-1])
     word1_in_binary = bin(s[0]).replace("0b", "")
     while len(word1_in_binary) < 64:
         word1_in_binary = "0" + word1_in_binary
 
-    C_t = word1_in_binary[:(len_p % rate)]  # truncate first word to bitsize of plaintext mod rate
-    C_t = int(C_t, base=2)
-    C += int_to_bytes(C_t, len_p)
+    cut = (len_p % rate)
+    if cut != 0:  # todo: is this correct ?
+        C_t = word1_in_binary[:cut]  # truncate first word to bitsize of plaintext mod rate
+        C_t = int(C_t, base=2)
+        C += int_to_bytes(C_t, cut)
     return s, C
 
 
@@ -111,27 +113,37 @@ def processing_ciphertext(C, s):
     blocks = []
     len_c = (bin(bytes_to_int(C)).replace("0b", "").__len__() + 1) // 8 * 8
     for i in range(0, len_c // 8, rate // 8):
-        blocks.append(C[i:i + rate // 8])
+        blocks.append(C[i:i + (rate // 8)])
+    # print(blocks, len(blocks[-1]), bytes_to_int(blocks[-1]).bit_length())
+
     if len(blocks[-1]) == 8:
-        blocks.pop()  # todo: verify this
-        return Exception
+        blocks.append(b'\x01')  # todo: verify this
+    # print(blocks, len(blocks[-1]), bytes_to_int(blocks[-1]).bit_length())
+
     P = b""
     for i in range(len(blocks) - 1):
         P_i = int_to_bytes(s[0] ^ bytes_to_int(blocks[i]), 64)
         P += P_i
-        s[0] = blocks[i]
+        s[0] = bytes_to_int(blocks[i])
         s = circ_perm.circ_ascon_perm(s, nr_rounds=6)
-        # todo: verify this
 
-    cipher_bits = len_p
+    cipher_bits = len_c
     word1_in_binary = bin(s[0]).replace("0b", "")
     while len(word1_in_binary) < 64:
         word1_in_binary = "0" + word1_in_binary
-    P_t = int(word1_in_binary[:cipher_bits], base=2) ^ bytes_to_int(blocks[-1])
-    P_t = int_to_bytes(P_t, cipher_bits)
-    P += P_t
-    P_t += b'\x80' + b'\x00' * (rate // 8 - ((cipher_bits // 8) % (rate // 8)) - 1)
-    s[0] = s[0] ^ bytes_to_int(P_t)
+    cut = (cipher_bits % 64)
+    if cut != 0:
+        P_t = int(word1_in_binary[:cut], base=2) ^ bytes_to_int(blocks[-1])
+        P_t = int_to_bytes(P_t, cut)
+        P += P_t
+        P_t += b'\x80' + b'\x00' * (rate // 8 - ((cipher_bits // 8) % (rate // 8)) - 1)
+        s[0] ^= bytes_to_int(P_t) % 2 ** 64
+    else:
+        P_t = int(0) ^ bytes_to_int(blocks[-1])
+        P_t = int_to_bytes(P_t, cut)
+        P += P_t
+        P_t += b'\x80' + b'\x00' * (rate // 8 - ((cipher_bits // 8) % (rate // 8)) - 1)
+        s[0] ^= bytes_to_int(P_t) % 2 ** 64
     return P, s
 
 
@@ -163,19 +175,18 @@ def verif_dec(K, N, A, C, T):
     print("Tag from decryption: ", T_prime, hex(T_prime))
     if T == T_prime:
         return P
-    else:
-        return Exception("Tag is incorrect!")
+    return None
 
 
 def main():
     C, T = auth_enc(Key, Nonce, AssData, Plaintext)
-    print("Plain text: ", msg, hex(Plaintext))
+    print("Plain text:  ", msg, hex(Plaintext))
     print("Ciphertext: ", C, hex(int.from_bytes(C, byteorder='big')), "\nTag from encryption: ", T, hex(T))
     res = verif_dec(Key, Nonce, AssData, C, T)
-    try:
-        print("Verification: ", res, hex(int.from_bytes(res, byteorder='big')))  # extra '\x80 ...' wrong or (?)
-    except Exception:
-        print("Exception occured!")
+    if res is None:
+        print("Tag did not match!")
+    else:
+        print("Verification:", res.decode(), hex(int.from_bytes(res, byteorder='big')))
 
 
 if __name__ == '__main__':
