@@ -3,18 +3,8 @@ Author: Alex Perrard
 ASCON Authenticated Encryption implementation in Python
 for Master Thesis at the University of Luxembourg.
 """
-
+import circ_perm
 import secrets
-
-key_len = 128           # upto 160 (?) how does this work?
-nonce_len = 128
-tag_len = 128
-ad_len = 40 # 128            # can be of arbitrary size (?) => I think so
-msg = """Hello World! \nThis message will be encrypted using ASCON encryption before promptly being decrypted.\
-Let's hope the end result of encrypting and decryption will return this original message.\n\r"""
-msg_len = 5 # len(msg)
-rate = 8                # for ASCON-128
-# rate = 16               # for ASCON-128a
 
 
 def permA(S):
@@ -25,30 +15,19 @@ def permA(S):
     :return: The modified 320-bit state
     """
     # The array below contains the constant values that are added to the state as part of the permutation.
-    # crA = [b'\x00\x00\x00\x00\x00\x00\x00\xf0',
-    #        b'\x00\x00\x00\x00\x00\x00\x00\xe1',
-    #        b'\x00\x00\x00\x00\x00\x00\x00\xd2',
-    #        b'\x00\x00\x00\x00\x00\x00\x00\xc3',
-    #        b'\x00\x00\x00\x00\x00\x00\x00\xb4',
-    #        b'\x00\x00\x00\x00\x00\x00\x00\xa5',
-    #        b'\x00\x00\x00\x00\x00\x00\x00\x96',
-    #        b'\x00\x00\x00\x00\x00\x00\x00\x87',
-    #        b'\x00\x00\x00\x00\x00\x00\x00\x78',
-    #        b'\x00\x00\x00\x00\x00\x00\x00\x69',
-    #        b'\x00\x00\x00\x00\x00\x00\x00\x5a',
-    #        b'\x00\x00\x00\x00\x00\x00\x00\x4b']
-    crA = [0xf0,
-           0xe1,
-           0xd2,
-           0xc3,
-           0xb4,
-           0xa5,
-           0x96,
-           0x87,
-           0x78,
-           0x69,
-           0x5a,
-           0x4b]
+    crA = [b'\x00\x00\x00\x00\x00\x00\x00\xf0',
+           b'\x00\x00\x00\x00\x00\x00\x00\xe1',
+           b'\x00\x00\x00\x00\x00\x00\x00\xd2',
+           b'\x00\x00\x00\x00\x00\x00\x00\xc3',
+           b'\x00\x00\x00\x00\x00\x00\x00\xb4',
+           b'\x00\x00\x00\x00\x00\x00\x00\xa5',
+           b'\x00\x00\x00\x00\x00\x00\x00\x96',
+           b'\x00\x00\x00\x00\x00\x00\x00\x87',
+           b'\x00\x00\x00\x00\x00\x00\x00\x78',
+           b'\x00\x00\x00\x00\x00\x00\x00\x69',
+           b'\x00\x00\x00\x00\x00\x00\x00\x5a',
+           b'\x00\x00\x00\x00\x00\x00\x00\x4b']
+    # crA = [0xf0, 0xe1, 0xd2, 0xc3, 0xb4, 0xa5, 0x96, 0x87, 0x78, 0x69, 0x5a, 0x4b]
     return perm(12, S, crA)
 
 
@@ -104,12 +83,9 @@ def perm(n, S, cr):
     x2 = bytes_to_int(S[16:24])
     x3 = bytes_to_int(S[24:32])
     x4 = bytes_to_int(S[32:40])
-    print(x0, x1, x2, x3, x4)
 
     for i in range(n):
-        # x2 ^= bytes_to_int(cr[i])       # The constants in array are added in order to the third word.
-        x2 ^= cr[i]
-        # print(x2)
+        x2 ^= bytes_to_int(cr[i])       # The constants in array are added in order to the third word.
 
     ############################
     # 2. Substitution Layer
@@ -127,13 +103,8 @@ def perm(n, S, cr):
     t0 = ~t0;   t1 = ~t1;   t2 = ~t2;   t3 = ~t3;   t4 = ~t4
     t0 &= x1;   t1 &= x2;   t2 &= x3;   t3 &= x4;   t4 &= x0
     x0 ^= t1;   x1 ^= t2;   x2 ^= t3;   x3 ^= t4;   x4 ^= t0
-    x1 ^= x0;   x0 ^= x4;   x3 ^= x2;
-    print(x2)
-    x2 = ~x2
-    print(x2)
-    x2 = x2 % 2**64
-    print(x2)
-    # do not allow for negative numbers here
+    x1 ^= x0;   x0 ^= x4;   x3 ^= x2;   x2 = ~x2
+    x2 = x2 % 2**64             # do not allow for negative numbers here
 
     # Alternative:
     # x0 ^= x4;           x4 ^= x3;           x2 ^= x1
@@ -154,8 +125,6 @@ def perm(n, S, cr):
     x2 = x2 ^ (rotr(x2,  1)) ^ (rotr(x2,  6))
     x3 = x3 ^ (rotr(x3, 10)) ^ (rotr(x3, 17))
     x4 = x4 ^ (rotr(x4,  7)) ^ (rotr(x4, 41))
-
-    print(x0, x1, x2, x3, x4)
 
     # return the words back into their byte-string form.
     x0 = int_to_bytes(x0, 64)
@@ -230,20 +199,21 @@ def auth_enc(K, N, A, P):
     K = int_to_bytes(K, key_len)    # int to byte-string
     N = int_to_bytes(N, nonce_len)
     S = IV + K + N                  # concatenate IV with Key and Nonce
-    z = b'\x00' * 24 + K            # unnecessary
+    z = K # b'\x00' * 24 + K            # unnecessary
     S = bytes_to_int(permA(S)) ^ bytes_to_int(z)    # perform permutation on state, followed by XOR-ing the key
+    # todo: replace above
     S = int_to_bytes(S, 320)    # transform state to byte array for later use
 
     # Processing Associated Data
     if ad_len > 0:
-        pad = b'\x80' + b'\x00' * (rate - (ad_len % rate) - 1)  # todo: maybe mistake here (?)
-        A = int_to_bytes(A, 128) + pad
-
-        for i in range(ad_len):
+        pad = b'\x80' + b'\x00' * (rate - (ad_len//8 % rate) - 1)  # todo: maybe mistake here (?)
+        A = int_to_bytes(A, ad_len) + pad
+        for i in range(0, ad_len, rate):
             # first word is XOR-ed with current associated date block
             tmp = bytes_to_int(S[:rate]) ^ bytes_to_int(A[i:i + rate])
             tmp = int_to_bytes(tmp, 64) + S[rate:]  # concatenate the new first word with the remaining 4 words
             S = permB(tmp)  # 6-round permutation
+            # todo: replace above
 
     S = int_to_bytes(bytes_to_int(S) ^ 1, 320)  # XOR 1 to state
     state = bytes_to_state(S)       # transform byte-string to state for later
@@ -252,32 +222,40 @@ def auth_enc(K, N, A, P):
     pad = b'\x80' + b'\x00' * (rate - (msg_len % rate) - 1)     # todo: maybe mistake here (?); What is the purpose (?)
     p = P.to_bytes(5, byteorder='big')
     p += pad
+    print(p)
 
-    # below we split the plain text into blocks of size equal to rate( = 8)
+    # below we split the plain text into blocks of size equal to rate( = 8 bytes)
     blocks = []
     # for i in range(0, len(P), rate):
-    for i in range(0, msg_len, rate):
+    for i in range(0, 5, rate): # todo: while loop instead
         blocks.append(p[i:i + rate])
-
     C = b""     # ciphertext C
     for i in range(len(blocks) - 1):
         # XOR first word with current block of plaintext
         state[0] = int_to_bytes(bytes_to_int(state[0]) ^ bytes_to_int(blocks[i]), 64)
         C += state[0]   # add the result to the ciphertext
         S = permB(state[0] + state[1] + state[2] + state[3] + state[4])     # 6-round permutation
+        # todo: replace above
         state = bytes_to_state(S)       # update the state to reflect change that occurred in S
 
     state[0] = int_to_bytes(bytes_to_int(state[0]) ^ bytes_to_int(blocks[-1]), 64)  # last block
+    # print(C)      # todo: fix mistake here
     C += state[0]
-
     word1_in_binary = bin(bytes_to_int(state[0])).replace("0b", "")
-    P_bits = len(msg.encode("utf8"))
-    C_t = word1_in_binary[:(P_bits % rate)]  # truncate first word to bitsize of plaintext mod rate
+    # print(word1_in_binary, len(word1_in_binary))
+    # C_t = word1_in_binary[0:((len(p)*8) % (rate*8))]  # truncate first word to bitsize of plaintext mod rate
+    C_t = word1_in_binary[:(msg_len*8) % (rate*8)]  # truncate first word to bitsize of plaintext mod rate
+    # todo: remove hard code
     C_t = int(C_t, base=2)
-    C += int_to_bytes(C_t, 64)
-
+    # print(C_t.bit_length())
+    # C += int_to_bytes(C_t, bytes_to_int(state[0]).bit_length())
+    # C += int_to_bytes(C_t, 40)
+    for i in range(1):
+        print(i,state[i])
     # Finalization
+    # print("s", S)
     S = bytes_to_int(state[0] + state[1] + state[2] + state[3] + state[4])
+    # print("s",S)
     z = bytes_to_int(b'\x00' + K + b'\x00' * 23)
     S = bytes_to_int(permA(int_to_bytes(S ^ z, 320)))
     S_binary = bin(S).replace("0b", "")
@@ -299,53 +277,65 @@ def verif_dec(K, N, A, C, T):
     :return P or E: Plaintext P  if tag is equal to T or ERROR E if not
     """
     # Initialization
-    IV = 0x80400c0600000000         # hard coded ==> ASCON-128
+    IV = 0x80400c0600000000  # hard coded ==> ASCON-128
     # IV = 0x80400c0800000000         # hard coded ==> ASCON-128a
-    IV = int_to_bytes(IV, 64)   # hex to byte-string
-    K = int_to_bytes(K, key_len)    # int to byte-string
+    IV = int_to_bytes(IV, 64)  # hex to byte-string
+    K = int_to_bytes(K, key_len)  # int to byte-string
     N = int_to_bytes(N, nonce_len)
-    S = IV + K + N                  # concatenate IV with Key and Nonce
-    z = b'\x00' * 24 + K            # unnecessary
-    S = bytes_to_int(permA(S)) ^ bytes_to_int(z)    # perform permutation on state, followed by XOR-ing the key
-    S = int_to_bytes(S, 320)    # transform state to byte array for later use
+    S = IV + K + N  # concatenate IV with Key and Nonce
+    z = K  # b'\x00' * 24 + K            # unnecessary
+    S = bytes_to_int(permA(S)) ^ bytes_to_int(z)  # perform permutation on state, followed by XOR-ing the key
+    # todo: replace above
+    S = int_to_bytes(S, 320)  # transform state to byte array for later use
 
     # Processing Associated Data
     if ad_len > 0:
-        pad = b'\x80' + b'\x00' * (rate - (ad_len % rate) - 1)  # todo: maybe mistake here (?)
-        A = int_to_bytes(A, 128) + pad
-
-        for i in range(ad_len):
+        pad = b'\x80' + b'\x00' * (rate - (ad_len // 8 % rate) - 1)  # todo: maybe mistake here (?)
+        A = int_to_bytes(A, ad_len) + pad
+        for i in range(0, ad_len, rate):
             # first word is XOR-ed with current associated date block
             tmp = bytes_to_int(S[:rate]) ^ bytes_to_int(A[i:i + rate])
             tmp = int_to_bytes(tmp, 64) + S[rate:]  # concatenate the new first word with the remaining 4 words
             S = permB(tmp)  # 6-round permutation
+            # todo: replace above
 
     S = int_to_bytes(bytes_to_int(S) ^ 1, 320)  # XOR 1 to state
-    state = bytes_to_state(S)       # transform byte-string to state for later
+    state = bytes_to_state(S)  # transform byte-string to state for later
 
     # Processing Ciphertext
     blocks = []
     for i in range(0, len(C), rate):
         blocks.append(C[i:i + rate])
-    if len(blocks[-1]) == 8:
-        blocks.pop()
+    # if len(blocks[-1]) == 8:
+    #     blocks.pop()
     P = b""
     for i in range(len(blocks) - 1):
         P_i = int_to_bytes(bytes_to_int(state[0]) ^ bytes_to_int(blocks[i]), 64)
         P += P_i
         state[0] = blocks[i]
         S = permB(state[0] + state[1] + state[2] + state[3] + state[4])
+        # todo: replace above
         state = bytes_to_state(S)
 
-    cipher_bits = len(blocks[-1])*8
-    P_t = bytes_to_int(state[0][:cipher_bits]) ^ bytes_to_int(blocks[-1])
-    p_t = int_to_bytes(P_t, 64)
+    cipher_bits = bytes_to_int(blocks[-1]).bit_length()
+    print(state[0])
+    tmp = bin(bytes_to_int(state[0]))[2:2+cipher_bits]
+    tmp = int_to_bytes(int(tmp, base=2), cipher_bits)
+    P_t = bytes_to_int(tmp) ^ bytes_to_int(blocks[-1])
+    p_t = int_to_bytes(P_t, cipher_bits)
     P += p_t
-
+    print("P:",P)
+    # print(p_t)
+    p_t += b'\x80' + b'\x00' * (rate - (cipher_bits//8 % rate) - 1)
+    print(p_t)
     state[0] = int_to_bytes(bytes_to_int(state[0]) ^ bytes_to_int(p_t), 64)
 
+    for i in range(1):
+        print(i,state[i])
     # Finalization
+    # print("s", S)
     S = bytes_to_int(state[0] + state[1] + state[2] + state[3] + state[4])
+    # print("s", S)
     z = bytes_to_int(b'\x00' + K + b'\x00' * 23)
     S = bytes_to_int(permA(int_to_bytes(S ^ z, 320)))
     S_binary = bin(S).replace("0b", "")
@@ -353,7 +343,7 @@ def verif_dec(K, N, A, C, T):
     short_S = S_binary[len(S_binary)-128:]
     short_K = K_binary[len(K_binary)-128:]
     T_prime = int(short_S, base=2) ^ int(short_K, base=2)
-    print("Tag from decryption: ", T_prime)
+    print("Tag from decryption: ", T_prime, hex(T_prime))
     if T == T_prime:
         return P
     else:
@@ -361,6 +351,16 @@ def verif_dec(K, N, A, C, T):
 
 
 def main():
+    global key_len, nonce_len, tag_len, ad_len, msg_len, rate, msg
+    key_len = 128  # upto 160 (?) how does this work?
+    nonce_len = 128
+    tag_len = 128
+    ad_len = 40  # 128            # can be of arbitrary size (?) => I think so
+    msg = """Hello World! \nThis message will be encrypted using ASCON encryption before promptly being decrypted.\
+    Let's hope the end result of encrypting and decryption will return this original message.\n\r"""
+    msg_len = 5  # len(msg)
+    rate = 8  # for ASCON-128
+    # rate = 16               # for ASCON-128a
     # K = secrets.randbits(key_len)
     K = 0x999cc63e91d1b4dd3e9e2f361dccd251
     # N = secrets.randbits(nonce_len)     # todo: verify if fine
@@ -372,12 +372,12 @@ def main():
     P = 0x6173636f6e  # .to_bytes(5, byteorder='big')
     C, T = auth_enc(K, N, A, P)
     print("Plain text: ", P, hex(P))
-    print("Ciphertext: ", C, hex(int.from_bytes(C)), "\nTag from encryption: ", T, hex(T))
+    print("Ciphertext: ", C, hex(int.from_bytes(C, byteorder='big')), "\nTag from encryption: ", T, hex(T))
     res = verif_dec(K, N, A, C, T)
-    print("Verification: ", res, hex(int.from_bytes(res)))        # extra '\x80 ...' wrong or (?)
-
-    test = 1
-    print(rotr(test, 64-63))
+    try:
+        print("Verification: ", res, hex(int.from_bytes(res, byteorder='big')))        # extra '\x80 ...' wrong or (?)
+    except BaseException:
+        print("Exception occured!")
 
 
 if __name__ == '__main__':
