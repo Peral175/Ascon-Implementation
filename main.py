@@ -12,7 +12,7 @@ tag_len = 128
 ad_len = 40 # 128            # can be of arbitrary size (?) => I think so
 msg = """Hello World! \nThis message will be encrypted using ASCON encryption before promptly being decrypted.\
 Let's hope the end result of encrypting and decryption will return this original message.\n\r"""
-msg_len = len(msg)
+msg_len = 5 # len(msg)
 rate = 8                # for ASCON-128
 # rate = 16               # for ASCON-128a
 
@@ -25,18 +25,30 @@ def permA(S):
     :return: The modified 320-bit state
     """
     # The array below contains the constant values that are added to the state as part of the permutation.
-    crA = [b'\x00\x00\x00\x00\x00\x00\x00\xf0',
-           b'\x00\x00\x00\x00\x00\x00\x00\xe1',
-           b'\x00\x00\x00\x00\x00\x00\x00\xd2',
-           b'\x00\x00\x00\x00\x00\x00\x00\xc3',
-           b'\x00\x00\x00\x00\x00\x00\x00\xb4',
-           b'\x00\x00\x00\x00\x00\x00\x00\xa5',
-           b'\x00\x00\x00\x00\x00\x00\x00\x96',
-           b'\x00\x00\x00\x00\x00\x00\x00\x87',
-           b'\x00\x00\x00\x00\x00\x00\x00\x78',
-           b'\x00\x00\x00\x00\x00\x00\x00\x69',
-           b'\x00\x00\x00\x00\x00\x00\x00\x5a',
-           b'\x00\x00\x00\x00\x00\x00\x00\x4b']
+    # crA = [b'\x00\x00\x00\x00\x00\x00\x00\xf0',
+    #        b'\x00\x00\x00\x00\x00\x00\x00\xe1',
+    #        b'\x00\x00\x00\x00\x00\x00\x00\xd2',
+    #        b'\x00\x00\x00\x00\x00\x00\x00\xc3',
+    #        b'\x00\x00\x00\x00\x00\x00\x00\xb4',
+    #        b'\x00\x00\x00\x00\x00\x00\x00\xa5',
+    #        b'\x00\x00\x00\x00\x00\x00\x00\x96',
+    #        b'\x00\x00\x00\x00\x00\x00\x00\x87',
+    #        b'\x00\x00\x00\x00\x00\x00\x00\x78',
+    #        b'\x00\x00\x00\x00\x00\x00\x00\x69',
+    #        b'\x00\x00\x00\x00\x00\x00\x00\x5a',
+    #        b'\x00\x00\x00\x00\x00\x00\x00\x4b']
+    crA = [0xf0,
+           0xe1,
+           0xd2,
+           0xc3,
+           0xb4,
+           0xa5,
+           0x96,
+           0x87,
+           0x78,
+           0x69,
+           0x5a,
+           0x4b]
     return perm(12, S, crA)
 
 
@@ -92,9 +104,12 @@ def perm(n, S, cr):
     x2 = bytes_to_int(S[16:24])
     x3 = bytes_to_int(S[24:32])
     x4 = bytes_to_int(S[32:40])
+    print(x0, x1, x2, x3, x4)
 
     for i in range(n):
-        x2 ^= bytes_to_int(cr[i])       # The constants in array are added in order to the third word.
+        # x2 ^= bytes_to_int(cr[i])       # The constants in array are added in order to the third word.
+        x2 ^= cr[i]
+        # print(x2)
 
     ############################
     # 2. Substitution Layer
@@ -112,7 +127,13 @@ def perm(n, S, cr):
     t0 = ~t0;   t1 = ~t1;   t2 = ~t2;   t3 = ~t3;   t4 = ~t4
     t0 &= x1;   t1 &= x2;   t2 &= x3;   t3 &= x4;   t4 &= x0
     x0 ^= t1;   x1 ^= t2;   x2 ^= t3;   x3 ^= t4;   x4 ^= t0
-    x1 ^= x0;   x0 ^= x4;   x3 ^= x2;   x2 = ~x2
+    x1 ^= x0;   x0 ^= x4;   x3 ^= x2;
+    print(x2)
+    x2 = ~x2
+    print(x2)
+    x2 = x2 % 2**64
+    print(x2)
+    # do not allow for negative numbers here
 
     # Alternative:
     # x0 ^= x4;           x4 ^= x3;           x2 ^= x1
@@ -134,6 +155,8 @@ def perm(n, S, cr):
     x3 = x3 ^ (rotr(x3, 10)) ^ (rotr(x3, 17))
     x4 = x4 ^ (rotr(x4,  7)) ^ (rotr(x4, 41))
 
+    print(x0, x1, x2, x3, x4)
+
     # return the words back into their byte-string form.
     x0 = int_to_bytes(x0, 64)
     x1 = int_to_bytes(x1, 64)
@@ -154,6 +177,7 @@ def rotr(x, i):
     :return: rotated 64-bit word in integer form
     """
     # from https://stackoverflow.com/questions/63759207/circular-shift-of-a-bit-in-python-equivalent-of-fortrans-ishftc
+    i = 64-i
     return ((x << i) % (1 << 64)) | (x >> (64 - i))
 
 
@@ -174,7 +198,7 @@ def bytes_to_int(b):
     :param b: byte string
     :return: integer value of b
     """
-    return int.from_bytes(b, byteorder='big')
+    return int.from_bytes(b, byteorder='big', signed=False)
 
 
 def bytes_to_state(S):
@@ -226,12 +250,14 @@ def auth_enc(K, N, A, P):
 
     # Processing Plaintext
     pad = b'\x80' + b'\x00' * (rate - (msg_len % rate) - 1)     # todo: maybe mistake here (?); What is the purpose (?)
-    P += pad
+    p = P.to_bytes(5, byteorder='big')
+    p += pad
 
     # below we split the plain text into blocks of size equal to rate( = 8)
     blocks = []
-    for i in range(0, len(P), rate):
-        blocks.append(P[i:i + rate])
+    # for i in range(0, len(P), rate):
+    for i in range(0, msg_len, rate):
+        blocks.append(p[i:i + rate])
 
     C = b""     # ciphertext C
     for i in range(len(blocks) - 1):
@@ -336,19 +362,22 @@ def verif_dec(K, N, A, C, T):
 
 def main():
     # K = secrets.randbits(key_len)
-    K = 0xb09b82809083974c550bbc8b632f8ffc
+    K = 0x999cc63e91d1b4dd3e9e2f361dccd251
     # N = secrets.randbits(nonce_len)     # todo: verify if fine
-    N = 0x65c703699df2a1a98ae627f6853a0953
+    N = 0xf794f704aaf2343a9a34a2203fc2162c
     # A = secrets.randbits(ad_len)        # todo: change according to 2.4.2
     A = 0x4153434f4e
     # P = secrets.randbits(msg_len)     # todo: some message in bytes ?
     # P = str.encode(msg)
-    P = 0x6173636f6e.to_bytes(5, byteorder='big')
+    P = 0x6173636f6e  # .to_bytes(5, byteorder='big')
     C, T = auth_enc(K, N, A, P)
-    print("Plain text: ", P)
-    print("Ciphertext: ", C, "\nTag from encryption: ", T)
+    print("Plain text: ", P, hex(P))
+    print("Ciphertext: ", C, hex(int.from_bytes(C)), "\nTag from encryption: ", T, hex(T))
     res = verif_dec(K, N, A, C, T)
-    print("Verification: ", res)        # extra '\x80 ...' wrong or (?)
+    print("Verification: ", res, hex(int.from_bytes(res)))        # extra '\x80 ...' wrong or (?)
+
+    test = 1
+    print(rotr(test, 64-63))
 
 
 if __name__ == '__main__':
