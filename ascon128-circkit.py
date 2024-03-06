@@ -117,7 +117,7 @@ def processing_ciphertext(C, s):
     # print(blocks, len(blocks[-1]), bytes_to_int(blocks[-1]).bit_length())
 
     if len(blocks[-1]) == 8:
-        blocks.append(b'\x01')  # todo: verify this
+        blocks.append(b'\x00')  # todo: verify this
     # print(blocks, len(blocks[-1]), bytes_to_int(blocks[-1]).bit_length())
 
     P = b""
