@@ -3,9 +3,10 @@ Author: Alex Perrard
 ASCON Authenticated Encryption implementation in Python
 for Master Thesis at the University of Luxembourg.
 """
-import circ_perm
+import circ_perm_bool as circ_perm
+# import circ_perm
 
-msg = "ascon12345123456"
+msg = "hello there ascon"
 rate = 64  # 64 bits / 8 bytes for ASCON-128
 Key = 0x999cc63e91d1b4dd3e9e2f361dccd251
 Nonce = 0xf794f704aaf2343a9a34a2203fc2162c
