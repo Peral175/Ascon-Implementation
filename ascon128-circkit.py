@@ -19,7 +19,6 @@ len_p = (bin(Plaintext).replace("0b", "").__len__() + 1) // 8 * 8
 print(len_k, len_n, len_a, len_p)
 
 
-# todo: rename stuff
 
 def int_to_bytes(i, bits):
     """
@@ -89,7 +88,7 @@ def processing_plaintext(P, s):
     p = int_to_bytes(P, len_p) + pad
     # below we split the plain text into blocks of size equal to rate( = 8 bytes)
     blocks = []
-    for i in range(0, len(p), rate // 8):  # todo: while loop instead ?
+    for i in range(0, len(p), rate // 8):  # while loop instead ?
         blocks.append(p[i:i + rate // 8])
     C = b""  # empty ciphertext C
     for i in range(len(blocks) - 1):
