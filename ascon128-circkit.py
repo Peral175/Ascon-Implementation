@@ -19,7 +19,6 @@ len_p = (bin(Plaintext).replace("0b", "").__len__() + 1) // 8 * 8
 print(len_k, len_n, len_a, len_p)
 
 
-
 def int_to_bytes(i, bits):
     """
     Convert integer to bytes via the python .to_bytes function.
@@ -65,7 +64,7 @@ def initialization(K, N):
     k = int_to_bytes(K, len_k)  # int to byte-string
     n = int_to_bytes(N, len_n)
     s = bytes_to_state(IV + k + n)  # concatenate IV with Key and Nonce
-    p_a = circ_perm.circ_ascon_perm(s, nr_rounds=12)
+    p_a = (circ_perm.ascon_perm(s, nr_rounds=12))
     s_int = state_to_int(p_a) ^ K  # perform permutation on state, followed by XOR-ing the key
     s = bytes_to_state(int_to_bytes(s_int, 320))  # transform to state for later
     return k, s
@@ -78,7 +77,7 @@ def processing_associated_data(A, s):
         for i in range(0, len_a, rate):
             # first word is XOR-ed with current associated date block
             s[0] ^= bytes_to_int(a[i:i + rate])
-            s = circ_perm.circ_ascon_perm(s, nr_rounds=6)
+            s = circ_perm.ascon_perm(s, nr_rounds=6)
     s[4] ^= 1
     return s
 
@@ -95,7 +94,7 @@ def processing_plaintext(P, s):
         # XOR first word with current block of plaintext
         s[0] ^= bytes_to_int(blocks[i])
         C += int_to_bytes(s[0], 64)  # add the result to the ciphertext
-        s = circ_perm.circ_ascon_perm(s, nr_rounds=6)
+        s = circ_perm.ascon_perm(s, nr_rounds=6)
     s[0] ^= bytes_to_int(blocks[-1])
     word1_in_binary = bin(s[0]).replace("0b", "")
     while len(word1_in_binary) < 64:
@@ -125,7 +124,7 @@ def processing_ciphertext(C, s):
         P_i = int_to_bytes(s[0] ^ bytes_to_int(blocks[i]), 64)
         P += P_i
         s[0] = bytes_to_int(blocks[i])
-        s = circ_perm.circ_ascon_perm(s, nr_rounds=6)
+        s = circ_perm.ascon_perm(s, nr_rounds=6)
 
     cipher_bits = len_c
     word1_in_binary = bin(s[0]).replace("0b", "")
@@ -150,7 +149,7 @@ def processing_ciphertext(C, s):
 def finalize(k, s):
     z = bytes_to_int(k + b'\x00' * 16)
     tmp = bytes_to_state(int_to_bytes(state_to_int(s) ^ z, 320))
-    s = circ_perm.circ_ascon_perm(tmp, nr_rounds=12)
+    s = circ_perm.ascon_perm(tmp, nr_rounds=12)
     s_binary = bin(state_to_int(s)).replace("0b", "")
     k_binary = bin(bytes_to_int(k)).replace("0b", "")
     short_s = s_binary[len(s_binary) - 128:]

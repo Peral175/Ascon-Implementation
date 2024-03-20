@@ -9,8 +9,65 @@ from wboxkit.masking import QuadLin
 from wboxkit.masking import DumShuf
 from wboxkit.serialize import RawSerializer
 
+nfsr = NFSR(
+    taps=[[], [11], [50], [3, 107]],
+    clocks_initial=100,
+    clocks_per_step=1,
+)
+prng = Pool(prng=nfsr, n=256)
 
-def circ_ascon_perm(state, nr_rounds=12):
+
+def input_state(state):
+    inp = []
+    for i in state:
+        for j in format(i, '#066b')[2:]:
+            inp.append(j)
+    return inp
+
+
+def ISW_transform(C):
+    ASCON_ISW = ISW(prng=prng, order=1).transform(C)
+    ASCON_ISW.in_place_remove_unused_nodes()
+    # ASCON_ISW.print_stats()
+    return ASCON_ISW
+
+
+def MINQ_transform(C):
+    ASCON_MINQ = MINQ(prng=prng).transform(C)
+    ASCON_MINQ.in_place_remove_unused_nodes()
+    ASCON_MINQ.print_stats()
+    return ASCON_MINQ
+
+
+def QuadLin_transform(C):
+    ASCON_QL = QuadLin(prng=prng, n_linear=3).transform(C)
+    ASCON_QL.in_place_remove_unused_nodes()
+    # ASCON_QL.print_stats()
+    return ASCON_QL
+
+
+def DumShuf_transform(C):
+    ASCON_DS = DumShuf(prng=prng, n_shares=2).transform(C)
+    ASCON_DS.in_place_remove_unused_nodes()
+    # ASCON_DS.print_stats()
+    return ASCON_DS
+
+
+def serialize_circuit(C, string):
+    RawSerializer().serialize_to_file(C, "bin/ascon128{}.bin".format(string))
+
+
+def output_state(out):
+    bin_str = ''
+    for j in range(320):
+        bin_str += str(out[j])
+    out = []
+    for i in range(0, 320, 64):
+        out.append(int(bin_str[i:i + 64], 2))
+    return out
+
+
+def ascon_perm(state, nr_rounds=12):
     # print(state)
     cr = [0xf0, 0xe1, 0xd2, 0xc3, 0xb4, 0xa5, 0x96, 0x87, 0x78, 0x69, 0x5a, 0x4b]
     C = BooleanCircuit(name="ascon_128_perm_boolean")
@@ -41,54 +98,32 @@ def circ_ascon_perm(state, nr_rounds=12):
 
     C.add_output([x0, x1, x2, x3, x4])
     C.in_place_remove_unused_nodes()
-    C.print_stats()
-    inp = []
-    for i in state:
-        for j in format(i, '#066b')[2:]:
-            inp.append(j)
-    out = C.evaluate(inp)
-
-    res = out
     # C.print_stats()
-    # C.digraph()
+
+    inp = input_state(state)  # input helper function
+
+    # out = C.evaluate(inp)           # regular circuit
+    # serialize_circuit(C, "-c")
+
+    # ASCON_ISW = ISW_transform(C)
+    # assert out == ASCON_ISW.evaluate(inp)
+    # out = ASCON_ISW.evaluate(inp)   # linear masking
+    # serialize_circuit(ASCON_ISW, "-isw")
+
+    # ASCON_MINQ = MINQ_transform(C)
+    # # assert out == ASCON_MINQ.evaluate(inp)
+    # out = ASCON_MINQ.evaluate(inp)  # non-linear masking
+    # serialize_circuit(ASCON_MINQ, "-minq")
+
+    ASCON_QL = QuadLin_transform(C)
+    # assert out == ASCON_QL.evaluate(inp)
+    out = ASCON_QL.evaluate(inp)    # combined masking
+    serialize_circuit(ASCON_QL, "-ql")
+
+    # ASCON_DS = DumShuf_transform(C)
+    # assert out == ASCON_DS.evaluate(inp)
+    # out = ASCON_DS.evaluate(inp)    # dummy shuffling
+    # serialize_circuit(ASCON_DS, "-ds")
+
     # print(out)
-
-    bin_str = ''
-    for j in range(320):
-        bin_str += str(out[j])
-    out = []
-    for i in range(0, 320, 64):
-        out.append(int(bin_str[i:i+64], 2))
-
-
-    # todo: how to do implementation here?
-    nfsr = NFSR(
-        taps=[[], [11], [50], [3, 107]],
-        clocks_initial=100,
-        clocks_per_step=1,
-    )
-    prng = Pool(prng=nfsr, n=256)
-
-    C_ASCON = ISW(prng=prng, order=1).transform(C)
-    C_ASCON.in_place_remove_unused_nodes()
-    C_ASCON.print_stats()
-    assert res == C_ASCON.evaluate(inp)
-
-    C_MINQ = MINQ(prng=prng).transform(C)
-    C_MINQ.in_place_remove_unused_nodes()
-    C_MINQ.print_stats()
-    assert res == C_MINQ.evaluate(inp)
-
-    C_QL = QuadLin(prng=prng, n_linear=3).transform(C)
-    C_QL.in_place_remove_unused_nodes()
-    C_QL.print_stats()
-    assert res == C_QL.evaluate(inp)
-
-    C_DS = DumShuf(prng=prng, n_shares=2).transform(C)
-    C_DS.in_place_remove_unused_nodes()
-    C_DS.print_stats()
-    assert res == C_DS.evaluate(inp)
-
-    RawSerializer().serialize_to_file(C, "ascon128.bin")
-    # print(out)
-    return out
+    return output_state(out)
