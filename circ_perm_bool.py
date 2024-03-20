@@ -28,7 +28,7 @@ def input_state(state):
 def ISW_transform(C):
     ASCON_ISW = ISW(prng=prng, order=1).transform(C)
     ASCON_ISW.in_place_remove_unused_nodes()
-    # ASCON_ISW.print_stats()
+    ASCON_ISW.print_stats()
     return ASCON_ISW
 
 
@@ -42,14 +42,14 @@ def MINQ_transform(C):
 def QuadLin_transform(C):
     ASCON_QL = QuadLin(prng=prng, n_linear=3).transform(C)
     ASCON_QL.in_place_remove_unused_nodes()
-    # ASCON_QL.print_stats()
+    ASCON_QL.print_stats()
     return ASCON_QL
 
 
 def DumShuf_transform(C):
     ASCON_DS = DumShuf(prng=prng, n_shares=2).transform(C)
     ASCON_DS.in_place_remove_unused_nodes()
-    # ASCON_DS.print_stats()
+    ASCON_DS.print_stats()
     return ASCON_DS
 
 
