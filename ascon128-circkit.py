@@ -3,20 +3,10 @@ Author: Alex Perrard
 ASCON Authenticated Encryption implementation in Python
 for Master Thesis at the University of Luxembourg.
 """
+import random
+
 import circ_perm_bool as circ_perm
 # import circ_perm
-
-msg = "hello there ascon"
-rate = 64  # 64 bits / 8 bytes for ASCON-128
-Key = 0x999cc63e91d1b4dd3e9e2f361dccd251
-Nonce = 0xf794f704aaf2343a9a34a2203fc2162c
-AssData = 0x4153434f4e  # "ASCON"
-Plaintext = int(hex(int.from_bytes(msg.encode(), "big")), base=16)  # 0x6173636f6e
-len_k = (bin(Key).replace("0b", "").__len__() + 1) // 8 * 8
-len_n = (bin(Nonce).replace("0b", "").__len__() + 1) // 8 * 8
-len_a = (bin(AssData).replace("0b", "").__len__() + 1) // 8 * 8
-len_p = (bin(Plaintext).replace("0b", "").__len__() + 1) // 8 * 8
-print(len_k, len_n, len_a, len_p)
 
 
 def int_to_bytes(i, bits):
@@ -59,7 +49,7 @@ def state_to_int(state):
     return bytes_to_int(s)
 
 
-def initialization(K, N):
+def initialization(K, N, len_k, len_n):
     IV = int_to_bytes(0x80400c0600000000, 64)  # hard coded ==> ASCON-128 (64 bits); hex to byte-string
     k = int_to_bytes(K, len_k)  # int to byte-string
     n = int_to_bytes(N, len_n)
@@ -70,7 +60,7 @@ def initialization(K, N):
     return k, s
 
 
-def processing_associated_data(A, s):
+def processing_associated_data(A, s, len_a, rate):
     if len_a > 0:
         pad = b'\x80' + b'\x00' * (rate // 8 - ((len_a // 8) % (rate // 8)) - 1)
         a = int_to_bytes(A, len_a) + pad
@@ -82,7 +72,7 @@ def processing_associated_data(A, s):
     return s
 
 
-def processing_plaintext(P, s):
+def processing_plaintext(P, s, len_p, rate):
     pad = b'\x80' + b'\x00' * ((rate // 8) - ((len_p // 8) % (rate // 8)) - 1)
     p = int_to_bytes(P, len_p) + pad
     # below we split the plain text into blocks of size equal to rate( = 8 bytes)
@@ -108,7 +98,7 @@ def processing_plaintext(P, s):
     return s, C
 
 
-def processing_ciphertext(C, s):
+def processing_ciphertext(C, s, rate):
     blocks = []
     len_c = (bin(bytes_to_int(C)).replace("0b", "").__len__() + 1) // 8 * 8
     for i in range(0, len_c // 8, rate // 8):
@@ -158,18 +148,18 @@ def finalize(k, s):
     return T
 
 
-def auth_enc(K, N, A, P):
-    k, s = initialization(K, N)  # Initialization
-    s = processing_associated_data(A, s)  # Processing Associated Data
-    s, C = processing_plaintext(P, s)  # Processing Plaintext
+def auth_enc(K, N, A, P, len_a, len_k, len_n, len_p, rate):
+    k, s = initialization(K, N, len_k, len_n)  # Initialization
+    s = processing_associated_data(A, s, len_a, rate)  # Processing Associated Data
+    s, C = processing_plaintext(P, s, len_p, rate)  # Processing Plaintext
     T = finalize(k, s)  # Finalization
     return C, T
 
 
-def verif_dec(K, N, A, C, T):
-    k, s = initialization(K, N)  # Initialization
-    s = processing_associated_data(A, s)  # Processing Associated Data
-    P, s = processing_ciphertext(C, s)  # Processing Ciphertext
+def verif_dec(K, N, A, C, T, len_a, len_k, len_n, rate):
+    k, s = initialization(K, N, len_k, len_n)  # Initialization
+    s = processing_associated_data(A, s, len_a, rate)  # Processing Associated Data
+    P, s = processing_ciphertext(C, s, rate)  # Processing Ciphertext
     T_prime = finalize(k, s)  # Finalization
     print("Tag from decryption: ", T_prime, hex(T_prime))
     if T == T_prime:
@@ -177,15 +167,40 @@ def verif_dec(K, N, A, C, T):
     return None
 
 
+def even_mansour(Key, Nonce, AssData, Plaintext, len_a, len_k, len_n, rate):
+    k1 = 1864153371988138566310184076227455979937920383739113874906460905941393862635073576112783636420608
+    k2 = 1714313932848874241987547000415288128608049748657619831161145666179125759211065622864055564976788
+    # random.getrandbits(320)
+    len_p = 320
+    C, T = auth_enc(Key, Nonce, AssData, Plaintext ^ k1, len_a, len_k, len_n, len_p, rate)
+    out = bytes_to_int(C) ^ k2
+    print(Plaintext ^ k1)
+    print(out)
+
+
 def main():
-    C, T = auth_enc(Key, Nonce, AssData, Plaintext)
+    msg = "hello there ascon"
+    rate = 64  # 64 bits / 8 bytes for ASCON-128
+    Key = 0x999cc63e91d1b4dd3e9e2f361dccd251
+    Nonce = 0xf794f704aaf2343a9a34a2203fc2162c
+    AssData = 0x4153434f4e  # "ASCON"
+    Plaintext = int(hex(int.from_bytes(msg.encode(), "big")), base=16)  # 0x6173636f6e
+    len_k = (bin(Key).replace("0b", "").__len__() + 1) // 8 * 8
+    len_n = (bin(Nonce).replace("0b", "").__len__() + 1) // 8 * 8
+    len_a = (bin(AssData).replace("0b", "").__len__() + 1) // 8 * 8
+    len_p = (bin(Plaintext).replace("0b", "").__len__() + 1) // 8 * 8
+    print(len_k, len_n, len_a, len_p)
+
+    C, T = auth_enc(Key, Nonce, AssData, Plaintext, len_a, len_k, len_n, len_p, rate)
     print("Plain text:  ", msg, hex(Plaintext))
     print("Ciphertext: ", C, hex(int.from_bytes(C, byteorder='big')), "\nTag from encryption: ", T, hex(T))
-    res = verif_dec(Key, Nonce, AssData, C, T)
+    res = verif_dec(Key, Nonce, AssData, C, T, len_a, len_k, len_n, rate)
     if res is None:
         print("Tag did not match!")
     else:
         print("Verification:", res.decode(), hex(int.from_bytes(res, byteorder='big')))
+
+    # even_mansour(Key, Nonce, AssData, Plaintext, len_a, len_k, len_n, rate)
 
 
 if __name__ == '__main__':
