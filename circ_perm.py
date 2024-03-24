@@ -1,3 +1,7 @@
+"""
+This file is redundant; see circ_perm_bool.py for the boolean circuit."
+"""
+
 # import sys
 from circkit.bitwise import BitwiseCircuit
 # sys.path.append("../../")
