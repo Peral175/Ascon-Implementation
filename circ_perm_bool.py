@@ -6,6 +6,7 @@ from wboxkit.masking import ISW
 from wboxkit.prng import NFSR, Pool
 from wboxkit.masking import MINQ
 from wboxkit.masking import QuadLin
+from wboxkit.masking import CubeLin
 from wboxkit.masking import DumShuf
 from wboxkit.serialize import RawSerializer
 
@@ -25,8 +26,8 @@ def input_state(state):
     return inp
 
 
-def ISW_transform(C):
-    ASCON_ISW = ISW(prng=prng, order=1).transform(C)
+def ISW_transform(C, order):
+    ASCON_ISW = ISW(prng=prng, order=order).transform(C)
     ASCON_ISW.in_place_remove_unused_nodes()
     ASCON_ISW.print_stats()
     return ASCON_ISW
@@ -39,15 +40,22 @@ def MINQ_transform(C):
     return ASCON_MINQ
 
 
-def QuadLin_transform(C):
-    ASCON_QL = QuadLin(prng=prng, n_linear=3).transform(C)
+def QuadLin_transform(C, n_linear):
+    ASCON_QL = QuadLin(prng=prng, n_linear=n_linear).transform(C)
     ASCON_QL.in_place_remove_unused_nodes()
     ASCON_QL.print_stats()
     return ASCON_QL
 
 
-def DumShuf_transform(C):
-    ASCON_DS = DumShuf(prng=prng, n_shares=2).transform(C)
+def CubeLin_transform(C, n_linear):
+    ASCON_CL = CubeLin(prng=prng, n_linear=n_linear).transform(C)
+    ASCON_CL.in_place_remove_unused_nodes()
+    ASCON_CL.print_stats()
+    return ASCON_CL
+
+
+def DumShuf_transform(C, n_shares):
+    ASCON_DS = DumShuf(prng=prng, n_shares=n_shares).transform(C)
     ASCON_DS.in_place_remove_unused_nodes()
     ASCON_DS.print_stats()
     return ASCON_DS
@@ -81,7 +89,7 @@ def ascon_perm(state, nr_rounds=12):
         # Round Constant Addition
         x2 ^= Array(Bin(cr[r + 12 - nr_rounds], 64))
 
-        # Substitution Layer    -- are these automatically parallelized?
+        # Substitution Layer
         x0 ^= x4;   x4 ^= x3;   x2 ^= x1
         t0 = x0;    t1 = x1;    t2 = x2;    t3 = x3;    t4 = x4
         t0 = ~t0;   t1 = ~t1;   t2 = ~t2;   t3 = ~t3;   t4 = ~t4
@@ -102,11 +110,12 @@ def ascon_perm(state, nr_rounds=12):
 
     inp = input_state(state)  # input helper function
 
-    # out = C.evaluate(inp)           # regular circuit
+    out = C.evaluate(inp)           # regular circuit
+    # print("C1: ", out)
     # serialize_circuit(C, "-c")
 
-    # ASCON_ISW = ISW_transform(C)
-    # assert out == ASCON_ISW.evaluate(inp)
+    # ASCON_ISW = ISW_transform(C, 2)
+    # # assert out == ASCON_ISW.evaluate(inp)
     # out = ASCON_ISW.evaluate(inp)   # linear masking
     # serialize_circuit(ASCON_ISW, "-isw")
 
@@ -115,13 +124,19 @@ def ascon_perm(state, nr_rounds=12):
     # out = ASCON_MINQ.evaluate(inp)  # non-linear masking
     # serialize_circuit(ASCON_MINQ, "-minq")
 
-    ASCON_QL = QuadLin_transform(C)
-    # assert out == ASCON_QL.evaluate(inp)
-    out = ASCON_QL.evaluate(inp)    # combined masking
-    serialize_circuit(ASCON_QL, "-ql")
+    ASCON_QL = QuadLin_transform(C, n_linear=2)
+    assert out == ASCON_QL.evaluate(inp)
+    out = ASCON_QL.evaluate(inp)    # combined masking - 2 non-linear shares
+    # serialize_circuit(ASCON_QL, "-ql")
+
+    ASCON_CL = CubeLin_transform(C, n_linear=2)
+    assert out == ASCON_CL.evaluate(inp)
+    out = ASCON_CL.evaluate(inp)    # combined masking - 3 non-linear shares
+    # print("C2: ", out)
+    # serialize_circuit(ASCON_CL, "-cl")
 
     # ASCON_DS = DumShuf_transform(C)
-    # assert out == ASCON_DS.evaluate(inp)
+    # # assert out == ASCON_DS.evaluate(inp)
     # out = ASCON_DS.evaluate(inp)    # dummy shuffling
     # serialize_circuit(ASCON_DS, "-ds")
 
