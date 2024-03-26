@@ -6,7 +6,7 @@ from wboxkit.masking import ISW
 from wboxkit.prng import NFSR, Pool
 from wboxkit.masking import MINQ
 from wboxkit.masking import QuadLin
-from wboxkit.masking import CubeLin
+from myMasking import CubeLin
 from wboxkit.masking import DumShuf
 from wboxkit.serialize import RawSerializer
 
@@ -112,24 +112,24 @@ def ascon_perm(state, nr_rounds=12):
 
     out = C.evaluate(inp)           # regular circuit
     # print("C1: ", out)
-    # serialize_circuit(C, "-c")
+    serialize_circuit(C, "-clear")
 
-    # ASCON_ISW = ISW_transform(C, 2)
-    # # assert out == ASCON_ISW.evaluate(inp)
-    # out = ASCON_ISW.evaluate(inp)   # linear masking
-    # serialize_circuit(ASCON_ISW, "-isw")
+    ASCON_ISW = ISW_transform(C, 3)
+    assert out == ASCON_ISW.evaluate(inp)
+    out = ASCON_ISW.evaluate(inp)   # linear masking
+    serialize_circuit(ASCON_ISW, "-isw_3")
 
     # ASCON_MINQ = MINQ_transform(C)
     # # assert out == ASCON_MINQ.evaluate(inp)
     # out = ASCON_MINQ.evaluate(inp)  # non-linear masking
     # serialize_circuit(ASCON_MINQ, "-minq")
 
-    ASCON_QL = QuadLin_transform(C, n_linear=2)
-    assert out == ASCON_QL.evaluate(inp)
-    out = ASCON_QL.evaluate(inp)    # combined masking - 2 non-linear shares
+    # ASCON_QL = QuadLin_transform(C, n_linear=2)
+    # assert out == ASCON_QL.evaluate(inp)
+    # out = ASCON_QL.evaluate(inp)    # combined masking - 2 non-linear shares
     # serialize_circuit(ASCON_QL, "-ql")
 
-    ASCON_CL = CubeLin_transform(C, n_linear=2)
+    ASCON_CL = CubeLin_transform(C, n_linear=3)
     assert out == ASCON_CL.evaluate(inp)
     out = ASCON_CL.evaluate(inp)    # combined masking - 3 non-linear shares
     # print("C2: ", out)
