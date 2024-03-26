@@ -2,3 +2,4 @@
 .venv/
 C_Ascon/
 bin/
+traces/
