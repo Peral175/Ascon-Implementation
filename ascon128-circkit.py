@@ -6,7 +6,44 @@ for Master Thesis at the University of Luxembourg.
 import random
 
 import circ_perm_bool as circ_perm
+
+
 # import circ_perm
+
+
+def state_to_binary(s):
+    i = state_to_int(s)
+    b = int_to_bytes(i, 320)
+    return bytes_to_binary(b)
+
+
+def int_to_binary(i):
+    arr = []
+    binary = bin(i)[2:]
+    for i in binary:
+        arr.append(i)
+    while len(arr) < 320:
+        arr.insert(0, 0)
+    return arr
+
+
+def bytes_to_binary(byte):
+    arr = []
+    integer = bytes_to_int(byte)
+    binary = bin(integer)[2:]
+    for i in binary:
+        arr.append(i)
+    while len(arr) < 320:
+        arr.insert(0, 0)
+    return arr
+
+
+def binary_to_int(b_arr):
+    r = "0b"
+    for i in b_arr:
+        r += str(i)
+    r = int(r, base=2)
+    return r
 
 
 def int_to_bytes(i, bits):
@@ -53,9 +90,11 @@ def initialization(K, N, len_k, len_n):
     IV = int_to_bytes(0x80400c0600000000, 64)  # hard coded ==> ASCON-128 (64 bits); hex to byte-string
     k = int_to_bytes(K, len_k)  # int to byte-string
     n = int_to_bytes(N, len_n)
-    s = bytes_to_state(IV + k + n)  # concatenate IV with Key and Nonce
+    # s = bytes_to_state(IV + k + n)  # concatenate IV with Key and Nonce
+    s = bytes_to_binary(IV + k + n)
     p_a = (circ_perm.ascon_perm(s, nr_rounds=12))
-    s_int = state_to_int(p_a) ^ K  # perform permutation on state, followed by XOR-ing the key
+    s_int = binary_to_int(p_a) ^ K
+    # s_int = state_to_int(p_a) ^ K  # perform permutation on state, followed by XOR-ing the key
     s = bytes_to_state(int_to_bytes(s_int, 320))  # transform to state for later
     return k, s
 
@@ -67,7 +106,9 @@ def processing_associated_data(A, s, len_a, rate):
         for i in range(0, len_a, rate):
             # first word is XOR-ed with current associated date block
             s[0] ^= bytes_to_int(a[i:i + rate])
-            s = circ_perm.ascon_perm(s, nr_rounds=6)
+            s_b = state_to_binary(s)
+            s = circ_perm.ascon_perm(s_b, nr_rounds=6)
+            s = bytes_to_state(int_to_bytes(binary_to_int(s), 320))
     s[4] ^= 1
     return s
 
@@ -84,7 +125,10 @@ def processing_plaintext(P, s, len_p, rate):
         # XOR first word with current block of plaintext
         s[0] ^= bytes_to_int(blocks[i])
         C += int_to_bytes(s[0], 64)  # add the result to the ciphertext
-        s = circ_perm.ascon_perm(s, nr_rounds=6)
+        s_b = state_to_binary(s)
+        s = circ_perm.ascon_perm(s_b, nr_rounds=6)
+        s = bytes_to_state(int_to_bytes(binary_to_int(s), 320))
+
     s[0] ^= bytes_to_int(blocks[-1])
     word1_in_binary = bin(s[0]).replace("0b", "")
     while len(word1_in_binary) < 64:
@@ -114,7 +158,9 @@ def processing_ciphertext(C, s, rate):
         P_i = int_to_bytes(s[0] ^ bytes_to_int(blocks[i]), 64)
         P += P_i
         s[0] = bytes_to_int(blocks[i])
-        s = circ_perm.ascon_perm(s, nr_rounds=6)
+        s_b = state_to_binary(s)
+        s = circ_perm.ascon_perm(s_b, nr_rounds=6)
+        s = bytes_to_state(int_to_bytes(binary_to_int(s), 320))
 
     cipher_bits = len_c
     word1_in_binary = bin(s[0]).replace("0b", "")
@@ -139,7 +185,10 @@ def processing_ciphertext(C, s, rate):
 def finalize(k, s):
     z = bytes_to_int(k + b'\x00' * 16)
     tmp = bytes_to_state(int_to_bytes(state_to_int(s) ^ z, 320))
-    s = circ_perm.ascon_perm(tmp, nr_rounds=12)
+    s_b = state_to_binary(s)
+    s = circ_perm.ascon_perm(s_b, nr_rounds=12)
+    s = bytes_to_state(int_to_bytes(binary_to_int(s), 320))
+
     s_binary = bin(state_to_int(s)).replace("0b", "")
     k_binary = bin(bytes_to_int(k)).replace("0b", "")
     short_s = s_binary[len(s_binary) - 128:]
@@ -167,19 +216,25 @@ def verif_dec(K, N, A, C, T, len_a, len_k, len_n, rate):
     return None
 
 
-def even_mansour(Key, Nonce, AssData, Plaintext, len_a, len_k, len_n, rate):
+def even_mansour():
     k1 = 1864153371988138566310184076227455979937920383739113874906460905941393862635073576112783636420608
     k2 = 1714313932848874241987547000415288128608049748657619831161145666179125759211065622864055564976788
-    # random.getrandbits(320)
-    len_p = 320
-    C, T = auth_enc(Key, Nonce, AssData, Plaintext ^ k1, len_a, len_k, len_n, len_p, rate)
-    out = bytes_to_int(C) ^ k2
-    print(Plaintext ^ k1)
-    print(out)
+    random_bits = random.getrandbits(320)
+    print("Random bits: ", random_bits)
+    t1 = random_bits ^ k1
+    print("First XOR  : ", t1)
+    t1 = int_to_binary(t1)
+    res = circ_perm.ascon_perm(state=t1, nr_rounds=12)
+    r1 = binary_to_int(res)
+    print("First res:   ", r1)
+    t2 = r1 ^ k2
+    print("Second XOR:  ", t2)
+
+    # what about inverse/decryption ?
 
 
 def main():
-    msg = "hello there ascon"
+    msg = "hello there ascon!"
     rate = 64  # 64 bits / 8 bytes for ASCON-128
     Key = 0x999cc63e91d1b4dd3e9e2f361dccd251
     Nonce = 0xf794f704aaf2343a9a34a2203fc2162c
@@ -189,7 +244,7 @@ def main():
     len_n = (bin(Nonce).replace("0b", "").__len__() + 1) // 8 * 8
     len_a = (bin(AssData).replace("0b", "").__len__() + 1) // 8 * 8
     len_p = (bin(Plaintext).replace("0b", "").__len__() + 1) // 8 * 8
-    print(len_k, len_n, len_a, len_p)
+    print("bit sizes: ", len_k, len_n, len_a, len_p)
 
     C, T = auth_enc(Key, Nonce, AssData, Plaintext, len_a, len_k, len_n, len_p, rate)
     print("Plain text:  ", msg, hex(Plaintext))
@@ -198,9 +253,10 @@ def main():
     if res is None:
         print("Tag did not match!")
     else:
+        assert (res.decode() == msg)
         print("Verification:", res.decode(), hex(int.from_bytes(res, byteorder='big')))
 
-    # even_mansour(Key, Nonce, AssData, Plaintext, len_a, len_k, len_n, rate)
+    even_mansour()
 
 
 if __name__ == '__main__':

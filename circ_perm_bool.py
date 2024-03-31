@@ -18,12 +18,22 @@ nfsr = NFSR(
 prng = Pool(prng=nfsr, n=256)
 
 
-def input_state(state):
-    inp = []
-    for i in state:
-        for j in format(i, '#066b')[2:]:
-            inp.append(j)
-    return inp
+# def input_state(state):
+#     inp = []
+#     for i in state:
+#         for j in format(i, '#066b')[2:]:
+#             inp.append(j)
+#     return inp
+
+
+# def output_state(out):
+#     bin_str = ''
+#     for j in range(320):
+#         bin_str += str(out[j])
+#     out = []
+#     for i in range(0, 320, 64):
+#         out.append(int(bin_str[i:i + 64], 2))
+#     return out
 
 
 def ISW_transform(C, order):
@@ -65,16 +75,6 @@ def serialize_circuit(C, string):
     RawSerializer().serialize_to_file(C, "bin/ascon128{}.bin".format(string))
 
 
-def output_state(out):
-    bin_str = ''
-    for j in range(320):
-        bin_str += str(out[j])
-    out = []
-    for i in range(0, 320, 64):
-        out.append(int(bin_str[i:i + 64], 2))
-    return out
-
-
 def ascon_perm(state, nr_rounds=12):
     # print(state)
     cr = [0xf0, 0xe1, 0xd2, 0xc3, 0xb4, 0xa5, 0x96, 0x87, 0x78, 0x69, 0x5a, 0x4b]
@@ -108,31 +108,32 @@ def ascon_perm(state, nr_rounds=12):
     C.in_place_remove_unused_nodes()
     # C.print_stats()
 
-    inp = input_state(state)  # input helper function
+    # print("state: ", state, len(state))
+    inp = state     # input_state(state)  # input helper function
 
     out = C.evaluate(inp)           # regular circuit
     # print("C1: ", out)
     serialize_circuit(C, "-clear")
 
-    ASCON_ISW = ISW_transform(C, 3)
-    assert out == ASCON_ISW.evaluate(inp)
-    out = ASCON_ISW.evaluate(inp)   # linear masking
-    serialize_circuit(ASCON_ISW, "-isw_3")
-
+    # ASCON_ISW = ISW_transform(C, 3)
+    # assert out == ASCON_ISW.evaluate(inp)
+    # out = ASCON_ISW.evaluate(inp)   # linear masking
+    # serialize_circuit(ASCON_ISW, "-isw_3")
+    #
     # ASCON_MINQ = MINQ_transform(C)
-    # # assert out == ASCON_MINQ.evaluate(inp)
+    # assert out == ASCON_MINQ.evaluate(inp)
     # out = ASCON_MINQ.evaluate(inp)  # non-linear masking
     # serialize_circuit(ASCON_MINQ, "-minq")
-
+    #
     # ASCON_QL = QuadLin_transform(C, n_linear=2)
     # assert out == ASCON_QL.evaluate(inp)
     # out = ASCON_QL.evaluate(inp)    # combined masking - 2 non-linear shares
     # serialize_circuit(ASCON_QL, "-ql")
-
-    ASCON_CL = CubeLin_transform(C, n_linear=3)
-    assert out == ASCON_CL.evaluate(inp)
-    out = ASCON_CL.evaluate(inp)    # combined masking - 3 non-linear shares
-    # print("C2: ", out)
+    #
+    # ASCON_CL = CubeLin_transform(C, n_linear=3)
+    # assert out == ASCON_CL.evaluate(inp)
+    # out = ASCON_CL.evaluate(inp)    # combined masking - 3 non-linear shares
+    # # print("C2: ", out)
     # serialize_circuit(ASCON_CL, "-cl")
 
     # ASCON_DS = DumShuf_transform(C)
@@ -141,4 +142,5 @@ def ascon_perm(state, nr_rounds=12):
     # serialize_circuit(ASCON_DS, "-ds")
 
     # print(out)
-    return output_state(out)
+    # return output_state(out)
+    return out

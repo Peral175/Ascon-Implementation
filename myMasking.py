@@ -142,7 +142,7 @@ class CubeLin(MaskingTransformer):
         #       (r0 & ( (tr2 & (tx0 ^ r0)) ^ (tr1 & (tx0 ^ r0)) ^ (tr0 & (tx1 ^ r0))) ) ^
         #       (r0 & ( (tr2 & (tx1 ^ r0)) ^ (tr1 & (tx2 ^ r0)) ^ (tr0 & (tx2 ^ r0))) )
         #      )
-        W = tr1 & tr2  & (tx0 ^ r0) ^ tr0 & tr1 & (tx2 ^ r0) ^ tr0 & tr2 & (tx1 ^ r0) ^ tr2 & (tx0 ^ r0) & (tx1 ^ r0) ^ tr1 & (tx0 ^ r0) & (tx2 ^ r0) ^ tr0 & (tx1 ^ r0) & (tx2 ^ r0)
+        W = tr1 & tr2 & (tx0 ^ r0) ^ tr0 & tr1 & (tx2 ^ r0) ^ tr0 & tr2 & (tx1 ^ r0) ^ tr2 & (tx0 ^ r0) & (tx1 ^ r0) ^ tr1 & (tx0 ^ r0) & (tx2 ^ r0) ^ tr0 & (tx1 ^ r0) & (tx2 ^ r0)
         R = (tr0 ^ r0) & (tr1 ^ r0) & (tr2 ^ r0) ^ tr2 & r0 & (tx0 ^ tx1) ^ tr1 & r0 & (tx0 ^ tx2) ^ tr0 & r0 & (tx1 ^ tx2) ^ r0
         x[-1] ^= W ^ R
         return tx0, tx1, tx2, Array(x)
@@ -214,7 +214,9 @@ class CubeLin(MaskingTransformer):
         return x[0], x[1], x[2], lins
 
 
+#########################################################################################
 # DEBUGGING BELOW
+#
 # from wboxkit.prng import NFSR, Pool
 # from circkit.boolean import OptBooleanCircuit as BooleanCircuit
 # nfsr = NFSR(taps=[[], [11], [50], [3, 107]], clocks_initial=100, clocks_per_step=1,)
@@ -233,9 +235,7 @@ class CubeLin(MaskingTransformer):
 # # C1:  [0, 1, 1, 0, 1, 0, 0, 1, 0]
 # C.add_output([x0, x1, x2, x3, x4, x5, x7, x6, x8])
 # C.in_place_remove_unused_nodes()
-#
 # inp = [1, 0]
-#
 # out = C.evaluate(inp)           # regular circuit
 # print("C1: ", out)
 # ASCON_CL = CubeLin( n_linear=1).transform(C)
@@ -245,4 +245,4 @@ class CubeLin(MaskingTransformer):
 # print("C2: ", out2)
 # assert out2 == out
 #
-# # Assertion fails only sometimes ==> refresh must be the problem ?
+# # Assertion fails only sometimes ==> refresh must be the problem --> yes
