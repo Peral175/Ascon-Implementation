@@ -220,7 +220,8 @@ def even_mansour():
     k1 = 1864153371988138566310184076227455979937920383739113874906460905941393862635073576112783636420608
     k2 = 1714313932848874241987547000415288128608049748657619831161145666179125759211065622864055564976788
     random_bits = random.getrandbits(320)
-    print("Random bits: ", random_bits)
+    random_bits = 775287888347336648198089042723823560579471882026599887477264973818539934634422062502103904355339
+    print("Random bits: ", random_bits, random_bits.bit_length())
     t1 = random_bits ^ k1
     print("First XOR  : ", t1)
     t1 = int_to_binary(t1)
@@ -231,30 +232,31 @@ def even_mansour():
     print("Second XOR:  ", t2)
 
     # what about inverse/decryption ?
+    # first res; 197628412609335451556999005542311421855262055357998817055359137392124264784496428599266628378792
 
 
 def main():
-    msg = "hello there ascon!"
-    rate = 64  # 64 bits / 8 bytes for ASCON-128
-    Key = 0x999cc63e91d1b4dd3e9e2f361dccd251
-    Nonce = 0xf794f704aaf2343a9a34a2203fc2162c
-    AssData = 0x4153434f4e  # "ASCON"
-    Plaintext = int(hex(int.from_bytes(msg.encode(), "big")), base=16)  # 0x6173636f6e
-    len_k = (bin(Key).replace("0b", "").__len__() + 1) // 8 * 8
-    len_n = (bin(Nonce).replace("0b", "").__len__() + 1) // 8 * 8
-    len_a = (bin(AssData).replace("0b", "").__len__() + 1) // 8 * 8
-    len_p = (bin(Plaintext).replace("0b", "").__len__() + 1) // 8 * 8
-    print("bit sizes: ", len_k, len_n, len_a, len_p)
-
-    C, T = auth_enc(Key, Nonce, AssData, Plaintext, len_a, len_k, len_n, len_p, rate)
-    print("Plain text:  ", msg, hex(Plaintext))
-    print("Ciphertext: ", C, hex(int.from_bytes(C, byteorder='big')), "\nTag from encryption: ", T, hex(T))
-    res = verif_dec(Key, Nonce, AssData, C, T, len_a, len_k, len_n, rate)
-    if res is None:
-        print("Tag did not match!")
-    else:
-        assert (res.decode() == msg)
-        print("Verification:", res.decode(), hex(int.from_bytes(res, byteorder='big')))
+    # msg = "hello there ascon!"
+    # rate = 64  # 64 bits / 8 bytes for ASCON-128
+    # Key = 0x999cc63e91d1b4dd3e9e2f361dccd251
+    # Nonce = 0xf794f704aaf2343a9a34a2203fc2162c
+    # AssData = 0x4153434f4e  # "ASCON"
+    # Plaintext = int(hex(int.from_bytes(msg.encode(), "big")), base=16)  # 0x6173636f6e
+    # len_k = (bin(Key).replace("0b", "").__len__() + 1) // 8 * 8
+    # len_n = (bin(Nonce).replace("0b", "").__len__() + 1) // 8 * 8
+    # len_a = (bin(AssData).replace("0b", "").__len__() + 1) // 8 * 8
+    # len_p = (bin(Plaintext).replace("0b", "").__len__() + 1) // 8 * 8
+    # print("bit sizes: ", len_k, len_n, len_a, len_p)
+    #
+    # C, T = auth_enc(Key, Nonce, AssData, Plaintext, len_a, len_k, len_n, len_p, rate)
+    # print("Plain text:  ", msg, hex(Plaintext))
+    # print("Ciphertext: ", C, hex(int.from_bytes(C, byteorder='big')), "\nTag from encryption: ", T, hex(T))
+    # res = verif_dec(Key, Nonce, AssData, C, T, len_a, len_k, len_n, rate)
+    # if res is None:
+    #     print("Tag did not match!")
+    # else:
+    #     assert (res.decode() == msg)
+    #     print("Verification:", res.decode(), hex(int.from_bytes(res, byteorder='big')))
 
     even_mansour()
 

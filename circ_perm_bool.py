@@ -112,33 +112,31 @@ def ascon_perm(state, nr_rounds=12):
     inp = state     # input_state(state)  # input helper function
 
     out = C.evaluate(inp)           # regular circuit
-    # print("C1: ", out)
     serialize_circuit(C, "-clear")
 
     # ASCON_ISW = ISW_transform(C, 3)
-    # assert out == ASCON_ISW.evaluate(inp)
-    # out = ASCON_ISW.evaluate(inp)   # linear masking
+    # out_isw = ASCON_ISW.evaluate(inp)  # linear masking
+    # assert out == out_isw
     # serialize_circuit(ASCON_ISW, "-isw_3")
-    #
+
     # ASCON_MINQ = MINQ_transform(C)
-    # assert out == ASCON_MINQ.evaluate(inp)
-    # out = ASCON_MINQ.evaluate(inp)  # non-linear masking
+    # out_minq = ASCON_MINQ.evaluate(inp)  # non-linear masking
+    # assert out == out_minq
     # serialize_circuit(ASCON_MINQ, "-minq")
-    #
+
     # ASCON_QL = QuadLin_transform(C, n_linear=2)
-    # assert out == ASCON_QL.evaluate(inp)
-    # out = ASCON_QL.evaluate(inp)    # combined masking - 2 non-linear shares
+    # out_ql = ASCON_QL.evaluate(inp)  # combined masking - 2 non-linear shares
+    # assert out == out_ql
     # serialize_circuit(ASCON_QL, "-ql")
-    #
+
     # ASCON_CL = CubeLin_transform(C, n_linear=3)
-    # assert out == ASCON_CL.evaluate(inp)
-    # out = ASCON_CL.evaluate(inp)    # combined masking - 3 non-linear shares
-    # # print("C2: ", out)
+    # out_cl = ASCON_CL.evaluate(inp)  # combined masking - 3 non-linear shares
+    # assert out == out_cl
     # serialize_circuit(ASCON_CL, "-cl")
 
-    # ASCON_DS = DumShuf_transform(C)
-    # # assert out == ASCON_DS.evaluate(inp)
-    # out = ASCON_DS.evaluate(inp)    # dummy shuffling
+    # ASCON_DS = DumShuf_transform(C, n_shares=3)
+    # out_ds = ASCON_DS.evaluate(inp)  # dummy shuffling
+    # assert out == out_ds
     # serialize_circuit(ASCON_DS, "-ds")
 
     # print(out)

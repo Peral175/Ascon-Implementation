@@ -1,16 +1,13 @@
 from wboxkit.fastcircuit import FastCircuit
 
-# plaintext = b'\x80@\x0c\x06\x00\x00\x00\x00\x99\x9c\xc6>\x91\xd1\xb4\xdd>\x9e/6\x1d\xcc\xd2Q\xf7\x94\xf7\x04\xaa\xf24:\x9a4\xa2?\xc2\x16,'
-# print("ASDF", (1456368917841900354909994607035206380306984454581905284118412146294954714463664271767293188202296).to_bytes(40, byteorder='big', signed=False))
-# print("ADFG", int.from_bytes(b'R\x12\xa0\x89\xf51K\x98\xe5\xf0\x1c[`E-\xe5huo\x8c+4\x1c\x0c\xa1\xce-\x8a\x18\x92m\xf9\x9d:\xdc\x881\xe0\xeb\xba', byteorder='big'))
-# print("ADFG", int.from_bytes(b'\xe3\xceg^\xaaY(e\xe6\xc6\xaf]\xd3\xd4\x03\x87\xa2W5x+\t)k\x8f\xb2\xd4w\x17\x14*&\xfd\x17]\x19\x15\x15\xf1\xf1', byteorder='big'))
-###
-# not yet fully understood!
-plaintext = b'hello there ascon!'
-
+# plaintext = b'hello there ascon!'
+plaintext = (1097225512173192901620296578338726613688202740309944764736862352059861986321020448584864249076747).to_bytes(40, byteorder='big', signed=False)
+print("Input:", plaintext)
 FC = FastCircuit("circuits/ascon128-clear.bin")
 ciphertext = FC.compute_one(plaintext, trace_filename="traces/test-1-clear")
-print(ciphertext)
+print("Output:", ciphertext, "\n", ciphertext.hex(), "\n",  int.from_bytes(ciphertext, byteorder='big'))
+
+# todo:  """Process finished with exit code 139 (interrupted by signal 11:SIGSEGV)""" error stems from above
 
 # ciphertexts = FC.compute_batch(
 #     [b'Hello ascon1', b'Hello ascon2'] * 4,
@@ -21,7 +18,39 @@ print(ciphertext)
 # with open("traces/test-2-clear", "rb") as f:
 #     print(f.read(128).hex())
 
-with open("traces/test-1-clear", "rb") as f:
-    print(f.read(32).hex())
+# with open("traces/test-1-clear", "rb") as f:
+#     print("Read hex: ", f.read(32).hex())
 
-# CMD: > wboxkit.trace -T 256 circuits/aes10.bin traces/
+# wboxkit.trace -T 256 circuits/aes10.bin traces/
+# ls -al traces/aes10/ | tail
+print("Traces: ")
+with open("traces/ascon128-clear/0000.bin", "rb") as f:
+    print(f.read(32).hex())
+f.close()
+# todo: d30ea3957a490a4d2a0ab3aac5156a6d9f827f20f20e3cc24cf15c6a85b6f5b2 why?
+
+with open("traces/ascon128-isw_3/0000.bin", "rb") as f:
+    print(f.read(32).hex())
+f.close()
+
+with open("traces/ascon128-minq/0000.bin", "rb") as f:
+    print(f.read(32).hex())
+f.close()
+
+with open("traces/ascon128-ql/0000.bin", "rb") as f:
+    print(f.read(32).hex())
+f.close()
+
+with open("traces/ascon128-cl/0000.bin", "rb") as f:
+    print(f.read(32).hex())
+f.close()
+
+with open("traces/ascon128-ds/0000.bin", "rb") as f:
+    print(f.read(32).hex())
+f.close()
+
+# Why are all the same except clear ascon?
+# todo: Trace Boolean circuit serialized by wboxkit on random inputs --> random?
+
+# wboxkit.exact traces/ascon128-clear/
+# todo: how to specify ascon? --> expand wboxkit with ASCON?
