@@ -31,9 +31,7 @@ args = parser.parse_args()
 T = args.n_traces
 numOfBytes = os.path.getsize(args.trace_dir / "0000.bin")
 numOfNodes = numOfBytes * 8
-# numOfNodes = 5825
 mode = args.mode
-print("T = ", T)
 print("numOfBytes = ", numOfBytes)
 print("numOfNodes = ", numOfNodes)
 
@@ -80,51 +78,72 @@ for traceNumber in range(T):
         TRACES += [f.read(numOfBytes)]
 mostProbableKey = [-1] * 16
 M = []
-S = []
 for node in range(numOfNodes):
     nodeVector = 0
     for traceNumber in range(T):
         nodeVector ^= ((TRACES[traceNumber][node // 8] >> node % 8) & 0b1) << traceNumber
     M.append(nodeVector)
-# print(len(M))
-m = np.zeros((numOfNodes, T))
+SOLUTION = []
+N = numOfNodes
+K = 8
+win = np.zeros((T, K), dtype=int)
+for i in range(0, N-K+1, K//2):
+    w = M[i:i+K]
+    for j in range(len(w)):
+        for b in range(T):
+            win[b, j] = bin(w[j])[2:].zfill(256)[b]
+    mat = Matrix(win)
+    ctr = 0
+    for k in dict:
+        k_bits = vector(ZZ, bin(k)[2:].zfill(256))
+        try:
+            X = mat.solve_right(k_bits)
+            print("Found key byte: ", X, i, k, chr(ctr))
+            SOLUTION.append((i, chr(ctr)))
+            continue
+        except ValueError as e:
+            if ctr % 1000 == 0:
+                print(i, ctr, e, len(dict), numOfNodes, mat.dimensions(), len(k_bits))
+        ctr += 1
+print(SOLUTION)
+# m = np.zeros((numOfNodes, T))
 # m = matrix(T, numOfNodes)
-for i in range(numOfNodes):
-    curr = M[i]
-    bla = bin(curr)[2:].zfill(256)
-    for j in range(T):
-        m[i, j] = bla[j]
-m = m.T
+# for i in range(numOfNodes):
+#     curr = M[i]
+#     bla = bin(curr)[2:].zfill(256)
+#     for j in range(T):
+#         m[i, j] = bla[j]
+# m = m.T
 # print(m.shape)
-dic = list(dict)
-s = np.zeros((256, 256))
+# dic = list(dict)
+# s = np.zeros((256, 256))
 # s = matrix(256, T)
-for i in range(256):
-    curr = dic[i]
-    bla = bin(curr)[2:].zfill(256)
-    for j in range(256):
-        s[i, j] = bla[j]     # size is the problem here
-s = s.T
-w_l = 5
-n_l = 256
-XXX = []
-for i in range(0,numOfNodes,1):
-    if len(XXX) < w_l:
-        XXX.append(m[:, i])
-        # XXX[:] = m[:, i:i + w_l]
-    if len(XXX) == w_l:
-        mat = Matrix(ZZ, XXX)
-        mat = mat.T
-        for j in range(97,98,1):
-            k = vector(ZZ, s[:,j])
-            try:
-                X = mat.solve_right(k)
-                print("X: ", X,i,j, chr(j))
-                quit()
-            except ValueError as e:
-                if i % 100 == 0:
-                    print(i,j,e, len(dict),numOfNodes, len(XXX), mat.dimensions(), len(k))
-        XXX.pop(0)
+# for i in range(256):
+#     curr = dic[i]
+#     bla = bin(curr)[2:].zfill(256)
+#     for j in range(256):
+#         s[i, j] = bla[j]     # size is the problem here
+# s = s.T
+# w_l = 8
+# n_l = 256
+# XXX = []
+# for i in range(84,numOfNodes//8,1):
+#     if len(XXX) < w_l:
+#         XXX.append(m[:, i])
+#         XXX[:] = m[:, i:i + w_l]
+    # if len(XXX) == w_l:
+    #     mat = Matrix(ZZ, XXX)
+    #     mat = mat.T
+    #     for j in range(97,98,1):
+    #         k = vector(ZZ, s[:,j])
+    #         try:
+    #             X = mat.solve_right(k)
+    #             print("X: ", X,i,j, chr(j))
+    #             quit()
+    #         except ValueError as e:
+    #             if i % 100 == 0:
+    #                 print(i,j,e, len(dict),numOfNodes, len(XXX), mat.dimensions(), len(k))
+    #     XXX.pop(0)
 # print("Failures: ", ctr)
 # if len(VECTORS) < 5:
     #     r = []
