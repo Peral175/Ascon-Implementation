@@ -4,3 +4,4 @@ C_Ascon/
 bin/
 traces/
 circuits/
+.ipynb_checkpoints/

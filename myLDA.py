@@ -3,11 +3,9 @@ import os.path
 import pathlib
 import numpy as np
 from sage.all import *
-# from sage.matrix.matrix0 import Matrix
-# from sage.modules.free_module_element import vector, ZZ
 
 parser = argparse.ArgumentParser(
-    description='my implementation of exact matching attack',
+    description='my implementation of LDA',
     formatter_class=argparse.ArgumentDefaultsHelpFormatter
 )
 parser.add_argument(
@@ -33,17 +31,13 @@ args = parser.parse_args()
 T = args.n_traces
 numOfBytes = os.path.getsize(args.trace_dir / "0000.bin")
 numOfNodes = numOfBytes * 8
+# numOfNodes = 5825
 mode = args.mode
+print("T = ", T)
+print("numOfBytes = ", numOfBytes)
+print("numOfNodes = ", numOfNodes)
 
 if mode == 0:
-    """
-    There are N linear shares that together are the key byte.
-    We need to solve this with SAGEMATH, vector with 0 meaning that this column is not
-    part of the solution.
-    How do I know what the correct keybyte is?
-    A combination of columns will be equal to the key byte guessed!
-    Will there be many solutions?
-    """
     AESSBox = [
         0x63, 0x7C, 0x77, 0x7B, 0xF2, 0x6B, 0x6F, 0xC5, 0x30, 0x01, 0x67, 0x2B, 0xFE, 0xD7, 0xAB, 0x76,
         0xCA, 0x82, 0xC9, 0x7D, 0xFA, 0x59, 0x47, 0xF0, 0xAD, 0xD4, 0xA2, 0xAF, 0x9C, 0xA4, 0x72, 0xC0,
@@ -63,10 +57,8 @@ if mode == 0:
         0x8C, 0xA1, 0x89, 0x0D, 0xBF, 0xE6, 0x42, 0x68, 0x41, 0x99, 0x2D, 0x0F, 0xB0, 0x54, 0xBB, 0x16
     ]
 
-
     def selection_function(pB, kBG):
-        return (AESSBox[pB ^ kBG] & 1)
-
+        return AESSBox[pB ^ kBG] & 1
 
     PLAINTEXTS = []
     for traceNr in range(T):
@@ -80,79 +72,60 @@ if mode == 0:
             for traceNr in range(T):
                 guessedVector ^= selection_function(PLAINTEXTS[traceNr][bP], kBG) << traceNr
             dict[guessedVector] = bP * 256 + kBG
-    print(len(dict))
+    # print(len(dict), 256*16)
 TRACES = []
 for traceNumber in range(T):
     ftrace = args.trace_dir / ("%04d.bin" % traceNumber)
     with open(ftrace, "rb") as f:
         TRACES += [f.read(numOfBytes)]
-
 mostProbableKey = [-1] * 16
-
 M = []
 S = []
-
 for node in range(numOfNodes):
     nodeVector = 0
     for traceNumber in range(T):
         nodeVector ^= ((TRACES[traceNumber][node // 8] >> node % 8) & 0b1) << traceNumber
     M.append(nodeVector)
-
-m = np.zeros((T, numOfNodes))
+# print(len(M))
+m = np.zeros((numOfNodes, T))
+# m = matrix(T, numOfNodes)
 for i in range(numOfNodes):
+    curr = M[i]
+    bla = bin(curr)[2:].zfill(256)
     for j in range(T):
-        curr = M[i]
-        bla = bin(curr)[2:].zfill(T)
-        m[j,i] = bla[j]
-print(m.shape)
-
-# print(m)
+        m[i, j] = bla[j]
+m = m.T
+# print(m.shape)
 dic = list(dict)
-# print(dic)
-# input()
-s = np.zeros((256, T))
-for i in range(T):
-    for j in range(T):
-        curr = dic[i]
-        # print(curr.bit_length())
-        bla = bin(curr)[2:].zfill(T)
-        s[i,j] = bla[j] # size is the problem here
-print(s.shape)
-# print(s)
-# sliding window
+s = np.zeros((256, 256))
+# s = matrix(256, T)
+for i in range(256):
+    curr = dic[i]
+    bla = bin(curr)[2:].zfill(256)
+    for j in range(256):
+        s[i, j] = bla[j]     # size is the problem here
+s = s.T
 w_l = 5
 n_l = 256
-ctr = 0
-# for i in range(n_l - w_l + 1):
-#     for j in range(w_l):
-#         pass
 XXX = []
-for i in range(numOfNodes):
-    print(i)
+for i in range(0,numOfNodes,1):
     if len(XXX) < w_l:
         XXX.append(m[:, i])
-        # print(m)
-        # print(m[:, i])
-        # input()
+        # XXX[:] = m[:, i:i + w_l]
     if len(XXX) == w_l:
-        # print("XXX", len(XXX))
         mat = Matrix(ZZ, XXX)
-        mat = mat.transpose()
-        # print(mat.dimensions())
-        # input()
-        for j in range(256):
+        mat = mat.T
+        for j in range(97,98,1):
             k = vector(ZZ, s[:,j])
             try:
-                # print(mat.dimensions(), len(k))
                 X = mat.solve_right(k)
-                print("X: ", X)
-                input()
+                print("X: ", X,i,j, chr(j))
+                quit()
             except ValueError as e:
-                # print(e)
-                # input()
-                ctr += 1
+                if i % 100 == 0:
+                    print(i,j,e, len(dict),numOfNodes, len(XXX), mat.dimensions(), len(k))
         XXX.pop(0)
-print("Failures: ", ctr)
+# print("Failures: ", ctr)
 # if len(VECTORS) < 5:
     #     r = []
     #     for i in bin(nodeVector)[2:].zfill(256):
@@ -207,3 +180,11 @@ print("Failures: ", ctr)
 # else:
 #     print("Impossible to find the key: %d bytes are missing" % missingBytes)
 #     print("The implementation may be resistant to this attack, but you can still try with more traces")
+
+
+#  sage AsconPy/myLDA.py ./wboxkit-main/tutorials/traces/aes2_clear/ -T 256 -M 0
+# clear 5825 nodes
+# 128 inputs and outputs
+# key = abcdefghABCDEFGH
+
+# isw 18022 nodes
