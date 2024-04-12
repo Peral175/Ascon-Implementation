@@ -109,17 +109,16 @@ for k in range(0, 4096, 256):
 print(S.shape)
 S0 = S[0, :]
 S1 = S[1, :]    # repeat till 16 bytes of key --> multiprocessing
-
 SOLS = []
 Found = False
 mostProbableKey = [-1] * 16
-w_size = 8
+w_size = 128
 # masking_order = 1 + 1       # 2 --> 2 columns XORed give Key byte
 start = datetime.datetime.now()
-for i in range(0, numOfNodes-w_size+1, 1):
+for i in range(0, numOfNodes-w_size+1, w_size//4):
     tmp = np.ascontiguousarray(matr[:, i:i+w_size])
     window = matrix(GF(2), tmp)
-    for j in range(0, 256, 1):     # 256 later
+    for j in range(0, 256, 1):
         K = vector(GF(2), S0[:, j])
         try:
             X = window.solve_right(K)
