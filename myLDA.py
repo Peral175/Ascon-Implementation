@@ -3,7 +3,9 @@ import os.path
 import pathlib
 import numpy as np
 from sage.all import *
-
+import multiprocessing as mp
+import scipy as sc
+import timeit
 parser = argparse.ArgumentParser(
     description='my implementation of LDA',
     formatter_class=argparse.ArgumentDefaultsHelpFormatter
@@ -76,111 +78,48 @@ for traceNumber in range(T):
     ftrace = args.trace_dir / ("%04d.bin" % traceNumber)
     with open(ftrace, "rb") as f:
         TRACES += [f.read(numOfBytes)]
-mostProbableKey = [-1] * 16
 M = []
 for node in range(numOfNodes):
     nodeVector = 0
     for traceNumber in range(T):
         nodeVector ^= ((TRACES[traceNumber][node // 8] >> node % 8) & 0b1) << traceNumber
     M.append(nodeVector)
-SOLUTION = []
-N = numOfNodes
-K = 8
-win = np.zeros((T, K), dtype=int)
-for i in range(0, N-K+1, K//2):
-    w = M[i:i+K]
-    for j in range(len(w)):
-        for b in range(T):
-            win[b, j] = bin(w[j])[2:].zfill(256)[b]
-    mat = Matrix(win)
-    ctr = 0
-    for k in dict:
-        k_bits = vector(ZZ, bin(k)[2:].zfill(256))
-        try:
-            X = mat.solve_right(k_bits)
-            print("Found key byte: ", X, i, k, chr(ctr))
-            SOLUTION.append((i, chr(ctr)))
-            continue
-        except ValueError as e:
-            if ctr % 1000 == 0:
-                print(i, ctr, e, len(dict), numOfNodes, mat.dimensions(), len(k_bits))
-        ctr += 1
-print(SOLUTION)
-# m = np.zeros((numOfNodes, T))
-# m = matrix(T, numOfNodes)
-# for i in range(numOfNodes):
-#     curr = M[i]
-#     bla = bin(curr)[2:].zfill(256)
-#     for j in range(T):
-#         m[i, j] = bla[j]
-# m = m.T
-# print(m.shape)
-# dic = list(dict)
-# s = np.zeros((256, 256))
-# s = matrix(256, T)
-# for i in range(256):
-#     curr = dic[i]
-#     bla = bin(curr)[2:].zfill(256)
-#     for j in range(256):
-#         s[i, j] = bla[j]     # size is the problem here
-# s = s.T
-# w_l = 8
-# n_l = 256
-# XXX = []
-# for i in range(84,numOfNodes//8,1):
-#     if len(XXX) < w_l:
-#         XXX.append(m[:, i])
-#         XXX[:] = m[:, i:i + w_l]
-    # if len(XXX) == w_l:
-    #     mat = Matrix(ZZ, XXX)
-    #     mat = mat.T
-    #     for j in range(97,98,1):
-    #         k = vector(ZZ, s[:,j])
-    #         try:
-    #             X = mat.solve_right(k)
-    #             print("X: ", X,i,j, chr(j))
-    #             quit()
-    #         except ValueError as e:
-    #             if i % 100 == 0:
-    #                 print(i,j,e, len(dict),numOfNodes, len(XXX), mat.dimensions(), len(k))
-    #     XXX.pop(0)
-# print("Failures: ", ctr)
-# if len(VECTORS) < 5:
-    #     r = []
-    #     for i in bin(nodeVector)[2:].zfill(256):
-    #         r += [i]
-    #     VECTORS += [r]
-    #     # print(VECTORS)
-    # if len(VECTORS) == 5:
-    #     # matrix stuff here
-    #     M = Matrix(ZZ, VECTORS)
-    #     print(M.dimensions())
-    #     M = M.T
-    #     for k in dict:
-    #         # print(len(bin(k)[2:]))
-    #         K = bin(k)[2:].zfill(256)
-    #         # K = bin(i)[2:].zfill(8)
-    #         # print(K)
-    #         k = vector(ZZ, K)
-    #         # print(i, k)
-    #         try:
-    #             X = M.solve_right(k)
-    #             print("X: ", X)
-    #             break
-    #         except ValueError as e:
-    #             continue
-    #             # print(e)
-    #         # input()
-    #
-    #     # remove first to slide window further
-    #     VECTORS.pop(0)
-    #     # print(len(VECTORS))
-    #     # print(numOfNodes)   # this is correctly the number of nodes!
 
-    # match = dict.get(nodeVector)
-    # if match != None:
-    #     print("At node number " + str(node) + ", we have the key byte " + chr((match % 256)))
-    #     mostProbableKey[match // 256] = match % 256
+len_m = len(M)
+matr = np.zeros((256, len_m), dtype=int)
+for i in range(len_m):
+    c = bin(M[i])[2:].zfill(256)
+    for j in range(256):
+        matr[j, i] = c[j]
+print(matr.shape)
+S = np.ndarray((16, 256, T))
+l_dict = list(dict)
+for k in range(0, 4096, 256):
+    c = l_dict[k:k+256]
+    for m in range(T):
+        d = bin(c[m])[2:].zfill(256)
+        for n in range(256):
+            S[k//256, n, m] = d[n]
+
+# print(S.view())
+print(S.shape)
+S0 = S[0, :]
+S1 = S[1, :]    # repeat till 16 bytes of key --> multiprocessing
+
+mostProbableKey = [-1] * 16
+w_size = 256
+# window = matr[:, 0:w_size]
+for i in range(0, numOfNodes-w_size, 1):
+    window = matr[:, 0:w_size]
+    for j in range(65, 105, 1):     # 256 later
+        K = np.array(S0[j])
+        print(window.shape, K.shape)
+        X = np.linalg.inv(window)
+        print("X: ", X)
+        Y = X * K
+        print("Y: ", Y)
+        input("FOUND!")
+
 
 # missingBytes = 0
 # for i in range(16):
