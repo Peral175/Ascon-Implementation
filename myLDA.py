@@ -86,12 +86,14 @@ for node in range(numOfNodes):
         nodeVector ^= ((TRACES[traceNumber][node // 8] >> node % 8) & 0b1) << traceNumber
     M.append(nodeVector)
 
-len_m = len(M)
+len_m = numOfNodes
 matr = np.zeros((256, len_m), dtype=int, order='C')
 for i in range(len_m):
     c = bin(M[i])[2:].zfill(256)
     for j in range(256):
         matr[j, i] = c[j]
+    if i == 197:
+        print(matr[:,i])
 print(matr.shape)
 S = np.ndarray((16, 256, T), dtype=int, order='C')
 l_dict = list(dict)
@@ -111,19 +113,18 @@ mostProbableKey = [-1] * 16
 w_size = 8
 masking_order = 1 + 1       # 2 --> 2 columns XORed give Key byte
 start = datetime.datetime.now()
-for i in range(0, numOfNodes-w_size, 1):
-    tmp = np.ascontiguousarray(matr[:, i:w_size])
+for i in range(0, numOfNodes-w_size+1, 1):
+    tmp = np.ascontiguousarray(matr[:, i:i+w_size])
     window = Matrix(ZZ, tmp)
-    for j in range(65, 105, 1):     # 256 later
-        tmp = np.ascontiguousarray(S0[:, j])
-        K = vector(ZZ, tmp)
+    for j in range(97, 98, 1):     # 256 later
+        K = vector(ZZ, S0[:, j])
         try:
             X = window.solve_right(K)
             print("X: ", X)
             input("FOUND!")
         except ValueError as e:
-            if i % 1000 == 0:
-                print(i, j, e, numOfNodes)
+            if i % 256 == 0 and j % 256 == 1:
+                print(i, '\t', j, '\t', e, '\t', numOfNodes)
 end = datetime.datetime.now()
 print("Time: ", end-start)
 
