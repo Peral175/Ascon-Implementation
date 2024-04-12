@@ -6,6 +6,7 @@ from sage.all import *
 import multiprocessing as mp
 import scipy as sc
 import timeit
+import datetime
 parser = argparse.ArgumentParser(
     description='my implementation of LDA',
     formatter_class=argparse.ArgumentDefaultsHelpFormatter
@@ -86,13 +87,13 @@ for node in range(numOfNodes):
     M.append(nodeVector)
 
 len_m = len(M)
-matr = np.zeros((256, len_m), dtype=int)
+matr = np.zeros((256, len_m), dtype=int, order='C')
 for i in range(len_m):
     c = bin(M[i])[2:].zfill(256)
     for j in range(256):
         matr[j, i] = c[j]
 print(matr.shape)
-S = np.ndarray((16, 256, T))
+S = np.ndarray((16, 256, T), dtype=int, order='C')
 l_dict = list(dict)
 for k in range(0, 4096, 256):
     c = l_dict[k:k+256]
@@ -107,19 +108,24 @@ S0 = S[0, :]
 S1 = S[1, :]    # repeat till 16 bytes of key --> multiprocessing
 
 mostProbableKey = [-1] * 16
-w_size = 256
-# window = matr[:, 0:w_size]
+w_size = 8
+masking_order = 1 + 1       # 2 --> 2 columns XORed give Key byte
+start = datetime.datetime.now()
 for i in range(0, numOfNodes-w_size, 1):
-    window = matr[:, 0:w_size]
+    tmp = np.ascontiguousarray(matr[:, i:w_size])
+    window = Matrix(ZZ, tmp)
     for j in range(65, 105, 1):     # 256 later
-        K = np.array(S0[j])
-        print(window.shape, K.shape)
-        X = np.linalg.inv(window)
-        print("X: ", X)
-        Y = X * K
-        print("Y: ", Y)
-        input("FOUND!")
-
+        tmp = np.ascontiguousarray(S0[:, j])
+        K = vector(ZZ, tmp)
+        try:
+            X = window.solve_right(K)
+            print("X: ", X)
+            input("FOUND!")
+        except ValueError as e:
+            if i % 1000 == 0:
+                print(i, j, e, numOfNodes)
+end = datetime.datetime.now()
+print("Time: ", end-start)
 
 # missingBytes = 0
 # for i in range(16):
