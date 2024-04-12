@@ -1,4 +1,5 @@
 import argparse
+import multiprocessing
 import os.path
 import pathlib
 import numpy as np
@@ -104,42 +105,43 @@ for k in range(0, 4096, 256):
         d = bin(c[m])[2:].zfill(256)
         for n in range(256):
             S[k//256, n, m] = d[n]
-
 # print(S.view())
-print(S.shape)
-S0 = S[0, :]
-S1 = S[1, :]    # repeat till 16 bytes of key --> multiprocessing
-SOLS = []
-Found = False
-mostProbableKey = [-1] * 16
-w_size = 128
-# masking_order = 1 + 1       # 2 --> 2 columns XORed give Key byte
+# print(S.shape)
+
+
+def work(s, M_matrix, id, numNodes, SOLS):
+    # mostProbableKey = [-1] * 16
+    w_size = 512
+    for i in range(0, numNodes-w_size+1, w_size//4):
+        tmp = np.ascontiguousarray(M_matrix[:, i:i+w_size])
+        window = matrix(GF(2), tmp)
+        for j in range(0, 256, 1):
+            K = vector(GF(2), s[:, j])
+            try:
+                X = window.solve_right(K)
+                print("ID: ", id, i, j)
+                SOLS[id] = (i, j)
+                return
+            except ValueError as e:
+                continue
+
+
+SOLS = multiprocessing.Manager().dict()
+procs = []
 start = datetime.datetime.now()
-for i in range(0, numOfNodes-w_size+1, w_size//4):
-    tmp = np.ascontiguousarray(matr[:, i:i+w_size])
-    window = matrix(GF(2), tmp)
-    for j in range(0, 256, 1):
-        K = vector(GF(2), S0[:, j])
-        try:
-            X = window.solve_right(K)
-            print("X: ", X, i, j)
-            SOLS.append((X, j))
-            Found = True
-            # input("FOUND!")
-        except ValueError as e:
-            if i % 256 == 0 and j % 256 == 1:
-                print(i, '\t', j, '\t', e, '\t', numOfNodes)
-        if Found:
-            break
-    if Found:
-        break
+for id in range(2):
+    proc = multiprocessing.Process(target=work, args=(S[id, :], matr, id, numOfNodes, SOLS,))
+    procs.append(proc)
+    proc.start()
+for proc in procs:
+    proc.join()
 end = datetime.datetime.now()
-print("Time: ", end-start)
-st = set()
+print("Time: ", end - start)
 print(SOLS)
-for i in SOLS:
-    st.add(i[1])
-print(st)
+# print(SOLS.values())
+# print(SOLS.keys())
+for i in range(2):
+    print(i, '\t', chr(SOLS.get(i)[1]), '\t', SOLS.get(i)[0])
 # missingBytes = 0
 # for i in range(16):
 #     if mostProbableKey[i] == -1:
