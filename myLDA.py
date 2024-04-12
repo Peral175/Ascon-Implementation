@@ -4,9 +4,12 @@ import pathlib
 import numpy as np
 from sage.all import *
 import multiprocessing as mp
-import scipy as sc
-import timeit
 import datetime
+
+from sage.matrix.matrix_mod2_dense import Matrix_mod2_dense
+
+# import timeit
+
 parser = argparse.ArgumentParser(
     description='my implementation of LDA',
     formatter_class=argparse.ArgumentDefaultsHelpFormatter
@@ -92,9 +95,7 @@ for i in range(len_m):
     c = bin(M[i])[2:].zfill(256)
     for j in range(256):
         matr[j, i] = c[j]
-    if i == 197:
-        print(matr[:,i])
-print(matr.shape)
+# print(matr.shape)
 S = np.ndarray((16, 256, T), dtype=int, order='C')
 l_dict = list(dict)
 for k in range(0, 4096, 256):
@@ -109,25 +110,37 @@ print(S.shape)
 S0 = S[0, :]
 S1 = S[1, :]    # repeat till 16 bytes of key --> multiprocessing
 
+SOLS = []
+Found = False
 mostProbableKey = [-1] * 16
 w_size = 8
-masking_order = 1 + 1       # 2 --> 2 columns XORed give Key byte
+# masking_order = 1 + 1       # 2 --> 2 columns XORed give Key byte
 start = datetime.datetime.now()
 for i in range(0, numOfNodes-w_size+1, 1):
     tmp = np.ascontiguousarray(matr[:, i:i+w_size])
-    window = Matrix(ZZ, tmp)
-    for j in range(97, 98, 1):     # 256 later
-        K = vector(ZZ, S0[:, j])
+    window = matrix(GF(2), tmp)
+    for j in range(0, 256, 1):     # 256 later
+        K = vector(GF(2), S0[:, j])
         try:
             X = window.solve_right(K)
-            print("X: ", X)
-            input("FOUND!")
+            print("X: ", X, i, j)
+            SOLS.append((X, j))
+            Found = True
+            # input("FOUND!")
         except ValueError as e:
             if i % 256 == 0 and j % 256 == 1:
                 print(i, '\t', j, '\t', e, '\t', numOfNodes)
+        if Found:
+            break
+    if Found:
+        break
 end = datetime.datetime.now()
 print("Time: ", end-start)
-
+st = set()
+print(SOLS)
+for i in SOLS:
+    st.add(i[1])
+print(st)
 # missingBytes = 0
 # for i in range(16):
 #     if mostProbableKey[i] == -1:
