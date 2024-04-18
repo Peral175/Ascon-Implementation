@@ -6,8 +6,6 @@ for Master Thesis at the University of Luxembourg.
 import random
 
 import circ_perm_bool as circ_perm
-
-
 # import circ_perm
 
 
@@ -19,11 +17,9 @@ def state_to_binary(s):
 
 def int_to_binary(i):
     arr = []
-    binary = bin(i)[2:]
+    binary = bin(i)[2:].zfill(320)
     for i in binary:
         arr.append(i)
-    while len(arr) < 320:
-        arr.insert(0, 0)
     return arr
 
 
@@ -217,15 +213,17 @@ def verif_dec(K, N, A, C, T, len_a, len_k, len_n, rate):
 
 
 def even_mansour():
-    k1 = 1864153371988138566310184076227455979937920383739113874906460905941393862635073576112783636420608
-    k2 = 1714313932848874241987547000415288128608049748657619831161145666179125759211065622864055564976788
-    random_bits = random.getrandbits(320)
-    random_bits = 775287888347336648198089042723823560579471882026599887477264973818539934634422062502103904355339
+    k1 = 812545564329713676245859916367026775365407289012783556426457997015311926679201529462946091394920
+    k2 = 812545564329713676245859916367026775365407289012783556426457997015311926679201529462946091394920
+    # random_bits = random.getrandbits(320)
+    random_bits = 812512715624816776440459237248810020064558190857236543862207984151981621179302483734224793854305
+    # b"aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa"
+    # key_bytes = b"abcdefghabcdefghabcdefghabcdefghabcdefgh"
     print("Random bits: ", random_bits, random_bits.bit_length())
     t1 = random_bits ^ k1
     print("First XOR  : ", t1)
     t1 = int_to_binary(t1)
-    res = circ_perm.ascon_perm(state=t1, nr_rounds=12)
+    res = circ_perm.ascon_perm(state=t1, nr_rounds=2)
     r1 = binary_to_int(res)
     print("First res:   ", r1)
     t2 = r1 ^ k2

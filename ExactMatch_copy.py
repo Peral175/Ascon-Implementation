@@ -52,8 +52,8 @@ if mode == 0:
     ]
 
 
-    def selection_function(pB, kBG):
-        return (AESSBox[pB ^ kBG] & 1)
+    def selection_function(ptb, kbg):
+        return AESSBox[ptb ^ kbg] & 1
 
 
     PLAINTEXTS = []
@@ -61,13 +61,15 @@ if mode == 0:
         pt = args.trace_dir / ("%04d.pt" % traceNr)
         with open(pt, "rb") as f:
             PLAINTEXTS += [f.read(16)]
-    dict = {}
-    for bP in range(16):
-        for kBG in range(256):
+
+    dictionary = {}
+    for plaintextByte in range(16):
+        for keyByteGuess in range(256):
             guessedVector = 0
             for traceNr in range(T):
-                guessedVector ^= selection_function(PLAINTEXTS[traceNr][bP], kBG) << traceNr
-            dict[guessedVector] = bP * 256 + kBG
+
+                guessedVector ^= selection_function(PLAINTEXTS[traceNr][plaintextByte], keyByteGuess) << traceNr
+            dictionary[guessedVector] = plaintextByte * 256 + keyByteGuess
 
 TRACES = []
 for traceNumber in range(T):
@@ -81,7 +83,7 @@ for node in range(numOfNodes):
     nodeVector = 0
     for traceNumber in range(T):
         nodeVector ^= ((TRACES[traceNumber][node // 8] >> node % 8) & 0b1) << traceNumber
-    match = dict.get(nodeVector)
+    match = dictionary.get(nodeVector)
     if match != None:
         print("At node number " + str(node) + ", we have the key byte " + chr((match % 256)))
         mostProbableKey[match // 256] = match % 256
