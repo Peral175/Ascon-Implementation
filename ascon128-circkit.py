@@ -223,7 +223,7 @@ def even_mansour():
     t1 = random_bits ^ k1
     print("First XOR  : ", t1)
     t1 = int_to_binary(t1)
-    res = circ_perm.ascon_perm(state=t1, nr_rounds=2)
+    res = circ_perm.ascon_perm(state=t1, nr_rounds=1)
     r1 = binary_to_int(res)
     print("First res:   ", r1)
     t2 = r1 ^ k2

@@ -1,7 +1,7 @@
 #!/bin/bash
 
-nr_traces=512
-window_size=1000
+nr_traces=256
+window_size=2000
 
 #echo 'Exact attack on aes2 clear.\n'
 #sage ExactMatch_copy.py traces/aes2_clear/ -T $nr_traces -M 0
@@ -17,20 +17,23 @@ window_size=1000
 
 
 
-echo '\nLDA attack on aes2 clear.\n'
-sage LDA_AES.py traces/aes2_clear/ -T $nr_traces -M 0 -W $window_size -S 1
+#echo '\nLDA attack on aes2 clear.\n'
+#sage LDA_AES.py traces/aes2_clear/ -T $nr_traces -M 0 -W $window_size -S 1
+#
+#echo '\nLDA attack on aes2 isw (2 shares).\n'
+#sage LDA_AES.py traces/aes2_isw2/ -T $nr_traces -M 0 -W $window_size -S 2
+#
+#echo '\nLDA attack on aes2 isw (3 shares).\n'
+#sage LDA_AES.py traces/aes2_isw3/ -T $nr_traces -M 0 -W $window_size -S 2
+#
+#echo '\nLDA attack on aes2 isw (4 shares).\n'
+#sage LDA_AES.py traces/aes2_isw4/ -T $nr_traces -M 0 -W $window_size -S 2
+#
+#echo '\nLDA attack on aes2 minq.\n'
+#sage LDA_AES.py traces/aes2_minq/ -T $nr_traces -M 0 -W $window_size -S 2
+#
+#echo '\nLDA attack on aes2 quadlin (2 shares).\n'
+#sage LDA_AES.py traces/aes2_quadlin2/ -T $nr_traces -M 0 -W $window_size -S 2
 
-echo '\nLDA attack on aes2 isw (2 shares).\n'
-sage LDA_AES.py traces/aes2_isw2/ -T $nr_traces -M 0 -W $window_size -S 2
-
-echo '\nLDA attack on aes2 isw (3 shares).\n'
-sage LDA_AES.py traces/aes2_isw3/ -T $nr_traces -M 0 -W $window_size -S 2
-
-echo '\nLDA attack on aes2 isw (4 shares).\n'
-sage LDA_AES.py traces/aes2_isw4/ -T $nr_traces -M 0 -W $window_size -S 2
-
-echo '\nLDA attack on aes2 minq.\n'
-sage LDA_AES.py traces/aes2_minq/ -T $nr_traces -M 0 -W $window_size -S 2
-
-echo '\nLDA attack on aes2 quadlin (2 shares).\n'
-sage LDA_AES.py traces/aes2_quadlin2/ -T $nr_traces -M 0 -W $window_size -S 2
+echo '\nLDA attack on aes2 quadlin (3 shares).\n'
+sage LDA_AES.py traces/aes2_quadlin3/ -T $nr_traces -M 0 -W $window_size -S 1

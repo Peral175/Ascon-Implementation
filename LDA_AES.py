@@ -1,10 +1,10 @@
 import argparse
-import os.path
 import pathlib
 import numpy as np
 from sage.all import *
 import multiprocessing
 import datetime
+import os.path
 
 parser = argparse.ArgumentParser(
     description='my implementation of LDA',
@@ -29,7 +29,6 @@ parser.add_argument(
     default=0,
     help='mode'
 )
-
 parser.add_argument(
     '-W',
     '--window_size',
@@ -37,7 +36,6 @@ parser.add_argument(
     default=5,
     help='sliding window size'
 )
-
 parser.add_argument(
     '-S',
     '--step',
@@ -131,7 +129,6 @@ def work(s, M_matrix, ID, numNodes, Solutions):
     step = args.step
     for w in range(0, numNodes-w_size+1, w_size//step):
         tmp = np.ascontiguousarray(M_matrix[:, w:w+w_size])
-        # print(tmp, M_matrix[:, w:w+w_size])
         window = matrix(GF(2), tmp)
         for kg in range(0, 256, 1):     # 2^8
             K = vector(GF(2), s[:, kg])
