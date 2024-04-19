@@ -213,21 +213,21 @@ def verif_dec(K, N, A, C, T, len_a, len_k, len_n, rate):
 
 
 def even_mansour():
-    k1 = 812545564329713676245859916367026775365407289012783556426457997015311926679201529462946091394920
-    k2 = 812545564329713676245859916367026775365407289012783556426457997015311926679201529462946091394920
-    # random_bits = random.getrandbits(320)
-    random_bits = 812512715624816776440459237248810020064558190857236543862207984151981621179302483734224793854305
+    # k1 = 812545564329713676245859916367026775365407289012783556426457997015311926679201529462946091394920
+    # k2 = 812545564329713676245859916367026775365407289012783556426457997015311926679201529462946091394920
+    # random_bits = 812512715624816776440459237248810020064558190857236543862207984151981621179302483734224793854305
+    random_bits = random.getrandbits(320)
     # b"aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa"
     # key_bytes = b"abcdefghabcdefghabcdefghabcdefghabcdefgh"
     print("Random bits: ", random_bits, random_bits.bit_length())
-    t1 = random_bits ^ k1
-    print("First XOR  : ", t1)
-    t1 = int_to_binary(t1)
-    res = circ_perm.ascon_perm(state=t1, nr_rounds=1)
+    # t1 = random_bits ^ k1
+    # print("First XOR  : ", t1)
+    t1 = int_to_binary(random_bits)
+    res = circ_perm.ascon_perm(state=t1, nr_rounds=2)
     r1 = binary_to_int(res)
     print("First res:   ", r1)
-    t2 = r1 ^ k2
-    print("Second XOR:  ", t2)
+    # t2 = r1 ^ k2
+    # print("Second XOR:  ", t2)
 
     # what about inverse/decryption ?
     # first res; 197628412609335451556999005542311421855262055357998817055359137392124264784496428599266628378792

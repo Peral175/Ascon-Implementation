@@ -69,7 +69,9 @@ if mode == 0:
             for traceNr in range(T):
 
                 guessedVector ^= selection_function(PLAINTEXTS[traceNr][plaintextByte], keyByteGuess) << traceNr
+
             dictionary[guessedVector] = plaintextByte * 256 + keyByteGuess
+print(len(dictionary))
 
 TRACES = []
 for traceNumber in range(T):
@@ -85,7 +87,8 @@ for node in range(numOfNodes):
         nodeVector ^= ((TRACES[traceNumber][node // 8] >> node % 8) & 0b1) << traceNumber
     match = dictionary.get(nodeVector)
     if match != None:
-        print("At node number " + str(node) + ", we have the key byte " + chr((match % 256)))
+        # print("At node number " + str(node) + ", we have the key byte " + chr((match % 256)))
+        print(match, match // 256, match % 256)
         mostProbableKey[match // 256] = match % 256
 
 missingBytes = 0

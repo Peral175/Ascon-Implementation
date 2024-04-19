@@ -57,7 +57,7 @@ print("window step = ", args.step)
 if mode == 0:
     ASCONSBOX = [
         0x04, 0x0b, 0x1f, 0x14, 0x1a, 0x15, 0x09, 0x02, 0x1b, 0x05, 0x08, 0x12, 0x1d, 0x03, 0x06, 0x1c,
-        0x1e, 0x13, 0x07, 0x0e, 0x00, 0x0d, 0x11, 0x18, 0x10, 0x0c, 0x01, 0x19, 0x16, 0x0a, 0x0f, 0x17]     # 16 * 2
+        0x1e, 0x13, 0x07, 0x0e, 0x00, 0x0d, 0x11, 0x18, 0x10, 0x0c, 0x01, 0x19, 0x16, 0x0a, 0x0f, 0x17]
 
     def selection_function(ptb, kbg):
         return ASCONSBOX[ptb ^ kbg] & 1
@@ -69,14 +69,20 @@ if mode == 0:
             PLAINTEXTS += [f.read(40)]
     # print("Plaintext length:", len(PLAINTEXTS))
     dictionary = {}
-    for plaintextByte in range(64):    # plaintext is 320 bits inputs of 5-bits = 64
-        for keyByteGuess in range(32):   # key is 320 bits - we consider input of size 32-bits
+    for plaintextBits in range(64):    # plaintext is 320 bits inputs of 5-bits = 64
+        for keyBitsGuess in range(32):   # key is 320 bits - we consider input of size 32-bits
             guessedVector = 0
             for traceNr in range(T):    # 256 traces
-                tmp = bin(int.from_bytes(PLAINTEXTS[traceNr], byteorder='big'))[2:].zfill(320)[(plaintextByte * 5):(plaintextByte * 5) + 5]
-                guessedVector ^= selection_function(int(tmp, 2), keyByteGuess) << traceNr
-            dictionary[plaintextByte * 32 + keyByteGuess] = guessedVector # had to inverse because of duplicates
-    # print("Dictionary length: ", len(dictionary)) # should be 2048 ? --> see above
+                tmp = bin(int.from_bytes(PLAINTEXTS[traceNr], byteorder='big'))[2:].zfill(320)
+                x0 = tmp[plaintextBits + 0]
+                x1 = tmp[plaintextBits + 64]
+                x2 = tmp[plaintextBits + 128]
+                x3 = tmp[plaintextBits + 192]
+                x4 = tmp[plaintextBits + 256]
+                x = x0 + x1 + x2 + x3 + x4
+                guessedVector ^= selection_function(int(x, 2), keyBitsGuess) << traceNr
+            dictionary[plaintextBits * 32 + keyBitsGuess] = guessedVector   # had to inverse because of duplicates
+    print("Dictionary length: ", len(dictionary))   # should be 2048 ? --> see above
 TRACES = []
 for traceNumber in range(T):
     ftrace = args.trace_dir / ("%04d.bin" % traceNumber)
@@ -84,7 +90,7 @@ for traceNumber in range(T):
         TRACES += [f.read(numOfBytes)]
 # print("Traces length: ", len(TRACES))
 M = []
-for node in range(numOfNodes):      # todo: problem here maybe ?
+for node in range(numOfNodes):
     nodeVector = 0
     for traceNumber in range(T):
         nodeVector ^= ((TRACES[traceNumber][node // 8] >> node % 8) & 0b1) << traceNumber
@@ -122,9 +128,9 @@ def work(s, M_matrix, ID, numNodes, Solutions):
             # print(window, K)
             try:
                 _ = window.solve_right(K)
-                # print("ID: ", _, ID, w, kg)
+                print("ID: ", ID, w, kg)
                 Solutions[ID] = (w, kg)
-                return
+                # return
             except ValueError as e:
                 # print(e)
                 continue
@@ -149,6 +155,4 @@ for i in range(64):
     # print(i, '\t', bin(SOLS.get(i)[1])[2:].zfill(5), '\t', SOLS.get(i)[0])
     recovered_key += bin(SOLS.get(i)[1])[2:].zfill(5)
 print("Recovered key: ", recovered_key, len(recovered_key), int(recovered_key, 2))
-# REAL
-# 01100001011000100110001101100100011001010110011001100111011010000110000101100010011000110110010001100101011001100110011101101000011000010110001001100011011001000110010101100110011001110110100001100001011000100110001101100100011001010110011001100111011010000110000101100010011000110110010001100101011001100110011101101000
-
+#01100 00101 10000 10110000101100001011000010110000101100001011000010110000101100001011000010110000101100001011000010110000101100001011000010110000101100001011000010110000101100001011000010110000101100001011000010110000101100001011000010110000101100001011000010110000101100001011000010110000101100001011000010110000101100001

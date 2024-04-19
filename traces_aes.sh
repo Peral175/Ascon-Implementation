@@ -1,6 +1,6 @@
 #!/bin/bash
 
-nr_traces=2048
+nr_traces=1024
 
 #wboxkit.trace -T $nr_traces ../wboxkit-main/tutorials/circuits/aes2_clear.bin traces/
 #wboxkit.trace -T $nr_traces ../wboxkit-main/tutorials/circuits/aes2_isw2.bin traces/
