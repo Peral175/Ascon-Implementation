@@ -88,7 +88,7 @@ for node in range(numOfNodes):
     match = dictionary.get(nodeVector)
     if match != None:
         # print("At node number " + str(node) + ", we have the key byte " + chr((match % 256)))
-        print(match, match // 256, match % 256)
+        # print(match, match // 256, match % 256)
         mostProbableKey[match // 256] = match % 256
 
 missingBytes = 0
