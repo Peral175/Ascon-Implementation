@@ -122,6 +122,10 @@ def ascon_perm(state, key=b"aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa", nr_rounds
     def serialize_circuit(C, string):
         RawSerializer().serialize_to_file(C, "bin/ascon128_r1{}.bin".format(string))
 
+    """
+    Uncomment below to transform and serialize the various circuits.
+    Traces can then be generated for the circuits with shell scripts.
+    """
     # serialize_circuit(C, "-clear")
     #
     # ASCON_ISW = ISW_transform(C, 1)
