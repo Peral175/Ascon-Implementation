@@ -1,6 +1,6 @@
 #!/bin/bash
 
-nr_traces=1024
+nr_traces=512
 
 wboxkit.trace -T $nr_traces circuits/ascon128_r1-clear.bin traces/
 wboxkit.trace -T $nr_traces circuits/ascon128_r1-isw_2.bin traces/

@@ -213,17 +213,18 @@ def verif_dec(K, N, A, C, T, len_a, len_k, len_n, rate):
 
 
 def even_mansour():
+    # For even-mansour construction -> add keys k1 and k2 before and after permutation
+
     # random_bits = random.getrandbits(320)
 
-    pt = 812545564329713676245859916367026775365407289012783556426457997015311926679201529462946091394920
-    # b"abcdefghabcdefghabcdefghabcdefghabcdefgh"
+    # pt = 812545564329713676245859916367026775365407289012783556426457997015311926679201529462946091394920
+    pt = b"abcdefghabcdefghabcdefghabcdefghabcdefgh"
 
-    k1 = 812512715624816776440459237248810020064558190857236543862207984151981621179302483734224793854305
+    # k1 = 812512715624816776440459237248810020064558190857236543862207984151981621179302483734224793854305
     # k2 = 812512715624816776440459237248810020064558190857236543862207984151981621179302483734224793854305
-    # b"aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa"
+    k1 = b"aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa"
 
-    pt_b = int_to_binary(pt)
-    res = circ_perm.ascon_perm(state=pt_b, key=k1, nr_rounds=1)
+    res = circ_perm.ascon_perm(state=pt, key=k1, nr_rounds=1)
     r1 = binary_to_int(res)
     print("output:   ", r1)
 

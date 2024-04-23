@@ -93,7 +93,7 @@ def ascon_perm(state, key=b"aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa", nr_rounds
 
     for r in range(nr_rounds):
         # Round Constant Addition
-        x2 ^= Array(Bin(cr[r + 12 - nr_rounds], 64))
+        # x2 ^= Array(Bin(cr[r + 12 - nr_rounds], 64))
 
         # Substitution Layer
         x0 ^= x4;   x4 ^= x3;   x2 ^= x1
@@ -104,18 +104,18 @@ def ascon_perm(state, key=b"aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa", nr_rounds
         x1 ^= x0;   x0 ^= x4;   x3 ^= x2;   x2 = ~x2
 
         # Linear Diffusion Layer
-        x0 = x0 ^ x0.ror(19) ^ x0.ror(28)
-        x1 = x1 ^ x1.ror(61) ^ x1.ror(39)
-        x2 = x2 ^ x2.ror( 1) ^ x2.ror( 6)
-        x3 = x3 ^ x3.ror(10) ^ x3.ror(17)
-        x4 = x4 ^ x4.ror( 7) ^ x4.ror(41)
+        # x0 = x0 ^ x0.ror(19) ^ x0.ror(28)
+        # x1 = x1 ^ x1.ror(61) ^ x1.ror(39)
+        # x2 = x2 ^ x2.ror( 1) ^ x2.ror( 6)
+        # x3 = x3 ^ x3.ror(10) ^ x3.ror(17)
+        # x4 = x4 ^ x4.ror( 7) ^ x4.ror(41)
 
     C.add_output([x0, x1, x2, x3, x4])
     C.in_place_remove_unused_nodes()
     C.print_stats()
 
     # print("state: ", state, len(state))
-    inp = state     # input_state(state)  # input helper function
+    inp = Array(Bin(state))
 
     out = C.evaluate(inp)           # regular circuit
 
@@ -126,42 +126,42 @@ def ascon_perm(state, key=b"aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa", nr_rounds
     Uncomment below to transform and serialize the various circuits.
     Traces can then be generated for the circuits with shell scripts.
     """
-    # serialize_circuit(C, "-clear")
-    #
-    # ASCON_ISW = ISW_transform(C, 1)
-    # out_isw = ASCON_ISW.evaluate(inp)  # linear masking
-    # assert out == out_isw
-    # serialize_circuit(ASCON_ISW, "-isw_2")
-    #
-    # ASCON_ISW = ISW_transform(C, 2)
-    # out_isw = ASCON_ISW.evaluate(inp)  # linear masking
-    # assert out == out_isw
-    # serialize_circuit(ASCON_ISW, "-isw_3")
-    #
-    # ASCON_ISW = ISW_transform(C, 3)
-    # out_isw = ASCON_ISW.evaluate(inp)  # linear masking
-    # assert out == out_isw
-    # serialize_circuit(ASCON_ISW, "-isw_4")
-    #
-    # ASCON_MINQ = MINQ_transform(C)
-    # out_minq = ASCON_MINQ.evaluate(inp)  # non-linear masking
-    # assert out == out_minq
-    # serialize_circuit(ASCON_MINQ, "-minq")
-    #
-    # ASCON_QL = QuadLin_transform(C, n_linear=2)
-    # out_ql = ASCON_QL.evaluate(inp)  # combined masking - 2 non-linear shares
-    # assert out == out_ql
-    # serialize_circuit(ASCON_QL, "-ql2")
-    #
-    # ASCON_QL = QuadLin_transform(C, n_linear=3)
-    # out_ql = ASCON_QL.evaluate(inp)  # combined masking - 2 non-linear shares
-    # assert out == out_ql
-    # serialize_circuit(ASCON_QL, "-ql3")
-    #
-    # ASCON_QL = QuadLin_transform(C, n_linear=4)
-    # out_ql = ASCON_QL.evaluate(inp)  # combined masking - 2 non-linear shares
-    # assert out == out_ql
-    # serialize_circuit(ASCON_QL, "-ql4")
+    serialize_circuit(C, "-clear")
+
+    ASCON_ISW = ISW_transform(C, 1)
+    out_isw = ASCON_ISW.evaluate(inp)  # linear masking
+    assert out == out_isw
+    serialize_circuit(ASCON_ISW, "-isw_2")
+
+    ASCON_ISW = ISW_transform(C, 2)
+    out_isw = ASCON_ISW.evaluate(inp)  # linear masking
+    assert out == out_isw
+    serialize_circuit(ASCON_ISW, "-isw_3")
+
+    ASCON_ISW = ISW_transform(C, 3)
+    out_isw = ASCON_ISW.evaluate(inp)  # linear masking
+    assert out == out_isw
+    serialize_circuit(ASCON_ISW, "-isw_4")
+
+    ASCON_MINQ = MINQ_transform(C)
+    out_minq = ASCON_MINQ.evaluate(inp)  # non-linear masking
+    assert out == out_minq
+    serialize_circuit(ASCON_MINQ, "-minq")
+
+    ASCON_QL = QuadLin_transform(C, n_linear=2)
+    out_ql = ASCON_QL.evaluate(inp)  # combined masking - 2 non-linear shares
+    assert out == out_ql
+    serialize_circuit(ASCON_QL, "-ql2")
+
+    ASCON_QL = QuadLin_transform(C, n_linear=3)
+    out_ql = ASCON_QL.evaluate(inp)  # combined masking - 2 non-linear shares
+    assert out == out_ql
+    serialize_circuit(ASCON_QL, "-ql3")
+
+    ASCON_QL = QuadLin_transform(C, n_linear=4)
+    out_ql = ASCON_QL.evaluate(inp)  # combined masking - 2 non-linear shares
+    assert out == out_ql
+    serialize_circuit(ASCON_QL, "-ql4")
 
     # ASCON_CL = CubeLin_transform(C, n_linear=3)
     # out_cl = ASCON_CL.evaluate(inp)  # combined masking - 3 non-linear shares
