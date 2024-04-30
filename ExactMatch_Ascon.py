@@ -79,7 +79,12 @@ for plaintextBits in range(64):
         dict3[plaintextBits * 32 + keyBitsGuess] = guessedVector3
         dict2[plaintextBits * 32 + keyBitsGuess] = guessedVector2
         dict1[plaintextBits * 32 + keyBitsGuess] = guessedVector1
-print("Dictionary length: ", len(dict1))  # question: keep duplicates --> struct of algo
+        # dict5[guessedVector5] = plaintextBits * 32 + keyBitsGuess
+        # dict4[guessedVector4] = plaintextBits * 32 + keyBitsGuess
+        # dict3[guessedVector3] = plaintextBits * 32 + keyBitsGuess
+        # dict2[guessedVector2] = plaintextBits * 32 + keyBitsGuess
+        # dict1[guessedVector1] = plaintextBits * 32 + keyBitsGuess
+print("Dictionary length: ", len(dict1))
 
 TRACES = []
 for traceNumber in range(T):
@@ -87,7 +92,7 @@ for traceNumber in range(T):
     with open(ftrace, "rb") as f:
         TRACES += [f.read(numOfBytes)]
 
-# mostProbableKey = [-1] * 64
+mostProbableKey = [-1] * 64
 
 v5 = list(dict5.values())
 v4 = list(dict4.values())
@@ -100,79 +105,174 @@ r3 = []
 r2 = []
 r1 = []
 
-# original: for each trace take one whole byte
+# for node in range(numOfNodes):
+#     nodeVector = 0
+#     for traceNumber in range(T):
+#         nodeVector ^= ((TRACES[traceNumber][node // 8] >> node % 8) & 0b1) << traceNumber
+
 for node in range(numOfNodes):
     nodeVector = 0
     for traceNumber in range(T):
-        nodeVector ^= ((TRACES[traceNumber][node // 8] >> node % 8) & 0b1) << traceNumber
+        tmp = bin(int.from_bytes(TRACES[traceNumber], byteorder='big'))[2:].zfill(numOfNodes)
+        t = tmp[(node // 5) * 5: (node // 5) * 5 + 5]
+        nodeVector ^= (((int(t, 2) >> node % 5) & 0b1) << traceNumber)
 
-    if nodeVector in v1:
+    # match1 = dict1.get(nodeVector)
+    # if match1 is not None:
+    #     r1.append(match1)
+    # match2 = dict2.get(nodeVector)
+    # if match2 is not None:
+    #     r2.append(match2)
+    # match3 = dict3.get(nodeVector)
+    # if match3 is not None:
+    #     r3.append(match3)
+    # match4 = dict4.get(nodeVector)
+    # if match4 is not None:
+    #     r4.append(match4)
+    # match5 = dict5.get(nodeVector)
+    # if match5 is not None:
+    #     r5.append(match5)
+    # print(match1, match2, match3, match4, match5)
+    while nodeVector in v1:
         idx = v1.index(nodeVector)
-        match = v1[idx]
-        # print("1: ", idx, match, idx // 32, idx % 32, node)
-        r1.append((idx, idx // 32, idx % 32))
-    if nodeVector in v2:
+        r1.append(idx)
+        v1[idx] = -1
+    while nodeVector in v2:
         idx = v2.index(nodeVector)
-        match = v2[idx]
-        # print("2: ", idx, match, idx // 32, idx % 32, node)
-        r2.append((idx, idx // 32, idx % 32))
-    if nodeVector in v3:
+        r2.append(idx)
+        v2[idx] = -1
+    while nodeVector in v3:
         idx = v3.index(nodeVector)
-        match = v3[idx]
-        # print("3: ", idx, match, idx // 32, idx % 32, node)
-        r3.append((idx, idx // 32, idx % 32))
-    if nodeVector in v4:
+        r3.append(idx)
+        v3[idx] = -1
+    while nodeVector in v4:
         idx = v4.index(nodeVector)
-        match = v4[idx]
-        # print("4: ", idx, match, idx // 32, idx % 32, node)
-        r4.append((idx, idx // 32, idx % 32))
-    if nodeVector in v5:
+        r4.append(idx)
+        v4[idx] = -1
+    while nodeVector in v5:
         idx = v5.index(nodeVector)
-        match = v5[idx]
-        # print("5: ", idx, match, idx // 32, idx % 32, node)
-        r5.append((idx, idx // 32, idx % 32))
+        r5.append(idx)
+        v5[idx] = -1
 
-# print(mostProbableKey)
-r1 = sorted(r1, key=lambda z: z[1])
-r2 = sorted(r2, key=lambda z: z[1])
-r3 = sorted(r3, key=lambda z: z[1])
-r4 = sorted(r4, key=lambda z: z[1])
-r5 = sorted(r5, key=lambda z: z[1])
-print(r1[:9], len(r1))
-print(r2[:9], len(r2))
-print(r3[:18:2], len(r3))
-print(r3[1:18:2], len(r3))
-print(r4[:9], len(r4))
-print(r5[:9], len(r5))
-res = np.zeros((64, 5), dtype=int)
-for i in range(64):
-    x = r1[i][2] ^ r2[i][2] ^ r3[(i*2)][2] ^ r3[(i*2)+1][2] ^ r4[i][2] ^ r5[i][2]
-    # x = r1[i][2] ^ r2[i][2] ^ r3[(i*2)][2] ^ r3[(i*2)+1][2] ^ r4[i][2] ^ r5[i][2]
-    # x = r1[i][2]
-    # x = r2[i][2]
-    # x = r3[(i*2)][2]
-    # x = r3[(i*2)+1][2]
-    # x = r4[i][2]
-    # x = r5[i][2]
-    print(i, '\t', bin(x)[2:].zfill(5),'\t', bin(r1[i][2])[2:].zfill(5),'\t', bin(r2[i][2])[2:].zfill(5),'\t', bin(r3[i*2][2])[2:].zfill(5),'\t', bin(r3[(i*2)+1][2])[2:].zfill(5),'\t', bin(r4[i][2])[2:].zfill(5),'\t', bin(r5[i][2])[2:].zfill(5))
+# r1 = sorted(r1, key=lambda z: z[1])
+# r2 = sorted(r2, key=lambda z: z[1])
+# r3 = sorted(r3, key=lambda z: z[1])
+# r4 = sorted(r4, key=lambda z: z[1])
+# r5 = sorted(r5, key=lambda z: z[1])
+r1 = sorted(r1)
+r2 = sorted(r2)
+r3 = sorted(r3)
+r4 = sorted(r4)
+r5 = sorted(r5)
+# print(r1[:9], len(r1))
+# print(r2[:9], len(r2))
+# print(r3[:18:2], len(r3))
+# print(r3[1:18:2], len(r3))
+# print(r4[:9], len(r4))
+# print(r5[:9], len(r5))
+print(r1, len(r1))
+print(r2, len(r2))
+print(r3, len(r3))
+print(r4, len(r4))
+print(r5, len(r5))
+
+s1 = set(set(set(set(r1).intersection(r2)).intersection(r3)).intersection(r4)).intersection(r5)
+print(s1, len(s1))
+s3 = sorted(s1)
+finall = np.zeros((64, 5), dtype=np.uint8)
+ss = ''
+for i in range(len(s3)):
+    print(s3[i], s3[i] % 32, s3[i] // 32)
+    t = bin((s3[i] % 32))[2:].zfill(5)
+    ss += t
     for j in range(5):
-        res[i, j] = bin(x)[2:].zfill(5)[j]
-# print(res)
-res = res.T
-# print(res)
-st = ''
-for j in range(5):
-    for i in range(64):
-        st += str(res[j, i])
-# print(st, len(st), int(st, 2), bytes.fromhex(hex(int(st, 2))[2:]))
-print(hex(int(st, 2))[2:].zfill(80))
-print(bytes.fromhex(hex(int(st, 2))[2:].zfill(80)))
-# 2nd and 3rd 8-bytes are still wrong   1,2,4,1 repeat
-# ignore x3a *1         or last 3
-# ignore x1  *2         or first 3
-# ignore x3a *4         or last 3
-# ignore x1  *1         or first 3
-# assert int(st, 2) == 812512715624816776440459237248810020064558190857236543862207984151981621179302483734224793854305
-# Key is b'aaaaaaaa aaaaaaaa aaaaaaaa aaaaaaaa aaaaaaaa'
-# 01100 00101 10000 10110 00010 11000 01011 00001       # first 5 bytes = 40 bits
-#    12,    5,   16,   22,    2,   24,   11,    1
+        finall[i, j] = t[j]
+# print(finall)
+print(ss)
+s = ''
+for i in range(0,5,1):
+    s += ss[i]
+    s += ss[i+5]
+    s += ss[i+10]
+    s += ss[i+15]
+    s += ss[i+20]
+    s += ss[i + 25]
+    s += ss[i + 30]
+    s += ss[i + 35]
+    s += ss[i + 40]
+    s += ss[i + 45]
+    s += ss[i + 50]
+    s += ss[i + 55]
+    s += ss[i + 60]
+    s += ss[i + 65]
+    s += ss[i + 70]
+    s += ss[i + 75]
+    s += ss[i + 80]
+    s += ss[i + 85]
+    s += ss[i + 90]
+    s += ss[i + 95]
+    s += ss[i + 100]
+    s += ss[i + 105]
+    s += ss[i + 110]
+    s += ss[i + 115]
+    s += ss[i + 120]
+    s += ss[i + 125]
+    s += ss[i + 130]
+    s += ss[i + 135]
+    s += ss[i + 140]
+    s += ss[i + 145]
+    s += ss[i + 150]
+    s += ss[i + 155]
+    s += ss[i + 160]
+    s += ss[i + 165]
+    s += ss[i + 170]
+    s += ss[i + 175]
+    s += ss[i + 180]
+    s += ss[i + 185]
+    s += ss[i + 190]
+    s += ss[i + 195]
+    s += ss[i + 200]
+    s += ss[i + 205]
+    s += ss[i + 210]
+    s += ss[i + 215]
+    s += ss[i + 220]
+    s += ss[i + 225]
+    s += ss[i + 230]
+    s += ss[i + 235]
+    s += ss[i + 240]
+    s += ss[i + 245]
+    s += ss[i + 250]
+    s += ss[i + 255]
+    s += ss[i + 260]
+    s += ss[i + 265]
+    s += ss[i + 270]
+    s += ss[i + 275]
+    s += ss[i + 280]
+    s += ss[i + 285]
+    s += ss[i + 290]
+    s += ss[i + 295]
+    s += ss[i + 300]
+    s += ss[i + 305]
+    s += ss[i + 310]
+    s += ss[i + 315]
+print(s, len(s))
+xxx = ''
+for i in range(0,320,8):
+    # print(s[i:i+8], int(s[i:i+8], 2))
+    # print(chr(int(s[i:i+8], 2)))
+    xxx += chr(int(s[i:i+8], 2))
+print(xxx)
+# for i in range(64):
+#     x = r1[i]%32 ^ r2[i]%32 ^ r3[i*2]%32 ^ r3[i*2+1]%32 ^r4[i]%32 ^ r5[i]%32
+#     print(i, x, r1[i]%32, r2[i]%32, r3[i*2]%32,r3[i*2+1]%32, r4[i]%32, r5[i]%32)
+#     print(bin(r1[i]%32)[2:].zfill(5),
+#           bin(r2[i]%32)[2:].zfill(5),
+#           bin(r3[i*2]%32)[2:].zfill(5),
+#           bin(r3[i*2+1]%32)[2:].zfill(5),
+#           bin(r4[i]%32)[2:].zfill(5),
+#           bin(r5[i]%32)[2:].zfill(5))
+
+#     mostProbableKey[i] = x
+# print(mostProbableKey)
+# for i in mostProbableKey:
+#     print(bin(i)[2:].zfill(5))

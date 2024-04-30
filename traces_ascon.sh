@@ -28,14 +28,14 @@ mv ./bin/ascon128_r* ./circuits/
 #wboxkit.trace -T $nr_traces circuits/ascon128_r2-ql3.bin traces/
 #wboxkit.trace -T $nr_traces circuits/ascon128_r2-ql4.bin traces/
 
-#wboxkit.trace -T $nr_traces circuits/ascon128_r3-clear.bin traces/
-#wboxkit.trace -T $nr_traces circuits/ascon128_r3-isw_2.bin traces/
-#wboxkit.trace -T $nr_traces circuits/ascon128_r3-isw_3.bin traces/
-#wboxkit.trace -T $nr_traces circuits/ascon128_r3-isw_4.bin traces/
-#wboxkit.trace -T $nr_traces circuits/ascon128_r3-minq.bin traces/
-#wboxkit.trace -T $nr_traces circuits/ascon128_r3-ql2.bin traces/
-#wboxkit.trace -T $nr_traces circuits/ascon128_r3-ql3.bin traces/
-#wboxkit.trace -T $nr_traces circuits/ascon128_r3-ql4.bin traces/
+wboxkit.trace -T $nr_traces circuits/ascon128_r3-clear.bin traces/
+wboxkit.trace -T $nr_traces circuits/ascon128_r3-isw_2.bin traces/
+wboxkit.trace -T $nr_traces circuits/ascon128_r3-isw_3.bin traces/
+wboxkit.trace -T $nr_traces circuits/ascon128_r3-isw_4.bin traces/
+wboxkit.trace -T $nr_traces circuits/ascon128_r3-minq.bin traces/
+wboxkit.trace -T $nr_traces circuits/ascon128_r3-ql2.bin traces/
+wboxkit.trace -T $nr_traces circuits/ascon128_r3-ql3.bin traces/
+wboxkit.trace -T $nr_traces circuits/ascon128_r3-ql4.bin traces/
 
 #wboxkit.trace -T $nr_traces circuits/ascon128_r4-clear.bin traces/
 #wboxkit.trace -T $nr_traces circuits/ascon128_r4-isw_2.bin traces/
@@ -46,14 +46,14 @@ mv ./bin/ascon128_r* ./circuits/
 #wboxkit.trace -T $nr_traces circuits/ascon128_r4-ql3.bin traces/
 #wboxkit.trace -T $nr_traces circuits/ascon128_r4-ql4.bin traces/
 
-wboxkit.trace -T $nr_traces circuits/ascon128_r5-clear.bin traces/
-wboxkit.trace -T $nr_traces circuits/ascon128_r5-isw_2.bin traces/
-wboxkit.trace -T $nr_traces circuits/ascon128_r5-isw_3.bin traces/
-wboxkit.trace -T $nr_traces circuits/ascon128_r5-isw_4.bin traces/
-wboxkit.trace -T $nr_traces circuits/ascon128_r5-minq.bin traces/
-wboxkit.trace -T $nr_traces circuits/ascon128_r5-ql2.bin traces/
-wboxkit.trace -T $nr_traces circuits/ascon128_r5-ql3.bin traces/
-wboxkit.trace -T $nr_traces circuits/ascon128_r5-ql4.bin traces/
+#wboxkit.trace -T $nr_traces circuits/ascon128_r5-clear.bin traces/
+#wboxkit.trace -T $nr_traces circuits/ascon128_r5-isw_2.bin traces/
+#wboxkit.trace -T $nr_traces circuits/ascon128_r5-isw_3.bin traces/
+#wboxkit.trace -T $nr_traces circuits/ascon128_r5-isw_4.bin traces/
+#wboxkit.trace -T $nr_traces circuits/ascon128_r5-minq.bin traces/
+#wboxkit.trace -T $nr_traces circuits/ascon128_r5-ql2.bin traces/
+#wboxkit.trace -T $nr_traces circuits/ascon128_r5-ql3.bin traces/
+#wboxkit.trace -T $nr_traces circuits/ascon128_r5-ql4.bin traces/
 
 #wboxkit.trace -T $nr_traces circuits/ascon128_r8-clear.bin traces/
 #wboxkit.trace -T $nr_traces circuits/ascon128_r8-isw_2.bin traces/
@@ -65,4 +65,4 @@ wboxkit.trace -T $nr_traces circuits/ascon128_r5-ql4.bin traces/
 #wboxkit.trace -T $nr_traces circuits/ascon128_r8-ql4.bin traces/
 
 # 4. run exact attack
-sage ExactMatch_Ascon.py traces/ascon128_r5-clear/ -T 64
+sage ExactMatch_Ascon.py traces/ascon128_r3-clear/ -T 64

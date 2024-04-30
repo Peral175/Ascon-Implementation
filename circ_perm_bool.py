@@ -119,7 +119,7 @@ def ascon_perm(state, key=b"aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa", nr_rounds
     out = C.evaluate(inp)           # regular circuit
 
     # def serialize_circuit(C, string):
-    #     RawSerializer().serialize_to_file(C, "bin/ascon128_r5{}.bin".format(string))
+    #     RawSerializer().serialize_to_file(C, "bin/ascon128_r3{}.bin".format(string))
     #
     # """
     # Uncomment below to transform and serialize the various circuits.
