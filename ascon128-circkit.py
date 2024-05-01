@@ -220,20 +220,21 @@ def even_mansour():
     # pt = 812545564329713676245859916367026775365407289012783556426457997015311926679201529462946091394920
     # pt = b"abcdefghabcdefghabcdefghabcdefghabcdefgh"
     # pt = b"1234567812345678123456781234567812345678"
-    pt = b"aaaaaaaabbbbbbbbccccccccddddddddeeeeeeee"
-    pt = b"\x00"*8+b"\x01"*1+b"\x00"*31
-    # pt = b"\x00"*40
+    # pt = b"aaaaaaaabbbbbbbbccccccccddddddddeeeeeeee"
+    # pt = b"\x00"*8+b"\x01"*1+b"\x00"*31
+    pt = b"\x00"*40
 
     # k1 = 812512715624816776440459237248810020064558190857236543862207984151981621179302483734224793854305
     # k2 = 812512715624816776440459237248810020064558190857236543862207984151981621179302483734224793854305
-    # k1 = b"aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa"
-    # k1 = b"abcdefghabcdefghabcdefghabcdefghabcdefgh"
-    k1 = b"aaaaaaaabbbbbbbbccccccccddddddddeeeeeeee"
-    k1 = b"\x00"*40
-    # k1 = b"abcdefghijklmnopqrstuvwxyz1234567890ABCD"    # 812545564329713676201811733062539987059732885978701336614926206779736496354192269554651712726310
+    # k1 = b"aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa"    # ascon128_r1-... & ascon128_r2-... (with addition)
+    # k1 = b"abcdefghabcdefghabcdefghabcdefghabcdefgh"    # ascon128_r8-...
+    # k1 = b"aaaaaaaabbbbbbbbccccccccddddddddeeeeeeee"    # ascon128_r3-...
+    # k1 = b"\x00"*40
 
+    k1 = b"abcdefghijklmnopqrstuvwxyz1234567890ABCD"    # ascon128_r4-... & ascon128_2_rounds-...
+    # 812545564329713676201811733062539987059732885978701336614926206779736496354192269554651712726310
 
-    res = circ_perm.ascon_perm(state=pt, key=k1, nr_rounds=1)
+    res = circ_perm.ascon_perm(state=pt, key=k1, nr_rounds=2)
     r1 = binary_to_int(res)
     print("output:   ", r1)
     s = ''
