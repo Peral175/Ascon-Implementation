@@ -109,6 +109,7 @@ r2 = sorted(r2)
 r3 = sorted(r3)
 r4 = sorted(r4)
 r5 = sorted(r5)
+print(len(r1), len(r2), len(r3), len(r4), len(r5))
 
 # we want to find the intersection between all 5 lists
 intersection = set(set(set(set(r1).intersection(r2)).intersection(r3)).intersection(r4)).intersection(r5)

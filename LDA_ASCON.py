@@ -53,6 +53,15 @@ print("numOfNodes = ", numOfNodes)
 print("traces = ", T)
 print("window size = ", args.window_size)
 print("window step = ", args.step)
+
+
+def vectInList(vect, lst, array):  # we are looking for all occurrences!
+    while vect in lst:
+        index = lst.index(vect)
+        array.append(index)
+        lst[index] = -1
+
+
 if mode == 0:
     ASCONSBOX = [0x04, 0x0b, 0x1f, 0x14, 0x1a, 0x15, 0x09, 0x02, 0x1b, 0x05, 0x08, 0x12, 0x1d, 0x03, 0x06, 0x1c,
                  0x1e, 0x13, 0x07, 0x0e, 0x00, 0x0d, 0x11, 0x18, 0x10, 0x0c, 0x01, 0x19, 0x16, 0x0a, 0x0f, 0x17]
@@ -111,74 +120,81 @@ if mode == 0:
             nodeVector ^= ((TRACES[traceNumber][node // 8] >> node % 8) & 0b1) << traceNumber
         M.append(nodeVector)
 
-    def vectInList(vect, lst, array):  # we are looking for all occurrences!
-        while vect in lst:
-            index = lst.index(vect)
-            array.append(index)
-            lst[index] = -1
-
-    matr = np.zeros((T, numOfNodes), dtype=int, order='C')
-    for i in range(numOfNodes):
-        c = bin(M[i])[2:].zfill(T)
-        for j in range(T):
-            matr[j, i] = c[j]
-    print("Matrix shape: \t", matr.shape)
-
-    S = np.ndarray((64, T, 32), dtype=int, order='C')
-    for k in range(0, 64 * 32, 32):
-        c = l_dict[k:k+32]
-        for m in range(32):
-            d = bin(c[m])[2:].zfill(T)
-            for n in range(T):
-                S[k//32, n, m] = d[n]
-    print("Key Matrix shape: ", S.shape)
-
-    def work(s, M_matrix, ID, numNodes, Solutions):
-        # mostProbableKey = [-1] * 16
+    def work(M_matrix, ID, numNodes, Solutions):
         w_size = args.window_size
         step = args.step
         for w in range(0, numNodes-w_size+1, w_size//step):
-            tmp = np.ascontiguousarray(M_matrix[:, w:w+w_size])
-            window = matrix(GF(2), tmp)
-            for kg in range(0, 32, 1):
-                K = vector(GF(2), s[:, kg])
-                # print(window, K)
-                try:
-                    _ = window.solve_right(K)
-                    print("ID: ", ID, w, kg)
-                    Solutions[ID] = (w, kg)
-                    # return
-                except ValueError as e:
-                    # print(e)
-                    continue
+            tmp = M_matrix[w:w+w_size]
+            for i in range(0, w_size):
+                for j in range(i+1, w_size):
+                    # for k in range(j+1, w_size):
+                    #     curr_vec = tmp[i] ^ tmp[j] ^ tmp[k]
+                    #     vectInList(curr_vec, v1, r1)
+                    #     vectInList(curr_vec, v2, r2)
+                    #     vectInList(curr_vec, v3, r3)
+                    #     vectInList(curr_vec, v4, r4)
+                    #     vectInList(curr_vec, v5, r5)
+                    curr_vec = tmp[i] ^ tmp[j]
+                    vectInList(curr_vec, v1, r1)
+                    vectInList(curr_vec, v2, r2)
+                    vectInList(curr_vec, v3, r3)
+                    vectInList(curr_vec, v4, r4)
+                    vectInList(curr_vec, v5, r5)
+            print(w, len(r1), len(r2), len(r3), len(r4), len(r5))
+        r1.sort()
+        r2.sort()
+        r3.sort()
+        r4.sort()
+        r5.sort()
+        intersection = set(set(set(set(r1).intersection(r2)).intersection(r2)).intersection(r4)).intersection(
+            r5)
+        si = sorted(intersection)
+        print(r1[:10], r2[:10], r3[:10], r4[:10], r5[:10])
+        print(si, len(si))
+        return si
 
+    sorted_intersection = work(M, "0", numOfNodes, "sols")
+    try:
 
-    SOLS = multiprocessing.Manager().dict()
-    procs = []
-    start = datetime.datetime.now()
-    for id in range(64):
-        proc = multiprocessing.Process(target=work, args=(S[id, :], matr, id, numOfNodes, SOLS,))
-        procs.append(proc)
-        proc.start()
-    for proc in procs:
-        proc.join()
-    end = datetime.datetime.now()
-    print("Time: ", end - start)
-    print(SOLS)
-    # print(SOLS.values())
-    # print(SOLS.keys())
-    recovered_key = ''
-    for i in range(64):
-        # print(i, '\t', bin(SOLS.get(i)[1])[2:].zfill(5), '\t', SOLS.get(i)[0])
-        recovered_key += bin(SOLS.get(i)[1])[2:].zfill(5)
-    print("Recovered key: ", recovered_key, len(recovered_key), int(recovered_key, 2))
-    # 01100 00101 10000 10110 00010 11000 01011 00001
-    # 01100 00101 10000 10110 00010 11000 01011 00001
-    # 01100 00101 10000 10110 00010 11000 01011 00001
-    # 01100 00101 10000 10110 00010 11000 01011 00001
-    # 01100 00101 10000 10110 00010 11000 01011 00001
-    # 01100 00101 10000 10110 00010 11000 01011 00001
-    # 01100 00101 10000 10110 00010 11000 01011 00001
-    # 01100 00101 10000 10110 00010 11000 01011 00001
+        bits_matr = np.zeros((64, 5), dtype=np.uint8)
+        for i in range(64):
+            bits = bin((sorted_intersection[i] % 32))[2:].zfill(5)
+            for j in range(5):
+                bits_matr[i, j] = bits[j]
+        bits_matr = bits_matr.T
 
-    #    12,    5,   16,   22,    2,   24,   11,    1
+        mostProbableKey = [-1] * 40
+        for _ in range(5):
+            for j in range(0, 64, 8):
+                byte = bits_matr[_][j:j + 8]
+                s = ''
+                for k in byte:
+                    s += str(k)
+                i = int(s, 2)
+                mostProbableKey[_ * 8 + j // 8] = i
+
+        recovered_key = ''
+        for keyByte in mostProbableKey:
+            recovered_key += chr(keyByte)
+        print("Recovered key: ", recovered_key)
+    except IndexError:
+        print("List is empty!")
+    # SOLS = multiprocessing.Manager().dict()
+    # procs = []
+    # start = datetime.datetime.now()
+    # for id in range(64):
+    #     proc = multiprocessing.Process(target=work, args=(S[id, :], matr, id, numOfNodes, SOLS,))
+    #     procs.append(proc)
+    #     proc.start()
+    # for proc in procs:
+    #     proc.join()
+    # end = datetime.datetime.now()
+    # print("Time: ", end - start)
+    # print(SOLS)
+    # # print(SOLS.values())
+    # # print(SOLS.keys())
+    # recovered_key = ''
+    # for i in range(64):
+    #     # print(i, '\t', bin(SOLS.get(i)[1])[2:].zfill(5), '\t', SOLS.get(i)[0])
+    #     recovered_key += bin(SOLS.get(i)[1])[2:].zfill(5)
+    # print("Recovered key: ", recovered_key, len(recovered_key), int(recovered_key, 2))
