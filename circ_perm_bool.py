@@ -102,12 +102,12 @@ def ascon_perm(state, key=b"aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa", nr_rounds
         x0 ^= t1;   x1 ^= t2;   x2 ^= t3;   x3 ^= t4;   x4 ^= t0
         x1 ^= x0;   x0 ^= x4;   x3 ^= x2;   x2 = ~x2
 
-        # # Linear Diffusion Layer
-        # x0 = x0 ^ x0.ror(19) ^ x0.ror(28)
-        # x1 = x1 ^ x1.ror(61) ^ x1.ror(39)
-        # x2 = x2 ^ x2.ror( 1) ^ x2.ror( 6)
-        # x3 = x3 ^ x3.ror(10) ^ x3.ror(17)
-        # x4 = x4 ^ x4.ror( 7) ^ x4.ror(41)
+        # Linear Diffusion Layer
+        x0 = x0 ^ x0.ror(19) ^ x0.ror(28)
+        x1 = x1 ^ x1.ror(61) ^ x1.ror(39)
+        x2 = x2 ^ x2.ror( 1) ^ x2.ror( 6)
+        x3 = x3 ^ x3.ror(10) ^ x3.ror(17)
+        x4 = x4 ^ x4.ror( 7) ^ x4.ror(41)
 
     C.add_output([x0, x1, x2, x3, x4])
     C.in_place_remove_unused_nodes()
@@ -119,7 +119,7 @@ def ascon_perm(state, key=b"aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa", nr_rounds
     out = C.evaluate(inp)           # regular circuit
 
     def serialize_circuit(C, string):
-        RawSerializer().serialize_to_file(C, "bin/ascon128_2_no_lin_diff{}.bin".format(string))
+        RawSerializer().serialize_to_file(C, "bin/ascon128_2R_simplified{}.bin".format(string))
 
     """
     Uncomment below to transform and serialize the various circuits.

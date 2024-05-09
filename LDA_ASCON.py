@@ -43,16 +43,25 @@ parser.add_argument(
     default=1,
     help='sliding window size step (2 = half)'
 )
+parser.add_argument(
+    '-F',
+    '--function',
+    type=int,
+    default=1,
+    help='work function'
+)
 args = parser.parse_args()
 T = args.n_traces
 numOfBytes = os.path.getsize(args.trace_dir / "0000.bin")
 numOfNodes = numOfBytes * 8
 mode = args.mode
-print("numOfBytes = ", numOfBytes)
-print("numOfNodes = ", numOfNodes)
-print("traces = ", T)
-print("window size = ", args.window_size)
-print("window step = ", args.step)
+
+
+# print("numOfBytes = ", numOfBytes)
+# print("numOfNodes = ", numOfNodes)
+# print("traces = ", T)
+# print("window size = ", args.window_size)
+# print("window step = ", args.step)
 
 
 def vectInList(vect, lst, array):  # we are looking for all occurrences!
@@ -66,6 +75,7 @@ if mode == 0:
     ASCONSBOX = [0x04, 0x0b, 0x1f, 0x14, 0x1a, 0x15, 0x09, 0x02, 0x1b, 0x05, 0x08, 0x12, 0x1d, 0x03, 0x06, 0x1c,
                  0x1e, 0x13, 0x07, 0x0e, 0x00, 0x0d, 0x11, 0x18, 0x10, 0x0c, 0x01, 0x19, 0x16, 0x0a, 0x0f, 0x17]
 
+
     def selection_function(ptb, kbg):
         return ASCONSBOX[ptb ^ kbg]
 
@@ -77,10 +87,10 @@ if mode == 0:
             PLAINTEXTS += [f.read(40)]
 
     dict1, dict2, dict3, dict4, dict5 = {}, {}, {}, {}, {}
-    for plaintextBits in range(64):    # plaintext is 320 bits inputs of 5-bits = 64
-        for keyBitsGuess in range(32):   # key is 320 bits - we consider input of size 32-bits
+    for plaintextBits in range(64):  # plaintext is 320 bits inputs of 5-bits = 64
+        for keyBitsGuess in range(32):  # key is 320 bits - we consider input of size 32-bits
             guessedVector1, guessedVector2, guessedVector3, guessedVector4, guessedVector5 = 0, 0, 0, 0, 0
-            for traceNr in range(T):    # 256 traces
+            for traceNr in range(T):  # 256 traces
                 tmp = bin(int.from_bytes(PLAINTEXTS[traceNr], byteorder='big'))[2:].zfill(320)
                 x0 = tmp[plaintextBits + 0]
                 x1 = tmp[plaintextBits + 64]
@@ -120,65 +130,117 @@ if mode == 0:
             nodeVector ^= ((TRACES[traceNumber][node // 8] >> node % 8) & 0b1) << traceNumber
         M.append(nodeVector)
 
-    def work(M_matrix, ID, numNodes, Solutions):
+
+    # def xor_all(array, i):
+    #     res = 0
+    #     for e in range(i):
+    #         res ^= array[e]
+    #     return res
+
+    def work1(M_matrix, ID, numNodes, Solutions):
         w_size = args.window_size
         step = args.step
-        for w in range(0, numNodes-w_size+1, w_size//step):
-            tmp = M_matrix[w:w+w_size]
+        for w in range(0, numNodes - w_size + 1, w_size // step):
+            tmp = M_matrix[w:w + w_size]
             for i in range(0, w_size):
-                for j in range(i+1, w_size):
-                    # for k in range(j+1, w_size):
-                    #     curr_vec = tmp[i] ^ tmp[j] ^ tmp[k]
-                    #     vectInList(curr_vec, v1, r1)
-                    #     vectInList(curr_vec, v2, r2)
-                    #     vectInList(curr_vec, v3, r3)
-                    #     vectInList(curr_vec, v4, r4)
-                    #     vectInList(curr_vec, v5, r5)
+                curr_vec = tmp[i]
+                vectInList(curr_vec, v1, r1)
+                vectInList(curr_vec, v2, r2)
+                vectInList(curr_vec, v3, r3)
+                vectInList(curr_vec, v4, r4)
+                vectInList(curr_vec, v5, r5)
+        r1.sort()
+        r2.sort()
+        r3.sort()
+        r4.sort()
+        r5.sort()
+        intersection = set(set(set(r1).intersection(r2)).intersection(r4)).intersection(r5)
+        si = sorted(intersection)
+        return si
+
+
+    def work2(M_matrix, ID, numNodes, Solutions):
+        w_size = args.window_size
+        step = args.step
+        for w in range(0, numNodes - w_size + 1, w_size // step):
+            tmp = M_matrix[w:w + w_size]
+            for i in range(0, w_size):
+                for j in range(i + 1, w_size):
                     curr_vec = tmp[i] ^ tmp[j]
                     vectInList(curr_vec, v1, r1)
                     vectInList(curr_vec, v2, r2)
                     vectInList(curr_vec, v3, r3)
                     vectInList(curr_vec, v4, r4)
                     vectInList(curr_vec, v5, r5)
-            print(w, len(r1), len(r2), len(r3), len(r4), len(r5))
         r1.sort()
         r2.sort()
         r3.sort()
         r4.sort()
         r5.sort()
-        intersection = set(set(set(set(r1).intersection(r2)).intersection(r2)).intersection(r4)).intersection(
-            r5)
+        intersection = set(set(set(r1).intersection(r2)).intersection(r4)).intersection(r5)
         si = sorted(intersection)
-        print(r1[:10], r2[:10], r3[:10], r4[:10], r5[:10])
-        print(si, len(si))
         return si
 
-    sorted_intersection = work(M, "0", numOfNodes, "sols")
-    try:
 
-        bits_matr = np.zeros((64, 5), dtype=np.uint8)
-        for i in range(64):
-            bits = bin((sorted_intersection[i] % 32))[2:].zfill(5)
-            for j in range(5):
-                bits_matr[i, j] = bits[j]
-        bits_matr = bits_matr.T
+    def work3(M_matrix, ID, numNodes, Solutions):
+        w_size = args.window_size
+        step = args.step
+        for w in range(0, numNodes - w_size + 1, w_size // step):
+            tmp = M_matrix[w:w + w_size]
+            for i in range(0, w_size):
+                for j in range(i + 1, w_size):
+                    for k in range(j+1, w_size):
+                        curr_vec = tmp[i] ^ tmp[j] ^ tmp[k]
+                        vectInList(curr_vec, v1, r1)
+                        vectInList(curr_vec, v2, r2)
+                        vectInList(curr_vec, v3, r3)
+                        vectInList(curr_vec, v4, r4)
+                        vectInList(curr_vec, v5, r5)
 
-        mostProbableKey = [-1] * 40
-        for _ in range(5):
-            for j in range(0, 64, 8):
-                byte = bits_matr[_][j:j + 8]
-                s = ''
-                for k in byte:
-                    s += str(k)
-                i = int(s, 2)
-                mostProbableKey[_ * 8 + j // 8] = i
+        r1.sort()
+        r2.sort()
+        r3.sort()
+        r4.sort()
+        r5.sort()
+        # intersection = set(set(set(set(r1).intersection(r2)).intersection(r3)).intersection(r4)).intersection(r5)
+        intersection = set(set(set(r1).intersection(r2)).intersection(r4)).intersection(r5)
+        si = sorted(intersection)
+        # print(len(r1), len(r2), len(r3), len(r4), len(r5))
+        # print(r1[:10], r2[:10], r3[:10], r4[:10], r5[:10])
+        # print(si, len(si))
+        return si
 
-        recovered_key = ''
-        for keyByte in mostProbableKey:
-            recovered_key += chr(keyByte)
-        print("Recovered key: ", recovered_key)
-    except IndexError:
-        print("List is empty!")
+    if args.function == 1:
+        sorted_intersection = work1(M, "0", numOfNodes, "sols")
+    elif args.function == 2:
+        sorted_intersection = work2(M, "0", numOfNodes, "sols")
+    elif args.function == 3:
+        sorted_intersection = work3(M, "0", numOfNodes, "sols")
+    # try:
+    bits_matr = np.zeros((64, 5), dtype=np.uint8)
+    for i in range(len(sorted_intersection)):
+        bits = bin((sorted_intersection[i] % 32))[2:].zfill(5)
+        for j in range(5):
+            bits_matr[i, j] = bits[j]
+    bits_matr = bits_matr.T
+
+    mostProbableKey = [-1] * 40
+    for _ in range(5):
+        for j in range(0, 64, 8):
+            byte = bits_matr[_][j:j + 8]
+            s = ''
+            for k in byte:
+                s += str(k)
+            i = int(s, 2)
+            mostProbableKey[_ * 8 + j // 8] = i
+
+    recovered_key = ''
+    for keyByte in mostProbableKey:
+        recovered_key += chr(keyByte)
+    # print("Recovered key: ")
+    print(recovered_key)
+    # except IndexError:
+    #     print("List is empty or incomplete!")
     # SOLS = multiprocessing.Manager().dict()
     # procs = []
     # start = datetime.datetime.now()

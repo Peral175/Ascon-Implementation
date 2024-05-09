@@ -4,11 +4,21 @@ ASCON Authenticated Encryption implementation in Python
 for Master Thesis at the University of Luxembourg.
 """
 import random
-
+import argparse
 import circ_perm_bool as circ_perm
 # import circ_perm
 
-
+parser = argparse.ArgumentParser(
+    description='ascon implementation',
+    formatter_class=argparse.ArgumentDefaultsHelpFormatter
+)
+parser.add_argument(
+    '-K',
+    '--key',
+    type=str,
+    help='key to use in encryption'
+)
+args = parser.parse_args()
 def state_to_binary(s):
     i = state_to_int(s)
     b = int_to_bytes(i, 320)
@@ -231,21 +241,24 @@ def even_mansour():
     # k1 = b"aaaaaaaabbbbbbbbccccccccddddddddeeeeeeee"    # ascon128_r3-...
     # k1 = b"\x00"*40
 
-    k1 = b"abcdefghijklmnopqrstuvwxyz1234567890ABCD"    # ascon128_r4-... & ascon128_2_rounds-...
+    # k1 = b"abcdefghijklmnopqrstuvwxyz1234567890ABCD"    # ascon128_r4-... & ascon128_2_rounds-...
+    k1 = args.key
+    k1 = bytes(k1, encoding="ascii")
+    print("key: ", k1, type(k1))
     # 812545564329713676201811733062539987059732885978701336614926206779736496354192269554651712726310
 
     res = circ_perm.ascon_perm(state=pt, key=k1, nr_rounds=2)
     r1 = binary_to_int(res)
     print("output:   ", r1)
-    s = ''
-    # p = '01100001011000100110001101100100011001010110011001100111011010000110000101100010011000110110010001100101011001100110011101101000011000010110001001100011011001000110010101100110011001110110100001100001011000100110001101100100011001010110011001100111011010000110000101100010011000110110010001100101011001100110011101101000'
-
-    for i in range(len(res)):
-        s += str(res[i])
-    print(s)
-    print(hex(int(s, 2))[2:].zfill(80))
-    print(bytes.fromhex(hex(int(s, 2))[2:].zfill(80)))
-    r = ''
+    # s = ''
+    # # p = '01100001011000100110001101100100011001010110011001100111011010000110000101100010011000110110010001100101011001100110011101101000011000010110001001100011011001000110010101100110011001110110100001100001011000100110001101100100011001010110011001100111011010000110000101100010011000110110010001100101011001100110011101101000'
+    #
+    # for i in range(len(res)):
+    #     s += str(res[i])
+    # print(s)
+    # print(hex(int(s, 2))[2:].zfill(80))
+    # print(bytes.fromhex(hex(int(s, 2))[2:].zfill(80)))
+    # r = ''
     # for i in range(320):
     #     r += str(int(s[i]))
     # print(bin(812512715624816776440459237248810020064558190857236543862207984151981621179302483734224793854305)[2:].zfill(320))

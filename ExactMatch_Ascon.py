@@ -109,35 +109,35 @@ r2 = sorted(r2)
 r3 = sorted(r3)
 r4 = sorted(r4)
 r5 = sorted(r5)
-print(len(r1), len(r2), len(r3), len(r4), len(r5))
+# print(len(r1), len(r2), len(r3), len(r4), len(r5))
 
 # we want to find the intersection between all 5 lists
 intersection = set(set(set(set(r1).intersection(r2)).intersection(r3)).intersection(r4)).intersection(r5)
 sorted_intersection = sorted(intersection)
-print(sorted_intersection)
+# print(sorted_intersection)
 
-try:
+# try:
+bits_matr = np.zeros((64, 5), dtype=np.uint8)
+for i in range(len(sorted_intersection)):
+    bits = bin((sorted_intersection[i] % 32))[2:].zfill(5)
+    for j in range(5):
+        bits_matr[i, j] = bits[j]
+bits_matr = bits_matr.T
 
-    bits_matr = np.zeros((64, 5), dtype=np.uint8)
-    for i in range(64):
-        bits = bin((sorted_intersection[i] % 32))[2:].zfill(5)
-        for j in range(5):
-            bits_matr[i, j] = bits[j]
-    bits_matr = bits_matr.T
+mostProbableKey = [-1] * 40
+for _ in range(5):
+    for j in range(0, 64, 8):
+        byte = bits_matr[_][j:j+8]
+        s = ''
+        for k in byte:
+            s += str(k)
+        i = int(s, 2)
+        mostProbableKey[_*8+j//8] = i
 
-    mostProbableKey = [-1] * 40
-    for _ in range(5):
-        for j in range(0, 64, 8):
-            byte = bits_matr[_][j:j+8]
-            s = ''
-            for k in byte:
-                s += str(k)
-            i = int(s, 2)
-            mostProbableKey[_*8+j//8] = i
-
-    recovered_key = ''
-    for keyByte in mostProbableKey:
-        recovered_key += chr(keyByte)
-    print("Recovered key: ", recovered_key)
-except IndexError:
-    print("List is empty!")
+recovered_key = ''
+for keyByte in mostProbableKey:
+    recovered_key += chr(keyByte)
+# print("Recovered key: ")
+print(recovered_key)
+# except IndexError:
+#     print("List is empty or incomplete!")
