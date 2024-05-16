@@ -41,7 +41,7 @@ parser.add_argument(
     '--step',
     type=int,
     default=1,
-    help='sliding window size step (2 = half)'
+    help='sliding window size step'
 )
 
 args = parser.parse_args()
@@ -127,7 +127,7 @@ def work(s, M_matrix, ID, numNodes, Solutions):
     # mostProbableKey = [-1] * 16
     w_size = args.window_size
     step = args.step
-    for w in range(0, numNodes-w_size+1, w_size//step):
+    for w in range(0, numNodes-w_size+1, step):
         tmp = np.ascontiguousarray(M_matrix[:, w:w+w_size])
         window = matrix(GF(2), tmp)
         for kg in range(0, 256, 1):     # 2^8

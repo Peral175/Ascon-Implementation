@@ -1,11 +1,11 @@
 import argparse
 import os.path
 import pathlib
-
+import datetime
 import numpy as np
 
 parser = argparse.ArgumentParser(
-    description='my implementation of exact matching attack for ASCON',
+    description='exact matching attack for ASCON',
     formatter_class=argparse.ArgumentDefaultsHelpFormatter
 )
 parser.add_argument(
@@ -20,18 +20,12 @@ parser.add_argument(
     default=256,
     help='nr. traces'
 )
-parser.add_argument(
-    '-M',
-    '--mode',
-    type=int,
-    default=0,
-    help='mode'
-)
+
+start = datetime.datetime.now()
 args = parser.parse_args()
 T = args.n_traces
 numOfBytes = os.path.getsize(args.trace_dir / "0000.bin")
 numOfNodes = numOfBytes * 8
-mode = args.mode
 
 ASCONSBOX = [0x04, 0x0b, 0x1f, 0x14, 0x1a, 0x15, 0x09, 0x02, 0x1b, 0x05, 0x08, 0x12, 0x1d, 0x03, 0x06, 0x1c,
              0x1e, 0x13, 0x07, 0x0e, 0x00, 0x0d, 0x11, 0x18, 0x10, 0x0c, 0x01, 0x19, 0x16, 0x0a, 0x0f, 0x17]
@@ -104,40 +98,34 @@ for node in range(numOfNodes):
     vectInList(nodeVector, v4, r4)
     vectInList(nodeVector, v5, r5)
 
-r1 = sorted(r1)
-r2 = sorted(r2)
-r3 = sorted(r3)
-r4 = sorted(r4)
-r5 = sorted(r5)
-# print(len(r1), len(r2), len(r3), len(r4), len(r5))
-
 # we want to find the intersection between all 5 lists
 intersection = set(set(set(set(r1).intersection(r2)).intersection(r3)).intersection(r4)).intersection(r5)
 sorted_intersection = sorted(intersection)
-# print(sorted_intersection)
 
-# try:
+end = datetime.datetime.now()
+print("Time: ", end - start)
+
 bits_matr = np.zeros((64, 5), dtype=np.uint8)
 for i in range(len(sorted_intersection)):
     bits = bin((sorted_intersection[i] % 32))[2:].zfill(5)
-    for j in range(5):
-        bits_matr[i, j] = bits[j]
+    bits_matr[i, :] = bits[0], bits[1], bits[2], bits[3], bits[4]
 bits_matr = bits_matr.T
 
 mostProbableKey = [-1] * 40
 for _ in range(5):
     for j in range(0, 64, 8):
-        byte = bits_matr[_][j:j+8]
+        byte = bits_matr[_][j:j + 8]
         s = ''
         for k in byte:
             s += str(k)
         i = int(s, 2)
-        mostProbableKey[_*8+j//8] = i
+        mostProbableKey[_ * 8 + j // 8] = i
 
 recovered_key = ''
 for keyByte in mostProbableKey:
-    recovered_key += chr(keyByte)
-# print("Recovered key: ")
+    try:
+        recovered_key += chr(keyByte)
+    except ValueError:
+        recovered_key += '_'
+print("Recovered key: ")
 print(recovered_key)
-# except IndexError:
-#     print("List is empty or incomplete!")

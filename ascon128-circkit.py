@@ -244,7 +244,7 @@ def even_mansour():
     # k1 = b"abcdefghijklmnopqrstuvwxyz1234567890ABCD"    # ascon128_r4-... & ascon128_2_rounds-...
     k1 = args.key
     k1 = bytes(k1, encoding="ascii")
-    print("key: ", k1, type(k1))
+    print("key: ", k1)
     # 812545564329713676201811733062539987059732885978701336614926206779736496354192269554651712726310
 
     res = circ_perm.ascon_perm(state=pt, key=k1, nr_rounds=2)
