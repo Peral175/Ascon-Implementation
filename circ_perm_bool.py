@@ -18,24 +18,6 @@ nfsr = NFSR(
 prng = Pool(prng=nfsr, n=256)
 
 
-# def input_state(state):
-#     inp = []
-#     for i in state:
-#         for j in format(i, '#066b')[2:]:
-#             inp.append(j)
-#     return inp
-
-
-# def output_state(out):
-#     bin_str = ''
-#     for j in range(320):
-#         bin_str += str(out[j])
-#     out = []
-#     for i in range(0, 320, 64):
-#         out.append(int(bin_str[i:i + 64], 2))
-#     return out
-
-
 def ISW_transform(C, order):
     ASCON_ISW = ISW(prng=prng, order=order).transform(C)
     ASCON_ISW.in_place_remove_unused_nodes()
@@ -71,7 +53,7 @@ def DumShuf_transform(C, n_shares):
     return ASCON_DS
 
 
-def ascon_perm(state, key=b"aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa", nr_rounds=1):
+def ascon_perm(state, key=b"aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa", nr_rounds=1, naming=""):
     # print(state)
     # print(key)
     k0 = Array(Bin(key[0:8]))
@@ -119,7 +101,8 @@ def ascon_perm(state, key=b"aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa", nr_rounds
     out = C.evaluate(inp)           # regular circuit
 
     def serialize_circuit(C, string):
-        RawSerializer().serialize_to_file(C, "bin/ascon128_2R_simplified{}.bin".format(string))
+        RawSerializer().serialize_to_file(C, "bin/ascon128_2R_simplified{}{}.bin".format(naming, string))
+        # RawSerializer().serialize_to_file(C, "bin/ascon128_2R_full{}.bin".format(string))
 
     """
     Uncomment below to transform and serialize the various circuits.

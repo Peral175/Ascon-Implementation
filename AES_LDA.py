@@ -181,7 +181,7 @@ print("Recovered key: ", recovered_key)
 #     print("The implementation may be resistant to this attack, but you can still try with more traces")
 
 
-#  sage AsconPy/LDA_AES.py ./wboxkit-main/tutorials/traces/aes2_clear/ -T 256 -M 0
+#  sage AsconPy/AES_LDA.py ./wboxkit-main/tutorials/traces/aes2_clear/ -T 256 -M 0
 # clear 5825 nodes
 # 128 inputs and outputs
 # key = abcdefghABCDEFGH

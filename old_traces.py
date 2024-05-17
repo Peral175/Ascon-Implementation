@@ -7,7 +7,7 @@ FC = FastCircuit("circuits/ascon128-clear.bin")
 ciphertext = FC.compute_one(plaintext, trace_filename="traces/test-1-clear")
 print("Output:", ciphertext, "\n", ciphertext.hex(), "\n",  int.from_bytes(ciphertext, byteorder='big'))
 
-# todo:  """Process finished with exit code 139 (interrupted by signal 11:SIGSEGV)""" error stems from above
+# """Process finished with exit code 139 (interrupted by signal 11:SIGSEGV)""" error stems from above
 
 # ciphertexts = FC.compute_batch(
 #     [b'Hello ascon1', b'Hello ascon2'] * 4,
@@ -27,7 +27,7 @@ print("Traces: ")
 with open("traces/ascon128-clear/0000.bin", "rb") as f:
     print(f.read(32).hex())
 f.close()
-# todo: d30ea3957a490a4d2a0ab3aac5156a6d9f827f20f20e3cc24cf15c6a85b6f5b2 why?
+# d30ea3957a490a4d2a0ab3aac5156a6d9f827f20f20e3cc24cf15c6a85b6f5b2 why?
 
 with open("traces/ascon128-isw_3/0000.bin", "rb") as f:
     print(f.read(32).hex())
@@ -50,7 +50,7 @@ with open("traces/ascon128-ds/0000.bin", "rb") as f:
 f.close()
 
 # Why are all the same except clear ascon?
-# todo: Trace Boolean circuit serialized by wboxkit on random inputs --> random?
+# Trace Boolean circuit serialized by wboxkit on random inputs --> random? ==> bad circuits
 
 # wboxkit.exact traces/ascon128-clear/
-# todo: how to specify ascon? --> expand wboxkit with ASCON?
+# how to specify ascon? --> expand wboxkit with ASCON? ==> DONE

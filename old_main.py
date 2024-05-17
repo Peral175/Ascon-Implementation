@@ -3,7 +3,7 @@ Author: Alex Perrard
 ASCON Authenticated Encryption implementation in Python
 for Master Thesis at the University of Luxembourg.
 """
-import circ_perm
+import old_circ_perm
 import secrets
 
 

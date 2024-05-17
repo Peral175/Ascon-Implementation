@@ -240,14 +240,19 @@ def even_mansour():
     # k1 = b"abcdefghabcdefghabcdefghabcdefghabcdefgh"    # ascon128_r8-...
     # k1 = b"aaaaaaaabbbbbbbbccccccccddddddddeeeeeeee"    # ascon128_r3-...
     # k1 = b"\x00"*40
-
     # k1 = b"abcdefghijklmnopqrstuvwxyz1234567890ABCD"    # ascon128_r4-... & ascon128_2_rounds-...
-    k1 = args.key
-    k1 = bytes(k1, encoding="ascii")
-    print("key: ", k1)
     # 812545564329713676201811733062539987059732885978701336614926206779736496354192269554651712726310
 
-    res = circ_perm.ascon_perm(state=pt, key=k1, nr_rounds=2)
+    import json
+    with open("myconfig.json", "r") as f:
+        data = json.load(f)
+
+    k1 = bytes(args.key, encoding="ascii")
+    print("key: ", k1)
+
+    nam = data.get("naming")
+    print("Naming: ", nam)
+    res = circ_perm.ascon_perm(state=pt, key=k1, nr_rounds=2, naming=nam)
     r1 = binary_to_int(res)
     print("output:   ", r1)
     # s = ''
