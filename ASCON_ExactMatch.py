@@ -5,28 +5,9 @@ import datetime
 import numpy as np
 
 
-def attack():
-    parser = argparse.ArgumentParser(
-        description='exact matching attack for ASCON',
-        formatter_class=argparse.ArgumentDefaultsHelpFormatter
-    )
-    parser.add_argument(
-        'trace_dir',
-        type=pathlib.Path,
-        help='path to trace directory'
-    )
-    parser.add_argument(
-        '-T',
-        '--n-traces',
-        type=int,
-        default=256,
-        help='nr. traces'
-    )
-
+def attack(T, trace_dir):
     start = datetime.datetime.now()
-    args = parser.parse_args()
-    T = args.n_traces
-    numOfBytes = os.path.getsize(args.trace_dir / "0000.bin")
+    numOfBytes = os.path.getsize(trace_dir / "0000.bin")
     numOfNodes = numOfBytes * 8
 
     ASCONSBOX = [0x04, 0x0b, 0x1f, 0x14, 0x1a, 0x15, 0x09, 0x02, 0x1b, 0x05, 0x08, 0x12, 0x1d, 0x03, 0x06, 0x1c,
@@ -37,7 +18,7 @@ def attack():
 
     PLAINTEXTS = []
     for traceNr in range(T):
-        pt = args.trace_dir / ("%04d.pt" % traceNr)
+        pt = trace_dir / ("%04d.pt" % traceNr)
         with open(pt, "rb") as f:
             PLAINTEXTS += [f.read(40)]
 
@@ -68,7 +49,7 @@ def attack():
 
     TRACES = []
     for traceNumber in range(T):
-        ftrace = args.trace_dir / ("%04d.bin" % traceNumber)
+        ftrace = trace_dir / ("%04d.bin" % traceNumber)
         with open(ftrace, "rb") as f:
             TRACES += [f.read(numOfBytes)]
 
@@ -131,4 +112,21 @@ def attack():
 
 
 if __name__ == "__main__":
-    attack()
+    parser = argparse.ArgumentParser(
+        description='exact matching attack for ASCON',
+        formatter_class=argparse.ArgumentDefaultsHelpFormatter
+    )
+    parser.add_argument(
+        'trace_dir',
+        type=pathlib.Path,
+        help='path to trace directory'
+    )
+    parser.add_argument(
+        '-T',
+        '--n-traces',
+        type=int,
+        default=256,
+        help='nr. traces'
+    )
+    args = parser.parse_args()
+    attack(args.n_traces, args.trace_dir)

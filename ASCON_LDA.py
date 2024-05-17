@@ -2,70 +2,30 @@ import argparse
 import multiprocessing
 import pathlib
 import numpy as np
-from sage.all import *
 import datetime
 import os.path
+from sage.all import *
 
-def attack():
-    parser = argparse.ArgumentParser(
-        description='LDA for ASCON',
-        formatter_class=argparse.ArgumentDefaultsHelpFormatter
-    )
-    parser.add_argument(
-        'trace_dir',
-        type=pathlib.Path,
-        help='path to trace directory'
-    )
-    parser.add_argument(
-        '-T',
-        '--n-traces',
-        type=int,
-        default=256,
-        help='nr. traces'
-    )
-    parser.add_argument(
-        '-W',
-        '--window_size',
-        type=int,
-        default=5,
-        help='sliding window size'
-    )
-    parser.add_argument(
-        '-S',
-        '--step',
-        type=int,
-        default=1,
-        help='sliding window size step'
-    )
-    args = parser.parse_args()
-    T = args.n_traces
-    numOfBytes = os.path.getsize(args.trace_dir / "0000.bin")
+
+def attack(T, trace_dir, w_size, step):
+    numOfBytes = os.path.getsize(trace_dir / "0000.bin")
     numOfNodes = numOfBytes * 8
 
     # print("numOfBytes = ", numOfBytes)
     # print("numOfNodes = ", numOfNodes)
     # print("traces = ", T)
-    # print("window size = ", args.window_size)
-    # print("window step = ", args.step)
+    # print("window size = ", window_size)
+    # print("window step = ", step)
 
     ASCONSBOX = [0x04, 0x0b, 0x1f, 0x14, 0x1a, 0x15, 0x09, 0x02, 0x1b, 0x05, 0x08, 0x12, 0x1d, 0x03, 0x06, 0x1c,
                  0x1e, 0x13, 0x07, 0x0e, 0x00, 0x0d, 0x11, 0x18, 0x10, 0x0c, 0x01, 0x19, 0x16, 0x0a, 0x0f, 0x17]
 
-
-    def vectInList(vect, lst, array):  # we are looking for all occurrences!
-        while vect in lst:
-            index = lst.index(vect)
-            array.append(index)
-            lst[index] = -1
-
-
     def selection_function(ptb, kbg):
         return ASCONSBOX[ptb ^ kbg]
 
-
     PLAINTEXTS = []
     for traceNr in range(T):
-        pt = args.trace_dir / ("%04d.pt" % traceNr)
+        pt = trace_dir / ("%04d.pt" % traceNr)
         with open(pt, "rb") as f:
             PLAINTEXTS += [f.read(40)]
 
@@ -95,7 +55,7 @@ def attack():
 
     TRACES = []
     for traceNumber in range(T):
-        ftrace = args.trace_dir / ("%04d.bin" % traceNumber)
+        ftrace = trace_dir / ("%04d.bin" % traceNumber)
         with open(ftrace, "rb") as f:
             TRACES += [f.read(numOfBytes)]
 
@@ -104,7 +64,6 @@ def attack():
     v3 = list(dict3.values())
     v4 = list(dict4.values())
     v5 = list(dict5.values())
-    r1, r2, r3, r4, r5 = [], [], [], [], []
 
     M = []
     for node in range(numOfNodes):
@@ -113,10 +72,10 @@ def attack():
             nodeVector ^= ((TRACES[traceNumber][node // 8] >> node % 8) & 0b1) << traceNumber
         M.append(nodeVector)
     matr = np.zeros((T, numOfNodes), dtype=int, order='C')
-    for i in range(numOfNodes):
-        c = bin(M[i])[2:].zfill(T)
+    for x in range(numOfNodes):
+        c = bin(M[x])[2:].zfill(T)
         for j in range(T):
-            matr[j, i] = c[j]
+            matr[j, x] = c[j]
     M = matr
 
     S1 = np.ndarray((64, T, 32), dtype=int, order='C')
@@ -136,19 +95,17 @@ def attack():
             d3 = bin(c3[m])[2:].zfill(T)
             d4 = bin(c4[m])[2:].zfill(T)
             d5 = bin(c5[m])[2:].zfill(T)
-            for n in range(T):
-                S1[k // 32, n, m] = d1[n]
-                S2[k // 32, n, m] = d2[n]
-                S3[k // 32, n, m] = d3[n]
-                S4[k // 32, n, m] = d4[n]
-                S5[k // 32, n, m] = d5[n]
+            for t in range(T):
+                S1[k // 32, t, m] = d1[t]
+                S2[k // 32, t, m] = d2[t]
+                S3[k // 32, t, m] = d3[t]
+                S4[k // 32, t, m] = d4[t]
+                S5[k // 32, t, m] = d5[t]
 
     S = [S1, S2, S3, S4, S5]
 
-    def work1(s, M_matrix, ID, numNodes, Solutions):
-        s1, s2, s3, s4, s5 = s[0], s[1], s[2], s[3], s[4]
-        w_size = args.window_size
-        step = args.step
+    def doWork(k_matr, M_matrix, ID, numNodes, Solutions):
+        s1, s2, s3, s4, s5 = k_matr[0], k_matr[1], k_matr[2], k_matr[3], k_matr[4]
         l1, l2, l3, l4, l5 = [], [], [], [], []
         for w in range(0, numNodes - w_size + 1, step):
             window = matrix(GF(2), np.ascontiguousarray(M_matrix[:, w:w + w_size]))
@@ -184,12 +141,11 @@ def attack():
             if len(Solutions[ID]) > 0:
                 break
 
-
     SOLS = multiprocessing.Manager().dict()
     procs = []
     start = datetime.datetime.now()
     for id in range(64):
-        proc = multiprocessing.Process(target=work1, args=(S, M, id, numOfNodes, SOLS,))
+        proc = multiprocessing.Process(target=doWork, args=(S, M, id, numOfNodes, SOLS,))
         procs.append(proc)
         proc.start()
     for proc in procs:
@@ -200,15 +156,15 @@ def attack():
     bits_matr = [-1] * 320
 
     if len(SOLS) == 64:
-        for i in range(64):
-            t = list(SOLS.get(i))
+        for x in range(64):
+            t = list(SOLS.get(x))
             try:
                 bits = bin(t[0])[2:].zfill(5)
-                bits_matr[i] = int(bits[0])
-                bits_matr[i+64] = int(bits[1])
-                bits_matr[i+128] = int(bits[2])
-                bits_matr[i+192] = int(bits[3])
-                bits_matr[i+256] = int(bits[4])
+                bits_matr[x] = int(bits[0])
+                bits_matr[x+64] = int(bits[1])
+                bits_matr[x+128] = int(bits[2])
+                bits_matr[x+192] = int(bits[3])
+                bits_matr[x+256] = int(bits[4])
             except IndexError:
                 continue
         mostProbableKey = [-1] * 40
@@ -217,16 +173,15 @@ def attack():
             s = ''
             for k in byte:
                 s += str(k)
-            i = int(s, 2)
-            mostProbableKey[j//8] = i
+            x = int(s, 2)
+            mostProbableKey[j//8] = x
         recovered_key = ''
         for keyByte in mostProbableKey:
             try:
                 recovered_key += chr(keyByte)
             except ValueError:
                 recovered_key += '_'
-        print("Recovered key: ")
-        print(recovered_key)
+        print("Recovered key: ", recovered_key)
         return True, recovered_key
     else:
         print("Key was not fully recovered!", len(SOLS))
@@ -234,4 +189,35 @@ def attack():
 
 
 if __name__ == "__main__":
-    attack()
+    parser = argparse.ArgumentParser(
+        description='LDA for ASCON',
+        formatter_class=argparse.ArgumentDefaultsHelpFormatter
+    )
+    parser.add_argument(
+        'trace_dir',
+        type=pathlib.Path,
+        help='path to trace directory'
+    )
+    parser.add_argument(
+        '-T',
+        '--n-traces',
+        type=int,
+        default=256,
+        help='nr. traces'
+    )
+    parser.add_argument(
+        '-W',
+        '--window_size',
+        type=int,
+        default=5,
+        help='sliding window size'
+    )
+    parser.add_argument(
+        '-S',
+        '--step',
+        type=int,
+        default=1,
+        help='sliding window size step'
+    )
+    args = parser.parse_args()
+    attack(args.n_traces, args.trace_dir, args.window_size, args.step)
