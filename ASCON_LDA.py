@@ -151,8 +151,6 @@ def attack():
         step = args.step
         l1, l2, l3, l4, l5 = [], [], [], [], []
         for w in range(0, numNodes - w_size + 1, step):
-            if (w % numNodes//10) == 0:
-                print(ID, w)
             window = matrix(GF(2), np.ascontiguousarray(M_matrix[:, w:w + w_size]))
             for kg in range(0, 32, 1):
                 K1 = vector(GF(2), s1[ID, :, kg])
