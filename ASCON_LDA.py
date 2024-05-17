@@ -180,8 +180,7 @@ def attack():
                     pass
 
             Solutions[ID] = set(set(set(set(l1).intersection(l2)).intersection(l3)).intersection(l4)).intersection(l5)
-            print(set(set(set(set(l1).intersection(l2)).intersection(l3)).intersection(l4)).intersection(l5))
-            # todo: reflect that intersection has one solution at most
+            # print(ID, w, set(set(set(set(l1).intersection(l2)).intersection(l3)).intersection(l4)).intersection(l5))
             if len(Solutions[ID]) > 0:
                 break
 

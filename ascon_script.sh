@@ -108,7 +108,7 @@ else
 fi
 
 #printf '\nMinq:'
-#r="$(sage ASCON_LDA.py traces/$key/ascon128_2R_simplified-minq/ -T 200 -W 192 -S 192)"
+#r="$(sage ASCON_LDA.py traces/$key/ascon128_2R_simplified-minq/ -T 512 -W 500 -S 250)"
 #if [[ $r == *$key* ]]; then
 #    printf "key match!"
 #    echo "$r"
