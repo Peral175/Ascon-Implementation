@@ -2,12 +2,9 @@ from circkit.boolean import OptBooleanCircuit as BooleanCircuit
 from circkit.array import Array
 from binteger import Bin
 
-from wboxkit.masking import ISW
+from wboxkit.masking import ISW, MINQ, QuadLin, DumShuf
 from wboxkit.prng import NFSR, Pool
-from wboxkit.masking import MINQ
-from wboxkit.masking import QuadLin
 from CubeLinMasking import CubeLin
-from wboxkit.masking import DumShuf
 from wboxkit.serialize import RawSerializer
 
 nfsr = NFSR(

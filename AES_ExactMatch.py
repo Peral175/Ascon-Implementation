@@ -2,36 +2,10 @@ import argparse
 import os.path
 import pathlib
 
-parser = argparse.ArgumentParser(
-    description='my implementation of exact matching attack',
-    formatter_class=argparse.ArgumentDefaultsHelpFormatter
-)
-parser.add_argument(
-    'trace_dir',
-    type=pathlib.Path,
-    help='path to trace directory'
-)
-parser.add_argument(
-    '-T',
-    '--n-traces',
-    type=int,
-    default=256,
-    help='nr. traces'
-)
-parser.add_argument(
-    '-M',
-    '--mode',
-    type=int,
-    default=0,
-    help='mode'
-)
-args = parser.parse_args()
-T = args.n_traces
-numOfBytes = os.path.getsize(args.trace_dir / "0000.bin")
-numOfNodes = numOfBytes * 8
-mode = args.mode
 
-if mode == 0:
+def attack(T, trace_dir):
+    numOfBytes = os.path.getsize(trace_dir / "0000.bin")
+    numOfNodes = numOfBytes * 8
     AESSBox = [
         0x63, 0x7C, 0x77, 0x7B, 0xF2, 0x6B, 0x6F, 0xC5, 0x30, 0x01, 0x67, 0x2B, 0xFE, 0xD7, 0xAB, 0x76,
         0xCA, 0x82, 0xC9, 0x7D, 0xFA, 0x59, 0x47, 0xF0, 0xAD, 0xD4, 0xA2, 0xAF, 0x9C, 0xA4, 0x72, 0xC0,
@@ -51,14 +25,12 @@ if mode == 0:
         0x8C, 0xA1, 0x89, 0x0D, 0xBF, 0xE6, 0x42, 0x68, 0x41, 0x99, 0x2D, 0x0F, 0xB0, 0x54, 0xBB, 0x16
     ]
 
-
     def selection_function(ptb, kbg):
         return AESSBox[ptb ^ kbg] & 1
 
-
     PLAINTEXTS = []
     for traceNr in range(T):
-        pt = args.trace_dir / ("%04d.pt" % traceNr)
+        pt = trace_dir / ("%04d.pt" % traceNr)
         with open(pt, "rb") as f:
             PLAINTEXTS += [f.read(16)]
 
@@ -67,44 +39,60 @@ if mode == 0:
         for keyByteGuess in range(256):
             guessedVector = 0
             for traceNr in range(T):
-
                 guessedVector ^= selection_function(PLAINTEXTS[traceNr][plaintextByte], keyByteGuess) << traceNr
-
             dictionary[guessedVector] = plaintextByte * 256 + keyByteGuess
-print(len(dictionary))
+    # print(len(dictionary))
 
-TRACES = []
-for traceNumber in range(T):
-    ftrace = args.trace_dir / ("%04d.bin" % traceNumber)
-    with open(ftrace, "rb") as f:
-        TRACES += [f.read(numOfBytes)]
-
-mostProbableKey = [-1] * 16
-
-for node in range(numOfNodes):
-    nodeVector = 0
+    TRACES = []
     for traceNumber in range(T):
-        nodeVector ^= ((TRACES[traceNumber][node // 8] >> node % 8) & 0b1) << traceNumber
-    match = dictionary.get(nodeVector)
-    if match != None:
-        # print("At node number " + str(node) + ", we have the key byte " + chr((match % 256)))
-        # print(match, match // 256, match % 256)
-        mostProbableKey[match // 256] = match % 256
+        ftrace = trace_dir / ("%04d.bin" % traceNumber)
+        with open(ftrace, "rb") as f:
+            TRACES += [f.read(numOfBytes)]
 
-missingBytes = 0
-for i in range(16):
-    if mostProbableKey[i] == -1:
-        missingBytes += 1
-if missingBytes == 0:
-    if mode == 0:
+    mostProbableKey = [-1] * 16
+
+    for node in range(numOfNodes):
+        nodeVector = 0
+        for traceNumber in range(T):
+            nodeVector ^= ((TRACES[traceNumber][node // 8] >> node % 8) & 0b1) << traceNumber
+        match = dictionary.get(nodeVector)
+        if match is not None:
+            mostProbableKey[match // 256] = match % 256
+
+    missingBytes = 0
+    for i in range(16):
+        if mostProbableKey[i] == -1:
+            missingBytes += 1
+    if missingBytes == 0:
         print("Most probable key (char): ", end="")
-    for i in range(16):
-        print(chr(mostProbableKey[i]), end="")
-    if mode == 0:
+        for i in range(16):
+            print(chr(mostProbableKey[i]), end="")
         print("\n                   (hex): ", end="")
-    for i in range(16):
-        print(hex(mostProbableKey[i])[2:], end="")
-    print()
-else:
-    print("Impossible to find the key: %d bytes are missing" % missingBytes)
-    print("The implementation may be resistant to this attack, but you can still try with more traces")
+        for i in range(16):
+            print(hex(mostProbableKey[i])[2:], end="")
+        return True, mostProbableKey
+    else:
+        print("Impossible to find the key: %d bytes are missing" % missingBytes)
+        print("The implementation may be resistant to this attack, but you can still try with more traces")
+        return False, mostProbableKey, missingBytes
+
+
+if __name__ == '__main__':
+    parser = argparse.ArgumentParser(
+        description='exact matching attack for AES',
+        formatter_class=argparse.ArgumentDefaultsHelpFormatter
+    )
+    parser.add_argument(
+        'trace_dir',
+        type=pathlib.Path,
+        help='path to trace directory'
+    )
+    parser.add_argument(
+        '-T',
+        '--n-traces',
+        type=int,
+        default=256,
+        help='nr. traces'
+    )
+    args = parser.parse_args()
+    attack(args.n_traces, args.trace_dir)
