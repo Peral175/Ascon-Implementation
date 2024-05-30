@@ -1,3 +1,4 @@
+import random
 from functools import reduce
 from operator import xor
 from queue import PriorityQueue
@@ -94,7 +95,87 @@ class MaskingTransformer(CircuitTransformer):
         super().make_output(node, result)
 
 
-class ISW(MaskingTransformer):
+class ObfuscatedTransformer(MaskingTransformer):
+    # todo: add inputs for users
+    START_FROM_VARS = True  # ensure all INPUTS are processed first
+
+    def __init__(self, prng=None, n_shares=2, encode_input=True, decode_output=True):
+        super().__init__(prng, n_shares, encode_input, decode_output)
+        if prng is None:
+            self.prng = None
+        else:
+            self.prng = prng
+        self.n_shares = int(n_shares)
+        assert n_shares >= 1  # maybe 1 is useful for debugging purposes
+        self.encode_input = encode_input
+        self.decode_output = decode_output
+
+    def rand(self):
+        if self.prng is None:
+            return self.target_circuit.RND()()
+        return self.prng.step()
+
+    def visit_XOR(self, node, x, y):
+        from random import randint
+        c = randint(0, 100)
+        n = 2
+
+        if c < 90:
+            # original
+            return x ^ y
+
+        elif c < 95:
+            # v1
+            nodes = self.target_circuit.nodes[-n:]
+            o = nodes[randint(0, n)]
+            return ((o ^ x) ^ y) ^ o
+
+        elif c < 100:
+            # v2
+            nodes = self.target_circuit.nodes[-n:]
+            o1 = nodes[randint(0, n)]
+            o2 = nodes[randint(0, n)]
+            return (((o1 ^ x) ^ (o2 ^ y)) ^ o1) ^ o2
+
+    def visit_AND(self, node, x, y):
+        from random import randint
+        c = randint(0, 100)
+        n = 2
+
+        if c < 90:
+            # original
+            return x & y
+
+        elif c < 95:
+            # v1
+            nodes = self.target_circuit.nodes[-n:]
+            o = nodes[randint(0, n)]
+            return ((x ^ o) & y) ^ (o & y)
+
+        elif c < 100:
+            # v2
+            nodes = self.target_circuit.nodes[-n:]
+            o1 = nodes[randint(0, n)]
+            o2 = nodes[randint(0, n)]
+            return ((x ^ o1) & (y ^ o2)) ^ ((o1 & (o2 ^ y)) ^ (x & o2))
+
+    def visit_NOT(self, node, x):
+        from random import randint
+        c = randint(0, 100)
+        n = 2
+
+        if c < 90:
+            # original
+            return 1 ^ x
+
+        elif c < 100:
+            # v1
+            nodes = self.target_circuit.nodes[-n:]
+            o = nodes[randint(0, n)]
+            return ((1 ^ o) ^ x) ^ o
+
+
+class ISW(ObfuscatedTransformer):
     """Private Circuits [ISW03]"""
     NAME_SUFFIX = "_ISW"
 
@@ -110,80 +191,16 @@ class ISW(MaskingTransformer):
     def decode(self, x):
         return xorlist(x)
 
-    # todo: what does node do?
-    # todo: self.target_circuit.RND()()
-    # todo: do obfuscation for all transformers?
-    # todo: implement refresh?
     def visit_XOR(self, node, x, y):
-        # original
         return x ^ y
 
-        # v1
-        # # todo: how much more expensive ?
-        # o = self.target_circuit.nodes[-1]
-        # return self.encode((o ^ self.decode(x) ^ self.decode(y)) ^ o)
-        # # todo: encode/decode correct and necessary ?
-
-        # v2
-        # o1 = self.target_circuit.nodes[-1]
-        # o2 = self.target_circuit.nodes[-2]
-        # return self.encode(
-        #     (
-        #             (o1 ^ self.decode(x)) ^
-        #             (o2 ^ self.decode(y))
-        #     ) ^ o1 ^ o2
-        # )
-
-        # v3
-        # o1 = self.target_circuit.nodes[-1]
-        # o2 = self.target_circuit.nodes[-2]
-        # o3 = self.target_circuit.nodes[-3]
-        # return self.encode(
-        #     (   o3 ^
-        #             (o1 ^ self.decode(x)) ^
-        #             (o2 ^ self.decode(y))
-        #     ) ^ o1 ^ o2 ^ o3
-        # )
-
-        # v4
-        # o1 = self.target_circuit.nodes[-1]
-        # o2 = self.target_circuit.nodes[-2]
-        # o3 = self.target_circuit.nodes[-3]
-        # o4 = self.target_circuit.nodes[-4]
-        # o5 = self.target_circuit.nodes[-5]
-        # o6 = self.target_circuit.nodes[-6]
-        # o7 = self.target_circuit.nodes[-7]
-        # o8 = self.target_circuit.nodes[-8]
-        # ls = [o1, o2, o3, o4, o5, o6, o7, o8]
-        # from random import randint
-        # o = ls[randint(0, len(ls) - 1)]
-        # return self.encode((o ^ self.decode(x) ^ self.decode(y)) ^ o)
-
     def visit_AND(self, node, x, y):
-        # original
-        # r = [[0] * self.n_shares for _ in range(self.n_shares)]
-        # for i in range(self.n_shares):
-        #     for j in range(i+1, self.n_shares):
-        #         r[i][j] = self.rand()
-        #         r[j][i] = r[i][j] ^ x[i] & y[j] ^ x[j] & y[i]
-        # z = x & y
-        # for i in range(self.n_shares):
-        #     for j in range(self.n_shares):
-        #         if i != j:
-        #             z[i] = z[i] ^ r[i][j]
-        # return z
-
-        # v1
         r = [[0] * self.n_shares for _ in range(self.n_shares)]
         for i in range(self.n_shares):
             for j in range(i+1, self.n_shares):
                 r[i][j] = self.rand()
                 r[j][i] = r[i][j] ^ x[i] & y[j] ^ x[j] & y[i]
-        o = self.target_circuit.nodes[-1]
-        x = self.decode(x)
-        y = self.decode(y)
-        z = ((o ^ x) & (o ^ y)) ^ (o ^ (o & x) ^ (o & y))
-        z = self.encode(z)
+        z = x & y
         for i in range(self.n_shares):
             for j in range(self.n_shares):
                 if i != j:
@@ -191,16 +208,10 @@ class ISW(MaskingTransformer):
         return z
 
     def visit_NOT(self, node, x):
-        # original
-        # x = Array(x)
-        # x[0] = 1 ^ x[0]
-        # return x
-
-        # v1
-        o = self.target_circuit.nodes[-1]
         x = Array(x)
-        x[0] = ((o ^ 1) ^ x[0]) ^ o
+        x[0] = 1 ^ x[0]
         return x
+
 
 class MINQ(MaskingTransformer):
     """MINimalist Quadratic Masking [BU18]"""
@@ -407,14 +418,14 @@ C.print_stats()
 C_obfus_1 = ISW(order=1).transform(C)
 C_obfus_1.in_place_remove_unused_nodes()
 C_obfus_1.print_stats()
-C_obfus_1.digraph()
+# C_obfus_1.digraph().view()
 C_obfus_2 = ISW(order=2).transform(C)
 C_obfus_2.in_place_remove_unused_nodes()
 C_obfus_2.print_stats()
 # C_obfus_2.digraph().view()
 
 
-inp = [1, 0, 0, 1]
+inp = [1, 0, 1, 1]
 out = C.evaluate(inp)
 print("OUT", out)
 # inp_shares = [1, 0, 1, 1]
