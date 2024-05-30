@@ -46,35 +46,35 @@ printf '\nExact attack on ascon with 2 rounds and no constant addition.'
 #sage ASCON_ExactMatch.py traces/ascon128_1_no_lin_diff-isw_2/ -T 256
 #sage ASCON_ExactMatch.py traces/ascon128_1_no_lin_diff-minq/ -T 256
 
-printf "\nClear:"
-r="$(sage ASCON_ExactMatch.py traces/$key/ascon128_2R_simplified-clear/ -T 256)"
-if [[ $r == *$key* ]]; then
-    printf "key match!"
-    echo "$r"
-else
-    printf "key does not match!"
-    echo "$r"
-fi
-
-printf '\nISW-2:'
-r="$(sage ASCON_ExactMatch.py traces/$key/ascon128_2R_simplified-isw_2/ -T 256)"
-if [[ $r == *$key* ]]; then
-    printf "key match!"
-    echo "$r"
-else
-    printf "key does not match!"
-    echo "$r"
-fi
-
-printf '\nMinq:'
-r="$(sage ASCON_ExactMatch.py traces/$key/ascon128_2R_simplified-minq/ -T 256)"
-if [[ $r == *$key* ]]; then
-    printf "key match!"
-    echo "$r"
-else
-    printf "key does not match!"
-    echo "$r"
-fi
+#printf "\nClear:"
+#r="$(sage ASCON_ExactMatch.py traces/$key/ascon128_2R_simplified-clear/ -T 256)"
+#if [[ $r == *$key* ]]; then
+#    printf "key match!"
+#    echo "$r"
+#else
+#    printf "key does not match!"
+#    echo "$r"
+#fi
+#
+#printf '\nISW-2:'
+#r="$(sage ASCON_ExactMatch.py traces/$key/ascon128_2R_simplified-isw_2/ -T 256)"
+#if [[ $r == *$key* ]]; then
+#    printf "key match!"
+#    echo "$r"
+#else
+#    printf "key does not match!"
+#    echo "$r"
+#fi
+#
+#printf '\nMinq:'
+#r="$(sage ASCON_ExactMatch.py traces/$key/ascon128_2R_simplified-minq/ -T 256)"
+#if [[ $r == *$key* ]]; then
+#    printf "key match!"
+#    echo "$r"
+#else
+#    printf "key does not match!"
+#    echo "$r"
+#fi
 
 printf '\nLDA on ascon with 2 rounds and no constant addition.'
 printf '\nClear:'

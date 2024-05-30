@@ -136,10 +136,25 @@ def attack(T, trace_dir, w_size, step):
                 except ValueError:
                     pass
 
-            Solutions[ID] = set(set(set(set(l1).intersection(l2)).intersection(l3)).intersection(l4)).intersection(l5)
+            pot1 =             set(l1)
+            pot2 =             set(l1).intersection(l2)
+            pot3 =         set(set(l1).intersection(l2)).intersection(l3)
+            pot4 =     set(set(set(l1).intersection(l2)).intersection(l3)).intersection(l4)
+            pot5 = set(set(set(set(l1).intersection(l2)).intersection(l3)).intersection(l4)).intersection(l5)
+            # todo: rank candidates
+            # 3 mostly good enough
+            # 4 almost always good enough
+            # intersection impact on performance?
+            # print(pot1, pot2, pot3, pot4, pot5)
+            # if pot3 == pot5 and pot4 == pot5:
+            #     input("FOUND!")
+            if len(pot1) > 0:
+                print(pot1, pot2, pot3, pot4, pot5)
+            Solutions[ID] = pot5
             # print(ID, w, set(set(set(set(l1).intersection(l2)).intersection(l3)).intersection(l4)).intersection(l5))
-            if len(Solutions[ID]) > 0:
-                break
+            # todo: do not stop with first ?
+            # if len(Solutions[ID]) > 0:
+            #     break
 
     SOLS = multiprocessing.Manager().dict()
     procs = []
