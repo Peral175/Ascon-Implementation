@@ -109,6 +109,10 @@ def attack(T, trace_dir, w_size, step):
         l1, l2, l3, l4, l5 = [], [], [], [], []
         for w in range(0, numNodes - w_size + 1, step):
             window = matrix(GF(2), np.ascontiguousarray(M_matrix[:, w:w + w_size]))
+            # TEST1 = window.right_kernel().matrix()
+            # TEST2 = window.left_kernel().matrix()
+            # print("Test1: ", TEST1)
+            # print("Test2: ", TEST2)
             for kg in range(0, 32, 1):
                 K1 = vector(GF(2), s1[ID, :, kg])
                 K2 = vector(GF(2), s2[ID, :, kg])
@@ -136,21 +140,22 @@ def attack(T, trace_dir, w_size, step):
                 except ValueError:
                     pass
 
-            pot1 =             set(l1)
-            pot2 =             set(l1).intersection(l2)
-            pot3 =         set(set(l1).intersection(l2)).intersection(l3)
-            pot4 =     set(set(set(l1).intersection(l2)).intersection(l3)).intersection(l4)
-            pot5 = set(set(set(set(l1).intersection(l2)).intersection(l3)).intersection(l4)).intersection(l5)
-            # todo: rank candidates
+                pot1 =             set(l1)
+                pot2 =             set(l1).intersection(l2)
+                pot3 =         set(set(l1).intersection(l2)).intersection(l3)
+                pot4 =     set(set(set(l1).intersection(l2)).intersection(l3)).intersection(l4)
+                pot5 = set(set(set(set(l1).intersection(l2)).intersection(l3)).intersection(l4)).intersection(l5)
+                print(pot1, pot2, pot3, pot4, pot5)
+            Solutions[ID] = set(set(set(set(l1).intersection(l2)).intersection(l3)).intersection(l4)).intersection(l5)
+            # todo: rank candidates + all combinations of intersections; start with l3 ?
             # 3 mostly good enough
             # 4 almost always good enough
             # intersection impact on performance?
-            # print(pot1, pot2, pot3, pot4, pot5)
             # if pot3 == pot5 and pot4 == pot5:
             #     input("FOUND!")
-            if len(pot1) > 0:
-                print(pot1, pot2, pot3, pot4, pot5)
-            Solutions[ID] = pot5
+            # if len(pot1) > 0:
+            #     print(pot1, pot2, pot3, pot4, pot5)
+            # Solutions[ID] = pot5
             # print(ID, w, set(set(set(set(l1).intersection(l2)).intersection(l3)).intersection(l4)).intersection(l5))
             # todo: do not stop with first ?
             # if len(Solutions[ID]) > 0:

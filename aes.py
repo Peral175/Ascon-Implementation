@@ -1,10 +1,10 @@
+import argparse
+from binteger import Bin
+from circkit.boolean import OptBooleanCircuit as BooleanCircuit
+from wboxkit.ciphers.aes import BitAES
 from wboxkit.masking import ISW, MINQ, QuadLin
 from wboxkit.prng import NFSR, Pool
 from wboxkit.serialize import RawSerializer
-from wboxkit.ciphers.aes import BitAES
-from circkit.boolean import OptBooleanCircuit as BooleanCircuit
-from binteger import Bin
-import argparse
 
 
 def circuit(key):

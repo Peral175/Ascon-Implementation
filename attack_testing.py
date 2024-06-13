@@ -38,9 +38,9 @@ class TestStringMethods(unittest.TestCase):
         r = ASCON_LDA.attack(self.t, self.tr_ascon_clear, self.w, self.s)
         self.assertEqual(True, r[0])
 
-    # def test_ascon_lda_isw_2(self):
-    #     r = ASCON_LDA.attack(512, self.tr_ascon_isw_2, 256, 128)
-    #     self.assertEqual(True, r[0])
+    def test_ascon_lda_isw_2(self):
+        r = ASCON_LDA.attack(512, self.tr_ascon_isw_2, 256, 128)
+        self.assertEqual(True, r[0])
 
 
 if __name__ == '__main__':

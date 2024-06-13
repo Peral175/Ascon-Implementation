@@ -1,10 +1,9 @@
-from circkit.boolean import OptBooleanCircuit as BooleanCircuit
-from circkit.array import Array
 from binteger import Bin
-
+from circkit.array import Array
+from circkit.boolean import OptBooleanCircuit as BooleanCircuit
+from CubeLinMasking import CubeLin
 from wboxkit.masking import ISW, MINQ, QuadLin, DumShuf
 from wboxkit.prng import NFSR, Pool
-from CubeLinMasking import CubeLin
 from wboxkit.serialize import RawSerializer
 
 nfsr = NFSR(
@@ -51,8 +50,6 @@ def DumShuf_transform(C, n_shares):
 
 
 def ascon_perm(state, key=b"aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa", nr_rounds=1, naming=""):
-    # print(state)
-    # print(key)
     k0 = Array(Bin(key[0:8]))
     k1 = Array(Bin(key[8:16]))
     k2 = Array(Bin(key[16:24]))
@@ -71,6 +68,7 @@ def ascon_perm(state, key=b"aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa", nr_rounds
 
     for r in range(nr_rounds):
         # Round Constant Addition
+        # we omit this since the adversary can circumvent it
         # x2 ^= Array(Bin(cr[r + 12 - nr_rounds], 64))
 
         # Substitution Layer
@@ -92,9 +90,7 @@ def ascon_perm(state, key=b"aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa", nr_rounds
     C.in_place_remove_unused_nodes()
     C.print_stats()
 
-    # print("state: ", state, len(state))
     inp = Array(Bin(state))
-
     out = C.evaluate(inp)           # regular circuit
 
     def serialize_circuit(C, string):

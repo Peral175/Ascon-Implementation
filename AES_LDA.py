@@ -84,14 +84,31 @@ def attack(T, trace_dir, w_size, step):
         for w in range(0, numNodes-w_size+1, step):
             tmp = np.ascontiguousarray(M_matrix[:, w:w+w_size])
             window = matrix(GF(2), tmp)
+
+            # todo: measure exactly how long partial window takes and think how to improve
+
+            # TEST1 = window.right_kernel().matrix()
+            TEST2 = window.left_kernel().matrix()     # 22 seconds isw2 vs 41 seconds before
+
+            # print("Test1: ", TEST1.dimensions())
+            # print("Test2: ", TEST2.dimensions())
+
             for kg in range(0, 256, 1):     # 2^8
                 K = vector(GF(2), s[:, kg])
-                try:
-                    _ = window.solve_right(K)
-                    Solutions[ID] = (w, kg)
-                    return
-                except ValueError:
-                    continue
+                vec = TEST2 * K
+                # # print("2!", vec, w, kg, type(vec[0]))
+                vec = set(vec)
+                if 1 not in vec:
+                    Solutions[ID] = (w, kg)  # fastest way?
+                    # return
+
+                # try:
+                #     _ = window.solve_right(K)
+                #     Solutions[ID] = (w, kg)
+                #     # print("1!", _, w, kg)
+                #     # return
+                # except ValueError:
+                #     continue
 
     SOLS = multiprocessing.Manager().dict()
     procs = []
@@ -147,4 +164,7 @@ if __name__ == '__main__':
         help='sliding window size step'
     )
     args = parser.parse_args()
+    s1 = datetime.datetime.now()
     attack(args.n_traces, args.trace_dir, args.window_size, args.step)
+    s2 = datetime.datetime.now()
+    print("Time of whole program: ", s2 - s1)

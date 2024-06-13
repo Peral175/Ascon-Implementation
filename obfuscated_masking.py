@@ -95,12 +95,13 @@ class MaskingTransformer(CircuitTransformer):
         super().make_output(node, result)
 
 
-class ObfuscatedTransformer(MaskingTransformer):
+class ObfuscatedTransformer(CircuitTransformer):
+    # question: does obfuscate replace visit_XOR for ISW?
     # todo: add inputs for users
     START_FROM_VARS = True  # ensure all INPUTS are processed first
 
     def __init__(self, prng=None, n_shares=2, encode_input=True, decode_output=True):
-        super().__init__(prng, n_shares, encode_input, decode_output)
+        # super().__init__(prng, n_shares, encode_input, decode_output)
         if prng is None:
             self.prng = None
         else:
@@ -110,14 +111,15 @@ class ObfuscatedTransformer(MaskingTransformer):
         self.encode_input = encode_input
         self.decode_output = decode_output
 
-    def rand(self):
-        if self.prng is None:
-            return self.target_circuit.RND()()
-        return self.prng.step()
+    # def rand(self):
+    #     if self.prng is None:
+    #         return self.target_circuit.RND()()
+    #     return self.prng.step()
 
     def visit_XOR(self, node, x, y):
         from random import randint
-        c = randint(0, 100)
+        # c = randint(0, 100)
+        c = 89
         n = 2
 
         if c < 90:
@@ -127,20 +129,20 @@ class ObfuscatedTransformer(MaskingTransformer):
         elif c < 95:
             # v1
             nodes = self.target_circuit.nodes[-n:]
-            o = nodes[randint(0, n)]
+            o = nodes[randint(0, n-1)]
             return ((o ^ x) ^ y) ^ o
 
         elif c < 100:
             # v2
             nodes = self.target_circuit.nodes[-n:]
-            o1 = nodes[randint(0, n)]
-            o2 = nodes[randint(0, n)]
+            o1 = nodes[randint(0, n-1)]
+            o2 = nodes[randint(0, n-1)]
             return (((o1 ^ x) ^ (o2 ^ y)) ^ o1) ^ o2
 
     def visit_AND(self, node, x, y):
         from random import randint
         c = randint(0, 100)
-        n = 2
+        n = 1
 
         if c < 90:
             # original
@@ -175,7 +177,7 @@ class ObfuscatedTransformer(MaskingTransformer):
             return ((1 ^ o) ^ x) ^ o
 
 
-class ISW(ObfuscatedTransformer):
+class ISW(MaskingTransformer):
     """Private Circuits [ISW03]"""
     NAME_SUFFIX = "_ISW"
 
@@ -379,7 +381,11 @@ from wboxkit.prng import NFSR, Pool
 from wboxkit.ciphers.aes import BitAES
 from circkit.boolean import OptBooleanCircuit as BooleanCircuit
 from binteger import Bin
-nfsr = NFSR(taps=[[], [11], [50], [3, 107]], clocks_initial=100, clocks_per_step=1,)
+nfsr = NFSR(
+    taps=[[], [11], [50], [3, 107]],
+    clocks_initial=100,
+    clocks_per_step=1,
+)
 prng = Pool(prng=nfsr, n=256)
 # C = BooleanCircuit(name="AES_2_test")
 # key = b"abcdefghABCDEFGH"
@@ -402,34 +408,30 @@ prng = Pool(prng=nfsr, n=256)
 C = BooleanCircuit(name="debugging")
 a1 = C.add_input("a1")
 a2 = C.add_input("a2")
-b1 = C.add_input("b1")
-b2 = C.add_input("b2")
-
 c = a1 ^ a2
-d = b1 ^ b2
-e = c & d
-e = ~e
 
-C.add_output([c, d, e])
-# C.digraph()
+C.add_output([c])
 C.in_place_remove_unused_nodes()
 C.print_stats()
 
 C_obfus_1 = ISW(order=1).transform(C)
 C_obfus_1.in_place_remove_unused_nodes()
 C_obfus_1.print_stats()
-# C_obfus_1.digraph().view()
-C_obfus_2 = ISW(order=2).transform(C)
-C_obfus_2.in_place_remove_unused_nodes()
-C_obfus_2.print_stats()
+C_obfus_1.digraph().view()
+# C_obfus_1 = ObfuscatedTransformer().transform(C_obfus_1)
+# C_obfus_1.in_place_remove_unused_nodes()
+# C_obfus_1.print_stats()
+# C_obfus_2 = ISW(order=2).transform(C)
+# C_obfus_2.in_place_remove_unused_nodes()
+# C_obfus_2.print_stats()
 # C_obfus_2.digraph().view()
 
 
-inp = [1, 0, 1, 1]
+inp = [1, 0]
 out = C.evaluate(inp)
 print("OUT", out)
 # inp_shares = [1, 0, 1, 1]
 out = C_obfus_1.evaluate(inp)
 print("OUT", out)
-out = C_obfus_2.evaluate(inp)
-print("OUT", out)
+# out = C_obfus_2.evaluate(inp)
+# print("OUT", out)
