@@ -6,3 +6,6 @@ traces/
 circuits/
 old/
 .ipynb_checkpoints/
+*.lprof
+*.gv
+*.gv.pdf

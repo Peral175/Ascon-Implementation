@@ -4,6 +4,7 @@ import pathlib
 import datetime
 from line_profiler import profile
 
+
 @profile
 def attack(T, trace_dir):
     numOfBytes = os.path.getsize(trace_dir / "0000.bin")
