@@ -3,10 +3,11 @@ import os.path
 import pathlib
 import datetime
 import numpy as np
+from line_profiler import profile
 
 
+@profile
 def attack(T, trace_dir):
-    start = datetime.datetime.now()
     numOfBytes = os.path.getsize(trace_dir / "0000.bin")
     numOfNodes = numOfBytes * 8
 
@@ -28,7 +29,7 @@ def attack(T, trace_dir):
         for keyBitsGuess in range(32):
             guessedVector1, guessedVector2, guessedVector3, guessedVector4, guessedVector5 = 0, 0, 0, 0, 0
             for traceNr in range(T):
-                tmp = bin(int.from_bytes(PLAINTEXTS[traceNr], byteorder='big'))[2:].zfill(320)
+                tmp = bin(int.from_bytes(PLAINTEXTS[traceNr], byteorder='big')).lstrip("0b").zfill(320)
                 x0 = tmp[plaintextBits + 0]
                 x1 = tmp[plaintextBits + 64]
                 x2 = tmp[plaintextBits + 128]
@@ -79,9 +80,8 @@ def attack(T, trace_dir):
 
     # we want to find the intersection between all 5 lists
     intersection = sorted(set(set(set(set(r1).intersection(r2)).intersection(r3)).intersection(r4)).intersection(r5))
+    # intersection = sorted(set(set(r1).intersection(r3)).intersection(r5))
 
-    end = datetime.datetime.now()
-    print("Time:", end - start)
 
     if len(intersection) == 64:
         bits_matr = np.zeros((64, 5), dtype=np.uint8)
@@ -129,4 +129,19 @@ if __name__ == "__main__":
         help='nr. traces'
     )
     args = parser.parse_args()
+    start = datetime.datetime.now()
     attack(args.n_traces, args.trace_dir)
+    end = datetime.datetime.now()
+    print("Time:", end - start)
+    """
+    Results for:    ascon simplified (=> without the constant addition) clear
+    python3 ASCON_ExactMatch.py -T 256 traces/abcdefghijklmnopqrstuvwxyz1234567890ABCD/ascon128_2R_simplified-clear/
+    Time: 0:00:00.729389
+    Recovered key:  abcdefghijklmnopqrstuvwxyz1234567890ABCD
+    
+    This attack does not find solutions for masked ascon (except higher order exact matching attack ?)
+    
+    Detailed timing analysis:
+    kernprof -l ASCON_ExactMatch.py -T 256 traces/abcdefghijklmnopqrstuvwxyz1234567890ABCD/ascon128_2R_simplified-clear/
+    python3 -m line_profiler -rmt "ASCON_ExactMatch.py.lprof"
+    """
