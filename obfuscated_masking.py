@@ -126,18 +126,25 @@ class ObfuscatedTransformer(CircuitTransformer):
             # original
             return x ^ y
 
-        elif c < 95:
+        elif c < 92:
             # v1
             nodes = self.target_circuit.nodes[-n:]
             o = nodes[randint(0, n-1)]
             return ((o ^ x) ^ y) ^ o
 
-        elif c < 100:
+        elif c < 95:
             # v2
             nodes = self.target_circuit.nodes[-n:]
             o1 = nodes[randint(0, n-1)]
             o2 = nodes[randint(0, n-1)]
             return (((o1 ^ x) ^ (o2 ^ y)) ^ o1) ^ o2
+
+        elif c < 100:
+            # v3
+            nodes = self.target_circuit.nodes[-n:]
+            o = nodes[randint(0, n-1)]
+            # return (x | y) ^ (x & y)
+            return (x & (o ^ y)) ^ ((1 ^ x) & y) ^ (x & y)
 
     def visit_AND(self, node, x, y):
         from random import randint
@@ -151,14 +158,15 @@ class ObfuscatedTransformer(CircuitTransformer):
         elif c < 95:
             # v1
             nodes = self.target_circuit.nodes[-n:]
-            o = nodes[randint(0, n)]
-            return ((x ^ o) & y) ^ (o & y)
+            o = nodes[randint(0, n - 1)]
+            # return ((x ^ o) & y) ^ (o & y)
+            return ((x ^ o) & y) ^ (o | y) ^ o ^ y
 
         elif c < 100:
             # v2
             nodes = self.target_circuit.nodes[-n:]
-            o1 = nodes[randint(0, n)]
-            o2 = nodes[randint(0, n)]
+            o1 = nodes[randint(0, n-1)]
+            o2 = nodes[randint(0, n-1)]
             return ((x ^ o1) & (y ^ o2)) ^ ((o1 & (o2 ^ y)) ^ (x & o2))
 
     def visit_NOT(self, node, x):
@@ -170,12 +178,17 @@ class ObfuscatedTransformer(CircuitTransformer):
             # original
             return 1 ^ x
 
-        elif c < 100:
+        elif c < 95:
             # v1
             nodes = self.target_circuit.nodes[-n:]
-            o = nodes[randint(0, n)]
+            o = nodes[randint(0, n-1)]
             return ((1 ^ o) ^ x) ^ o
 
+        elif c < 100:
+            # v2
+            nodes = self.target_circuit.nodes[-n:]
+            o = nodes[randint(0, n-1)]
+            return (x | (1 ^ o)) ^ (x & o) ^ x ^ o
 
 class ISW(MaskingTransformer):
     """Private Circuits [ISW03]"""
@@ -382,7 +395,7 @@ from wboxkit.ciphers.aes import BitAES
 from circkit.boolean import OptBooleanCircuit as BooleanCircuit
 from binteger import Bin
 nfsr = NFSR(
-    taps=[[], [11], [50], [3, 107]],
+    taps=[[], [1], [50], [3, 107]],
     clocks_initial=100,
     clocks_per_step=1,
 )
@@ -414,7 +427,7 @@ C.add_output([c])
 C.in_place_remove_unused_nodes()
 C.print_stats()
 
-C_obfus_1 = ISW(order=1).transform(C)
+C_obfus_1 = ISW(order=1, prng=prng).transform(C)
 C_obfus_1.in_place_remove_unused_nodes()
 C_obfus_1.print_stats()
 C_obfus_1.digraph().view()
@@ -427,7 +440,7 @@ C_obfus_1.digraph().view()
 # C_obfus_2.digraph().view()
 
 
-inp = [1, 0]
+inp = [1, 0, 1, 1]
 out = C.evaluate(inp)
 print("OUT", out)
 # inp_shares = [1, 0, 1, 1]
