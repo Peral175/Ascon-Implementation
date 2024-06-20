@@ -88,10 +88,10 @@ def aes_lda(traces, traces_dir, window_size, window_step, MULTI_THREADED=False,
         Solutions = defaultdict(list)
         for KEY_BYTE in KEY_BYTES:
             assert isinstance(KEY_BYTE, int) and 15 >= KEY_BYTE >= 0
-            for w in range(0, num_of_nodes - window_size + 1, window_step):  # todo: fix this
+            for w in range(0, num_of_nodes, window_step):
                 DONE = False
-                print("window:", w, "-", w + window_size, "/", num_of_nodes)
                 cols = set(Gates_Matrix[w:w + window_size])
+                print("window:", w, "-", w + window_size, "(", len(cols), ")" ,"/", num_of_nodes)
                 window = matrix(GF(2), cols)
                 kernel_matrix = window.right_kernel().matrix()
                 kernel_matrix = [frozenbitarray(row) for row in kernel_matrix]
@@ -118,9 +118,9 @@ def aes_lda(traces, traces_dir, window_size, window_step, MULTI_THREADED=False,
         return Solutions
     elif MULTI_THREADED:
         def concurrent(Guess_matrix, Gates_matrix, ID, sols):
-            for w in range(0, num_of_nodes - window_size + 1, window_step):  # todo: fix this
-                print("Thread ", ID, " window:", w, "-", w + window_size, "/", num_of_nodes)
+            for w in range(0, num_of_nodes, window_step):
                 cols = set(Gates_matrix[w:w + window_size])
+                print("Thread ", ID, " window:", w, "-", w + window_size, "(", len(cols), ")", "/", num_of_nodes)
                 window = matrix(GF(2), cols)
                 kernel_matrix = window.right_kernel().matrix()
                 kernel_matrix = [frozenbitarray(row) for row in kernel_matrix]
@@ -200,7 +200,7 @@ if __name__ == '__main__':
         args.trace_dir,
         args.window_size,
         args.step,
-        MULTI_THREADED=False,
+        MULTI_THREADED=True,
         KEY_BYTES=(0,)
     )
     end = datetime.datetime.now()
