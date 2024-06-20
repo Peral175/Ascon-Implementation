@@ -2,27 +2,25 @@
 import argparse
 import pathlib
 import numpy as np
-import multiprocessing
 import datetime
 import os.path
-
 from bitarray import frozenbitarray
-from sage.all import matrix, vector, GF
+from collections import defaultdict
+from multiprocessing import Process, Manager
 from line_profiler import profile
+from sage.all import matrix, vector, GF
+
+STOP_AT_FIRST_CANDIDATE = False
 
 
 @profile
-def attack(T, trace_dir, w_size, step):
-    numOfBytes = os.path.getsize(trace_dir / "0000.bin")
-    numOfNodes = numOfBytes * 8
+def aes_lda(traces, traces_dir, window_size, window_step, MULTI_THREADED=False,
+            KEY_BYTES=(0, 1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12, 13, 14, 15)):
+    num_of_bytes = os.path.getsize(traces_dir / "0000.bin")
+    num_of_nodes = num_of_bytes * 8
 
-    # print("numOfBytes = ", numOfBytes)
-    # print("numOfNodes = ", numOfNodes)
-    # print("traces = ", T)
-    # print("window size = ", window_size)
-    # print("window step = ", step)
-
-    AES_SBox = [
+    # 2^8 AES SBox
+    aes_sbox = [
         0x63, 0x7C, 0x77, 0x7B, 0xF2, 0x6B, 0x6F, 0xC5, 0x30, 0x01, 0x67, 0x2B, 0xFE, 0xD7, 0xAB, 0x76,
         0xCA, 0x82, 0xC9, 0x7D, 0xFA, 0x59, 0x47, 0xF0, 0xAD, 0xD4, 0xA2, 0xAF, 0x9C, 0xA4, 0x72, 0xC0,
         0xB7, 0xFD, 0x93, 0x26, 0x36, 0x3F, 0xF7, 0xCC, 0x34, 0xA5, 0xE5, 0xF1, 0x71, 0xD8, 0x31, 0x15,
@@ -42,156 +40,125 @@ def attack(T, trace_dir, w_size, step):
     ]
 
     def selection_function(ptb, kbg):
-        return AES_SBox[ptb ^ kbg] & 1
+        # xor the plaintext byte and key byte guess
+        # input to AES SBox
+        # we consider only the last bit of output
+        return aes_sbox[ptb ^ kbg] & 1
 
-    PLAINTEXTS = []
-    for traceNr in range(T):
-        pt = trace_dir / ("%04d.pt" % traceNr)
+    plaintexts = []
+    for t in range(traces):
+        pt = traces_dir / ("%04d.pt" % t)
         with open(pt, "rb") as f:
-            PLAINTEXTS += [f.read(16)]
+            plaintexts += [f.read(16)]  # for each plaintext trace, read the first 16 bytes and append to list
 
-    TRACES = []
-    for traceNumber in range(T):
-        ftrace = trace_dir / ("%04d.bin" % traceNumber)
+    binaries = []
+    for t in range(traces):
+        ftrace = traces_dir / ("%04d.bin" % t)
         with open(ftrace, "rb") as f:
-            TRACES += [f.read(numOfBytes)]
+            binaries += [f.read(num_of_bytes)]  # for each binary trace, read full
 
-    dictionary = {}     # cannot be set (?)
-    for plaintextByte in range(16):         # 16 bytes of key are attacked individually
-        for keyByteGuess in range(256):     # 2^8 possibilities for key byte
-            guessedVector = 0
-            for traceNr in range(T):
-                guessedVector ^= selection_function(PLAINTEXTS[traceNr][plaintextByte], keyByteGuess) << traceNr
-            dictionary[guessedVector] = plaintextByte * 256 + keyByteGuess
+    Vectors_dict = {}
+    for key_byte in range(16):  # 16 bytes of secret key are attacked individually
+        for key_byte_guess in range(256):  # 2^8 possibilities for each key byte
+            guessed_vector = 0
+            for t in range(traces):
+                guessed_vector ^= selection_function(plaintexts[t][key_byte], key_byte_guess) << t
+            Vectors_dict[guessed_vector] = key_byte * 256 + key_byte_guess
 
-    l_dict = list(dictionary)
-    # Guess_Matrix = np.zeros((16, 256, T), dtype=str, order='C')
+    Vectors = list(Vectors_dict)
+
     Guess_Matrix = np.zeros((16, 256,), dtype=frozenbitarray, order='C')
-    for k in range(0, 4096, 256):
-        c = l_dict[k:k+256]
-        for m in range(256):
-            d = bin(c[m])[2:].zfill(T)
-            # Guess_Matrix[k // 256, m] = [*d]
-            # Guess_Matrix[k // 256, m] = [*frozenbitarray(d)]
-            # input((frozenbitarray(d),d))
-            Guess_Matrix[k // 256, m] = frozenbitarray(d)
-    # input(Guess_Matrix)
+    for kB in range(0, 16):
+        vecs = Vectors[kB * 256: (kB + 1) * 256]
+        for c in range(256):
+            Guess_Matrix[kB, c] = frozenbitarray(bin(vecs[c])[2:].zfill(traces))
 
-    Nodes_Matrix = []
-    for node in range(numOfNodes):
-        nodeVector = 0
-        for traceNumber in range(T):
-            nodeVector ^= ((TRACES[traceNumber][node // 8] >> node % 8) & 0b1) << traceNumber
-        Nodes_Matrix.append(nodeVector)
+    node_vectors = []
+    for i in range(num_of_nodes):
+        node_vector = 0
+        for t in range(traces):
+            node_vector ^= ((binaries[t][i // 8] >> i % 8) & 0b1) << t
+        node_vectors.append(node_vector)
 
-    # Gates_Matrix = np.zeros((numOfNodes, T), dtype=str, order='C')
-    # for i in range(numOfNodes):
-    #     c = bin(Nodes_Matrix[i])[2:].zfill(T)
-    #     Gates_Matrix[i] = [*c]
-    #
-    # Gates_Matrix = [] * numOfNodes
-    Gates_Matrix = np.zeros((numOfNodes,), dtype=frozenbitarray, order='C')
-    for i in range(numOfNodes):
-        c = bin(Nodes_Matrix[i])[2:].zfill(T)
-        # Gates_Matrix[i] = [*c]
-        # print(frozenbitarray(c), len(Gates_Matrix))
-        Gates_Matrix[i] = frozenbitarray(c)
-    # print(Gates_Matrix)
-    # input()
-    # @profile
-    # def work(s, M_matrix, ID, numNodes, Solutions):
-    if True:
-        M_matrix = Gates_Matrix
-        ID = 0
-        s = Guess_Matrix[ID]
-        numNodes = numOfNodes
-        from collections import defaultdict
+    Gates_Matrix = np.zeros((num_of_nodes,), dtype=frozenbitarray, order='C')
+    for i in range(num_of_nodes):
+        Gates_Matrix[i] = frozenbitarray(bin(node_vectors[i])[2:].zfill(traces))
+
+    if not MULTI_THREADED:
         Solutions = defaultdict(list)
+        for KEY_BYTE in KEY_BYTES:
+            assert isinstance(KEY_BYTE, int) and 15 >= KEY_BYTE >= 0
+            for w in range(0, num_of_nodes - window_size + 1, window_step):  # todo: fix this
+                DONE = False
+                print("window:", w, "-", w + window_size, "/", num_of_nodes)
+                cols = set(Gates_Matrix[w:w + window_size])
+                window = matrix(GF(2), cols)
+                kernel_matrix = window.right_kernel().matrix()
+                kernel_matrix = [frozenbitarray(row) for row in kernel_matrix]
 
-        for w in range(0, numNodes-w_size+1, step):
-            print("window:", w, "/", numNodes)
-            tmp = M_matrix[w:w+w_size]
-            t = set(tmp)
-            # print(type(t), type(tmp), len(t), len(tmp))
-            # print(tmp, t)
-            # input()
-            window = matrix(GF(2), t)  # this is way slower
-
-            TEST2 = window.right_kernel().matrix()
-            # TEST2 = window.left_kernel().matrix()
-            TEST2 = [frozenbitarray(row) for row in TEST2]
-
-            # todo important
-            # visualize on white board
-            # precompute target + understand their code + measure performance with theirs + plot
-
-            # optimized implementation : check bit-by-bit, O(n^3 + nk)
-            for kg, target in enumerate(s):
-                # print(kg, len(target),target)
-                original = target
-                # tmp = ''
-                # for e in target:
-                #     tmp += str(e)
-                # target = frozenbitarray(tmp)
-                match = True
-                nm = 0
-                for row in TEST2:
-                    # if row * target:
-                    # print("Row: ", row, target, len(row), len(target), s.shape)
-                    if (row & target).count(1) & 1:
-                        match = False
+                # O(n^3 + nk)
+                for kg, target in enumerate(Guess_Matrix[KEY_BYTE]):
+                    match = True
+                    nm = 0
+                    for row in kernel_matrix:
+                        if (row & target).count(1) & 1:
+                            match = False
+                            break
+                        nm += 1
+                    if not match:
+                        continue
+                    sol = window.solve_left(vector(GF(2), target))  # verification
+                    Solutions[(KEY_BYTE, kg)] += [w]
+                    if STOP_AT_FIRST_CANDIDATE:
+                        DONE = True
                         break
-                    nm += 1
-                if not match:
-                    continue
-                # sol = window.solve_right(vector(GF(2), original))
-                sol = window.solve_left(vector(GF(2), original))
-                # assert sol * mat == target
-                # print("Solution found:", sol)
-                # Solutions[ID] = (w, kg)  # fastest way?
-                Solutions[ID].append((w, [kg]))  # fastest way?
-                # input(kg)
-            # for kg in range(0, 256, 1):     # 2^8
-            #     # K = vector(GF(2), s[:, kg])
-            #     K = vector(GF(2), s[kg])
-            #     vec = TEST2 * K
-            #     # # print("2!", vec, w, kg, type(vec[0]))
-            #     vec = set(vec)
-            #     if 1 not in vec:
-            #         Solutions[ID] = (w, kg)  # fastest way?
-            #         # return
+                if DONE:
+                    break
 
-            # try:
-            #     _ = window.solve_right(K)
-            #     Solutions[ID] = (w, kg)
-            #     # print("1!", _, w, kg)
-            #     # return
-            # except ValueError:
-            #     continue
-    print(Solutions)
-    # SOLS = multiprocessing.Manager().dict()
-    # print(Guess_Matrix[0,:].shape)
-    # print(Gates_Matrix.shape)
-    # work(Guess_Matrix[0, :], Gates_Matrix, 0, numOfNodes, SOLS)
+        return Solutions
+    elif MULTI_THREADED:
+        def concurrent(Guess_matrix, Gates_matrix, ID, sols):
+            for w in range(0, num_of_nodes - window_size + 1, window_step):  # todo: fix this
+                print("Thread ", ID, " window:", w, "-", w + window_size, "/", num_of_nodes)
+                cols = set(Gates_matrix[w:w + window_size])
+                window = matrix(GF(2), cols)
+                kernel_matrix = window.right_kernel().matrix()
+                kernel_matrix = [frozenbitarray(row) for row in kernel_matrix]
 
-    # procs = []
-    # for id in range(16):
-    #     proc = multiprocessing.Process(target=work, args=(S[id, :], matr, id, numOfNodes, SOLS,))
-    #     procs.append(proc)
-    #     proc.start()
-    # for proc in procs:
-    #     proc.join()
+                # O(n^3 + nk)
+                for kg, target in enumerate(Guess_matrix):
+                    match = True
+                    nm = 0
+                    for row in kernel_matrix:
+                        if (row & target).count(1) & 1:
+                            match = False
+                            break
+                        nm += 1
+                    if not match:
+                        continue
+                    sol = window.solve_left(vector(GF(2), target))  # verification
+                    sols[kg] += [w]
+                    if STOP_AT_FIRST_CANDIDATE:
+                        Solutions[ID] = sols
+                        return
+            Solutions[ID] = sols
 
-    # if len(SOLS) == 16:
-    #     recovered_key = ''
-    #     for i in range(16):
-    #         recovered_key += chr(SOLS.get(i)[1])
-    #     print("Recovered key: ", recovered_key)
-    #     return True, recovered_key
-    # else:
-    #     print(SOLS)
-    #     print(chr(SOLS.get(0)[1]))
-    #     return False, len(SOLS)
+        Solutions = Manager().dict()
+        processes = []
+        for KEY_BYTE in KEY_BYTES:
+            assert isinstance(KEY_BYTE, int) and 15 >= KEY_BYTE >= 0
+            process = Process(target=concurrent,
+                              args=(Guess_Matrix[KEY_BYTE], Gates_Matrix, KEY_BYTE, defaultdict(list),))
+            processes.append(process)
+            process.start()
+        for process in processes:
+            process.join()
+
+        Result = defaultdict(list)
+        for key in Solutions:
+            for inner_key in Solutions[key]:
+                Result[(key, inner_key)] = Solutions[key][inner_key]
+        return Result
 
 
 if __name__ == '__main__':
@@ -228,11 +195,25 @@ if __name__ == '__main__':
     args = parser.parse_args()
 
     start = datetime.datetime.now()
-    attack(args.n_traces, args.trace_dir, args.window_size, args.step)
+    recovered_key_bytes = aes_lda(
+        args.n_traces,
+        args.trace_dir,
+        args.window_size,
+        args.step,
+        MULTI_THREADED=False,
+        KEY_BYTES=(0,)
+    )
     end = datetime.datetime.now()
     print("Time: ", end - start)
 
+    print("Recovered key bytes: ", recovered_key_bytes)
+    key_bytes_string = "__"*16
+    for i in recovered_key_bytes.keys():
+        key_bytes_string = key_bytes_string[:i[0]*2] + hex(i[1])[2:] + key_bytes_string[i[0]*2+2:]
+    print(key_bytes_string)
+
     """
+    Run in Command Line:
     Results for:    aes lda with 2 rounds clear
     python3 AES_LDA.py traces/abcdefghABCDEFGH/aes2-clear/ -T 512 -W 500 -S 500
     Time: 0:00:04.319435        VS      Time:  0:00:06.950022   [Better: Time:  0:00:05.640891]
@@ -248,14 +229,10 @@ if __name__ == '__main__':
     kernprof -l AES_LDA.py traces/abcdefghABCDEFGH/aes2-clear/ -T 512 -W 500 -S 500
     python3 -m line_profiler -rmt "AES_LDA.py.lprof"
     
-    
     LDA on clear: 
     Theirs: 5.6 6.7 6.5 5.5 6.5
     Mine:   5.4 5.3 5.4 5.4 6.2
     LDA on isw2: 
     Theirs: 16.1 15.7
     Mine:   17.0 15.8
-    
-    implement stop at first candidate
-    implement keep multiple candidates
     """
