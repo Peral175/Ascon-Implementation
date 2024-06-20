@@ -27,11 +27,11 @@ class TestStringMethods(unittest.TestCase):
         self.assertEqual(True, r[0])
 
     def test_aes_lda_clear(self):
-        r = AES_LDA.attack(self.t, self.tr_aes_clear, self.w, self.s)
+        r = AES_LDA.aes_lda(self.t, self.tr_aes_clear, self.w, self.s)
         self.assertEqual(True, r[0])
 
     def test_aes_lda_isw_2(self):
-        r = AES_LDA.attack(self.t, self.tr_aes_isw_2, self.w, self.s)
+        r = AES_LDA.aes_lda(self.t, self.tr_aes_isw_2, self.w, self.s)
         self.assertEqual(True, r[0])
 
     def test_ascon_lda_clear(self):
