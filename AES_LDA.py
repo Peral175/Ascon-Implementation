@@ -44,53 +44,6 @@ def attack(T, trace_dir, w_size, step):
     def selection_function(ptb, kbg):
         return AES_SBox[ptb ^ kbg] & 1
 
-    # from bitarray import frozenbitarray, bitarray
-    # from itertools import product
-    # bit_array = bitarray
-    # bit_array_freeze = frozenbitarray
-    # ones = bit_array([1] * T)
-    # vec_ones = ones = bit_array_freeze(ones)
-    #
-    # def scalar_bin(a, b):
-    #     v = a & b
-    #     res = 0
-    #     while v:
-    #         res ^= v & 1
-    #         v >>= 1
-    #     return res
-    #
-    # scalar_map = [
-    #     [scalar_bin(x, lin) for x in range(256)]
-    #     for lin in range(256)
-    # ]
-    # targets = []
-    #
-    # PLAINTEXTS = []
-    # for i in range(T):
-    #     PLAINTEXTS.append(open(trace_dir / ("%04d.pt" % i), "rb").read())
-    #
-    # for si, lin, k in product((0,), (1,), range(0, 256)):
-    #     # iterates over dot product
-    #     # 0 1 0
-    #     # 0 1 1
-    #     # ...
-    #     target = bit_array(T)
-    #     scalar_lin = scalar_map[lin]
-    #     for itrace, p in enumerate(PLAINTEXTS):
-    #         if k is None:
-    #             x = p[si]
-    #         else:
-    #             x = p[si]
-    #             x = AES_SBox[x ^ k]
-    #         target[itrace] = scalar_lin[x]
-    #
-    #     target = bit_array_freeze(target)
-    #     targets.append((target, (si, lin, k, 0)))
-    #     targets.append((target ^ ones, (si, lin, k, 1)))
-    #
-    # print(targets)
-    # input(len(targets))
-
     PLAINTEXTS = []
     for traceNr in range(T):
         pt = trace_dir / ("%04d.pt" % traceNr)
@@ -103,7 +56,7 @@ def attack(T, trace_dir, w_size, step):
         with open(ftrace, "rb") as f:
             TRACES += [f.read(numOfBytes)]
 
-    dictionary = {}
+    dictionary = {}     # cannot be set (?)
     for plaintextByte in range(16):         # 16 bytes of key are attacked individually
         for keyByteGuess in range(256):     # 2^8 possibilities for key byte
             guessedVector = 0
@@ -111,38 +64,61 @@ def attack(T, trace_dir, w_size, step):
                 guessedVector ^= selection_function(PLAINTEXTS[traceNr][plaintextByte], keyByteGuess) << traceNr
             dictionary[guessedVector] = plaintextByte * 256 + keyByteGuess
 
-    M = []
-    for node in range(numOfNodes):
-        nodeVector = 0
-        for traceNumber in range(T):
-            nodeVector ^= ((TRACES[traceNumber][node // 8] >> node % 8) & 0b1) << traceNumber
-        M.append(nodeVector)
-    matr = np.zeros((numOfNodes, T), dtype=int, order='C')
-    for i in range(numOfNodes):
-        c = bin(M[i])[2:].zfill(T)
-        for j in range(T):
-            matr[i, j] = c[j]
-
-    S = np.ndarray((16, 256, T), dtype=int, order='C')
     l_dict = list(dictionary)
+    # Guess_Matrix = np.zeros((16, 256, T), dtype=str, order='C')
+    Guess_Matrix = np.zeros((16, 256,), dtype=frozenbitarray, order='C')
     for k in range(0, 4096, 256):
         c = l_dict[k:k+256]
         for m in range(256):
             d = bin(c[m])[2:].zfill(T)
-            for n in range(T):
-                S[k//256, m, n] = d[n]
+            # Guess_Matrix[k // 256, m] = [*d]
+            # Guess_Matrix[k // 256, m] = [*frozenbitarray(d)]
+            # input((frozenbitarray(d),d))
+            Guess_Matrix[k // 256, m] = frozenbitarray(d)
+    # input(Guess_Matrix)
 
-    @profile
-    def work(s, M_matrix, ID, numNodes, Solutions):
+    Nodes_Matrix = []
+    for node in range(numOfNodes):
+        nodeVector = 0
+        for traceNumber in range(T):
+            nodeVector ^= ((TRACES[traceNumber][node // 8] >> node % 8) & 0b1) << traceNumber
+        Nodes_Matrix.append(nodeVector)
+
+    # Gates_Matrix = np.zeros((numOfNodes, T), dtype=str, order='C')
+    # for i in range(numOfNodes):
+    #     c = bin(Nodes_Matrix[i])[2:].zfill(T)
+    #     Gates_Matrix[i] = [*c]
+    #
+    # Gates_Matrix = [] * numOfNodes
+    Gates_Matrix = np.zeros((numOfNodes,), dtype=frozenbitarray, order='C')
+    for i in range(numOfNodes):
+        c = bin(Nodes_Matrix[i])[2:].zfill(T)
+        # Gates_Matrix[i] = [*c]
+        # print(frozenbitarray(c), len(Gates_Matrix))
+        Gates_Matrix[i] = frozenbitarray(c)
+    # print(Gates_Matrix)
+    # input()
+    # @profile
+    # def work(s, M_matrix, ID, numNodes, Solutions):
+    if True:
+        M_matrix = Gates_Matrix
+        ID = 0
+        s = Guess_Matrix[ID]
+        numNodes = numOfNodes
+        from collections import defaultdict
+        Solutions = defaultdict(list)
+
         for w in range(0, numNodes-w_size+1, step):
             print("window:", w, "/", numNodes)
-            # tmp = np.ascontiguousarray(M_matrix[:, w:w+w_size])
             tmp = M_matrix[w:w+w_size]
-            # print(tmp.shape)
-            window = matrix(GF(2), tmp)
+            t = set(tmp)
+            # print(type(t), type(tmp), len(t), len(tmp))
+            # print(tmp, t)
+            # input()
+            window = matrix(GF(2), t)  # this is way slower
 
-            TEST2 = window.right_kernel().matrix()          # only gives 500 why?
-            # TEST2 = window.left_kernel().matrix()     # 22 seconds isw2 vs 41 seconds before
+            TEST2 = window.right_kernel().matrix()
+            # TEST2 = window.left_kernel().matrix()
             TEST2 = [frozenbitarray(row) for row in TEST2]
 
             # todo important
@@ -151,12 +127,12 @@ def attack(T, trace_dir, w_size, step):
 
             # optimized implementation : check bit-by-bit, O(n^3 + nk)
             for kg, target in enumerate(s):
-                # print(kg, len(target))
+                # print(kg, len(target),target)
                 original = target
-                tmp = ''
-                for e in target:
-                    tmp += str(e)
-                target = frozenbitarray(tmp)
+                # tmp = ''
+                # for e in target:
+                #     tmp += str(e)
+                # target = frozenbitarray(tmp)
                 match = True
                 nm = 0
                 for row in TEST2:
@@ -172,8 +148,9 @@ def attack(T, trace_dir, w_size, step):
                 sol = window.solve_left(vector(GF(2), original))
                 # assert sol * mat == target
                 # print("Solution found:", sol)
-                Solutions[ID] = (w, kg)  # fastest way?
-
+                # Solutions[ID] = (w, kg)  # fastest way?
+                Solutions[ID].append((w, [kg]))  # fastest way?
+                # input(kg)
             # for kg in range(0, 256, 1):     # 2^8
             #     # K = vector(GF(2), s[:, kg])
             #     K = vector(GF(2), s[kg])
@@ -191,11 +168,11 @@ def attack(T, trace_dir, w_size, step):
             #     # return
             # except ValueError:
             #     continue
-
-    SOLS = multiprocessing.Manager().dict()
-    print(S[0,:].shape)
-    print(matr.shape)
-    work(S[0, :], matr, 0, numOfNodes, SOLS)
+    print(Solutions)
+    # SOLS = multiprocessing.Manager().dict()
+    # print(Guess_Matrix[0,:].shape)
+    # print(Gates_Matrix.shape)
+    # work(Guess_Matrix[0, :], Gates_Matrix, 0, numOfNodes, SOLS)
 
     # procs = []
     # for id in range(16):
@@ -205,16 +182,16 @@ def attack(T, trace_dir, w_size, step):
     # for proc in procs:
     #     proc.join()
 
-    if len(SOLS) == 16:
-        recovered_key = ''
-        for i in range(16):
-            recovered_key += chr(SOLS.get(i)[1])
-        print("Recovered key: ", recovered_key)
-        return True, recovered_key
-    else:
-        print(SOLS)
-        print(chr(SOLS.get(0)[1]))
-        return False, len(SOLS)
+    # if len(SOLS) == 16:
+    #     recovered_key = ''
+    #     for i in range(16):
+    #         recovered_key += chr(SOLS.get(i)[1])
+    #     print("Recovered key: ", recovered_key)
+    #     return True, recovered_key
+    # else:
+    #     print(SOLS)
+    #     print(chr(SOLS.get(0)[1]))
+    #     return False, len(SOLS)
 
 
 if __name__ == '__main__':
@@ -270,4 +247,15 @@ if __name__ == '__main__':
     Detailed timing analysis:
     kernprof -l AES_LDA.py traces/abcdefghABCDEFGH/aes2-clear/ -T 512 -W 500 -S 500
     python3 -m line_profiler -rmt "AES_LDA.py.lprof"
+    
+    
+    LDA on clear: 
+    Theirs: 5.6 6.7 6.5 5.5 6.5
+    Mine:   5.4 5.3 5.4 5.4 6.2
+    LDA on isw2: 
+    Theirs: 16.1 15.7
+    Mine:   17.0 15.8
+    
+    implement stop at first candidate
+    implement keep multiple candidates
     """
