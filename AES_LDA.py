@@ -86,16 +86,15 @@ def aes_lda(traces, traces_dir, window_size, window_step, MULTI_THREADED=False,
 
     if not MULTI_THREADED:
         Solutions = defaultdict(list)
-        for KEY_BYTE in KEY_BYTES:
-            assert isinstance(KEY_BYTE, int) and 15 >= KEY_BYTE >= 0
-            DONE = False
-            for w in range(0, num_of_nodes, window_step):
-                cols = set(Gates_Matrix[w:w + window_size])
-                # print("window:", w, "-", w + window_size, "(", len(cols), ")", "/", num_of_nodes)
-                window = matrix(GF(2), cols)
-                kernel_matrix = window.right_kernel().matrix()
-                kernel_matrix = [frozenbitarray(row) for row in kernel_matrix]
+        for w in range(0, num_of_nodes, window_step):
+            cols = set(Gates_Matrix[w:w + window_size])
+            # print("window:", w, "-", w + window_size, "(", len(cols), ")", "/", num_of_nodes)
+            window = matrix(GF(2), cols)
+            kernel_matrix = window.right_kernel().matrix()
+            kernel_matrix = [frozenbitarray(row) for row in kernel_matrix]
 
+            for KEY_BYTE in KEY_BYTES:
+                assert isinstance(KEY_BYTE, int) and 15 >= KEY_BYTE >= 0
                 # O(n^3 + nk)
                 for kg, target in enumerate(Guess_Matrix[KEY_BYTE]):
                     match = True
@@ -202,7 +201,8 @@ if __name__ == '__main__':
         args.step,
         MULTI_THREADED=False,
         # KEY_BYTES=(0, 1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12, 13, 14, 15)
-        KEY_BYTES=(0,)
+        # KEY_BYTES=(0,)
+        KEY_BYTES=(0, 1, 2)
     )
     end = datetime.datetime.now()
     print("Time: ", end - start)
