@@ -5,16 +5,15 @@ import numpy as np
 import os.path
 import pathlib
 from bitarray import frozenbitarray
-from collections import defaultdict
-from line_profiler import profile
-from multiprocessing import Process, Manager
 from sage.all import matrix, vector, GF
 
-STOP_AT_FIRST_CANDIDATE = False
-NUM_BITS = 2    # todo
+from line_profiler import profile
+
+NUM_BITS = 5
+
 
 @profile
-def ascon_lda(traces, traces_dir, window_size, window_step, MULTI_THREADED=False,
+def ascon_lda(traces, traces_dir, window_size, window_step,
               KEY_BYTES=(0, 1, 2, 3, 4, 5, 6, 7,
                          8, 9, 10, 11, 12, 13, 14, 15,
                          16, 17, 18, 19, 20, 21, 22, 23,
@@ -61,42 +60,41 @@ def ascon_lda(traces, traces_dir, window_size, window_step, MULTI_THREADED=False
                 x4 = tmp[key_bits + 256]
                 x = int(x0 + x1 + x2 + x3 + x4, 2)
                 out = selection_function(x, key_bits_guess)
-                # guessed_vector1 ^= (out >> 0 & 0b1) << t
-                # guessed_vector2 ^= (out >> 1 & 0b1) << t
-                # guessed_vector3 ^= (out >> 2 & 0b1) << t
+                guessed_vector1 ^= (out >> 0 & 0b1) << t
+                guessed_vector2 ^= (out >> 1 & 0b1) << t
+                guessed_vector3 ^= (out >> 2 & 0b1) << t
                 guessed_vector4 ^= (out >> 3 & 0b1) << t
                 guessed_vector5 ^= (out >> 4 & 0b1) << t
-            # vec_bit1[key_bits * 32 + key_bits_guess] = guessed_vector1
-            # vec_bit2[key_bits * 32 + key_bits_guess] = guessed_vector2
-            # vec_bit3[key_bits * 32 + key_bits_guess] = guessed_vector3
+            vec_bit1[key_bits * 32 + key_bits_guess] = guessed_vector1
+            vec_bit2[key_bits * 32 + key_bits_guess] = guessed_vector2
+            vec_bit3[key_bits * 32 + key_bits_guess] = guessed_vector3
             vec_bit4[key_bits * 32 + key_bits_guess] = guessed_vector4
             vec_bit5[key_bits * 32 + key_bits_guess] = guessed_vector5
 
-    # v1 = list(vec_bit1.values())
-    # v2 = list(vec_bit2.values())
-    # v3 = list(vec_bit3.values())
+    v1 = list(vec_bit1.values())
+    v2 = list(vec_bit2.values())
+    v3 = list(vec_bit3.values())
     v4 = list(vec_bit4.values())
     v5 = list(vec_bit5.values())
 
-    # Guess_Matr_1 = np.zeros((64, 32,), dtype=frozenbitarray, order='C')
-    # Guess_Matr_2 = np.zeros((64, 32,), dtype=frozenbitarray, order='C')
-    # Guess_Matr_3 = np.zeros((64, 32,), dtype=frozenbitarray, order='C')
+    Guess_Matr_1 = np.zeros((64, 32,), dtype=frozenbitarray, order='C')
+    Guess_Matr_2 = np.zeros((64, 32,), dtype=frozenbitarray, order='C')
+    Guess_Matr_3 = np.zeros((64, 32,), dtype=frozenbitarray, order='C')
     Guess_Matr_4 = np.zeros((64, 32,), dtype=frozenbitarray, order='C')
     Guess_Matr_5 = np.zeros((64, 32,), dtype=frozenbitarray, order='C')
     for kb in range(0, 64):
-        # vec1 = v1[kb * 32: (kb + 1) * 32]
-        # vec2 = v2[kb * 32: (kb + 1) * 32]
-        # vec3 = v3[kb * 32: (kb + 1) * 32]
+        vec1 = v1[kb * 32: (kb + 1) * 32]
+        vec2 = v2[kb * 32: (kb + 1) * 32]
+        vec3 = v3[kb * 32: (kb + 1) * 32]
         vec4 = v4[kb * 32: (kb + 1) * 32]
         vec5 = v5[kb * 32: (kb + 1) * 32]
         for c in range(32):
-            # Guess_Matr_1[kb, c] = frozenbitarray(bin(vec1[c])[2:].zfill(traces))
-            # Guess_Matr_2[kb, c] = frozenbitarray(bin(vec2[c])[2:].zfill(traces))
-            # Guess_Matr_3[kb, c] = frozenbitarray(bin(vec3[c])[2:].zfill(traces))
+            Guess_Matr_1[kb, c] = frozenbitarray(bin(vec1[c])[2:].zfill(traces))
+            Guess_Matr_2[kb, c] = frozenbitarray(bin(vec2[c])[2:].zfill(traces))
+            Guess_Matr_3[kb, c] = frozenbitarray(bin(vec3[c])[2:].zfill(traces))
             Guess_Matr_4[kb, c] = frozenbitarray(bin(vec4[c])[2:].zfill(traces))
             Guess_Matr_5[kb, c] = frozenbitarray(bin(vec5[c])[2:].zfill(traces))
-    # Guess_Matrix = [Guess_Matr_1, Guess_Matr_2, Guess_Matr_3, Guess_Matr_4, Guess_Matr_5]
-    Guess_Matrix = [Guess_Matr_4, Guess_Matr_5]
+    Guess_Matrix = [Guess_Matr_1, Guess_Matr_2, Guess_Matr_3, Guess_Matr_4, Guess_Matr_5]
 
     node_vectors = []
     for i in range(num_of_nodes):
@@ -109,173 +107,94 @@ def ascon_lda(traces, traces_dir, window_size, window_step, MULTI_THREADED=False
     for i in range(num_of_nodes):
         Gates_Matrix[i] = frozenbitarray(bin(node_vectors[i])[2:].zfill(traces))
 
-    if not MULTI_THREADED:
-        Solutions = {}
-        hits = [[] for _ in range(len(KEY_BYTES))]
-        for li in range(len(KEY_BYTES)):
-            for _ in range(NUM_BITS):
-                hits[li].append(set())
-        for w in range(0, num_of_nodes, window_step):
-            cols = set(Gates_Matrix[w:w + window_size])
-            # print("window:", w, "-", w + window_size, "(", len(cols), ")", "/", num_of_nodes)
-            window = matrix(GF(2), cols)
-            kernel_matrix = window.right_kernel().matrix()
-            kernel_matrix = [frozenbitarray(row) for row in kernel_matrix]
-            for curr in range(NUM_BITS):
-                for KEY_BYTE in KEY_BYTES:
-                    assert isinstance(KEY_BYTE, int) and 63 >= KEY_BYTE >= 0
-                    # O(n^3 + nk)
-                    for kg, target in enumerate(Guess_Matrix[curr][KEY_BYTE]):
-                        match = True
-                        nm = 0
-                        for row in kernel_matrix:
-                            if (row & target).count(1) & 1:
-                                match = False
-                                break
-                            nm += 1
-                        if not match:
-                            continue
-                        _ = window.solve_left(vector(GF(2), target))  # verification
-                        hits[KEY_BYTE][curr].add(kg)
-                        # input((KEY_BYTE, curr, kg, hits))
-                """if STOP_AT_FIRST_CANDIDATE:
-                    intersection = (set(hits[0]).intersection(hits[1])
-                                    .intersection(hits[2])
-                                    .intersection(hits[3])
-                                    .intersection(hits[4])
-                                    )
-                    if len(intersection) != 0:
-                        Solutions[KEY_BYTE] = intersection
-                        DONE = True
-
-                        inters = []
-                        for i in range(1):
-                            inters.append({})
-                        for i in range(5):
-                            inters.append(set(hits[i]))
-                        for i in range(1, 6):
-                            for j in range(i + 1, 6):
-                                inters.append((inters[i]).intersection(inters[j]))
-                        for i in range(1, 6):
-                            for j in range(i + 1, 6):
-                                for k in range(j + 1, 6):
-                                    inters.append((inters[i]).intersection(inters[j]).intersection(inters[k]))
-                        for i in range(1, 6):
-                            for j in range(i + 1, 6):
-                                for k in range(j + 1, 6):
-                                    for l in range(k + 1, 6):
-                                        inters.append(
-                                            (inters[i]).intersection(inters[j]).intersection(inters[k]).intersection(
-                                                inters[l]))
-                        for i in range(1):
-                            inters.append(set(hits[0]).intersection(hits[1]).intersection(hits[2]).intersection(
-                                hits[3]).intersection(hits[4]))
-                        print(inters[1], inters[2], inters[3], inters[4], inters[5])
-                        print(inters[6], inters[7], inters[8], inters[9], inters[10], inters[11], inters[12], inters[13], inters[14], inters[15])
-                        # print(inters[16], inters[17], inters[18], inters[19], inters[20], inters[21], inters[22], inters[23], inters[24], inters[25])
-                        # print(inters[26], inters[27], inters[28], inters[29], inters[30])
-                        print(intersection)
-                        # if not stopping when finding first solution --> errors can be introduced later
-                        # todo: rank candidates + all combinations of intersections; start with l3 ?
-                        # optimze with fewest amount of bits/intersection
-                """
-                # if DONE:
-                #     break
-        if not STOP_AT_FIRST_CANDIDATE:
-            """intersection = (set(hits[0]).intersection(hits[1])
-                            .intersection(hits[2])
-                            .intersection(hits[3])
-                            .intersection(hits[4])
-                            )
-            if len(intersection) != 0:
-                Solutions[KEY_BYTE] = intersection
-                DONE = True
-
-                inters = []
-                for i in range(1):
-                    inters.append({})
-                for i in range(5):
-                    inters.append(set(hits[i]))
-                for i in range(1, 6):
-                    for j in range(i + 1, 6):
-                        inters.append((inters[i]).intersection(inters[j]))
-                for i in range(1, 6):
-                    for j in range(i + 1, 6):
-                        for k in range(j + 1, 6):
-                            inters.append((inters[i]).intersection(inters[j]).intersection(inters[k]))
-                for i in range(1, 6):
-                    for j in range(i + 1, 6):
-                        for k in range(j + 1, 6):
-                            for l in range(k + 1, 6):
-                                inters.append(
-                                    (inters[i]).intersection(inters[j]).intersection(inters[k]).intersection(
-                                        inters[l]))
-                for i in range(1):
-                    inters.append(set(hits[0]).intersection(hits[1]).intersection(hits[2]).intersection(
-                        hits[3]).intersection(hits[4]))
-                print(inters[1], inters[2], inters[3], inters[4], inters[5])
-                print(inters[6], inters[7], inters[8], inters[9], inters[10], inters[11], inters[12], inters[13],
-                      inters[14], inters[15])
-                print(inters[16], inters[17], inters[18], inters[19], inters[20], inters[21], inters[22], inters[23], inters[24], inters[25])
-                print(inters[26], inters[27], inters[28], inters[29], inters[30])
-                print(intersection)
-            if not stopping when finding first solution --> errors can be introduced later
-            todo: rank candidates + all combinations of intersections; start with l3 ?
-            optimze with fewest amount of bits/intersection"""
+    Solutions = {}
+    hits = [[] for _ in range(len(KEY_BYTES))]
+    for li in range(len(KEY_BYTES)):
+        for _ in range(NUM_BITS):
+            hits[li].append(set())
+    for w in range(0, num_of_nodes, window_step):
+        cols = set(Gates_Matrix[w:w + window_size])
+        # print("window:", w, "-", w + window_size, "(", len(cols), ")", "/", num_of_nodes)
+        window = matrix(GF(2), cols)
+        kernel_matrix = window.right_kernel().matrix()
+        kernel_matrix = [frozenbitarray(row) for row in kernel_matrix]
+        for curr in range(NUM_BITS):
             for KEY_BYTE in KEY_BYTES:
-                # for j in range(1, NUM_BITS):
-                #     hits[key][0] = hits[key][0].intersection(hits[key][j])
-                # Solutions[key] = hits[key][0]
-                Solutions[KEY_BYTE] = hits[KEY_BYTE][0].intersection(hits[KEY_BYTE][1])
-                # input(hits[KEY_BYTE][0].intersection(hits[KEY_BYTE][1]))
-        return Solutions
+                assert isinstance(KEY_BYTE, int) and 63 >= KEY_BYTE >= 0
+                # O(n^3 + nk)
+                for kg, target in enumerate(Guess_Matrix[curr][KEY_BYTE]):
+                    match = True
+                    nm = 0
+                    for row in kernel_matrix:
+                        if (row & target).count(1) & 1:
+                            match = False
+                            break
+                        nm += 1
+                    if not match:
+                        continue
+                    _ = window.solve_left(vector(GF(2), target))  # verification
+                    hits[KEY_BYTE][curr].add(kg)
 
-    elif MULTI_THREADED:
-        def concurrent(Guess_matrix, Gates_matrix, ID, sols):
-            DONE = False    # todo
-            hits = [[], [], [], [], []]
-            for w in range(0, num_of_nodes, window_step):
-                cols = set(Gates_matrix[w:w + window_size])
-                # print("Thread ", ID, " window:", w, "-", w + window_size, "(", len(cols), ")", "/", num_of_nodes)
-                window = matrix(GF(2), cols)
-                kernel_matrix = window.right_kernel().matrix()
-                kernel_matrix = [frozenbitarray(row) for row in kernel_matrix]
-
-                for curr in range(5):
-                    # O(n^3 + nk)
-                    for kg, target in enumerate(Guess_matrix[curr][ID]):
-                        match = True
-                        nm = 0
-                        for row in kernel_matrix:
-                            if (row & target).count(1) & 1:
-                                match = False
-                                break
-                            nm += 1
-                        if not match:
-                            continue
-                        _ = window.solve_left(vector(GF(2), target))  # verification
-                        hits[curr].append(kg)
-
-            for j in range(1, 5):
-                hits[0] = set(hits[0]).intersection(set(hits[j]))
-            sols[KEY_BYTE] = hits[0]
-
-        Solutions = Manager().dict()
-        processes = []
         for KEY_BYTE in KEY_BYTES:
-            # print("Attack key bits: {} {} {} {} {}".format(KEY_BYTE,
-            #                                                KEY_BYTE + 64,
-            #                                                KEY_BYTE + 128,
-            #                                                KEY_BYTE + 192,
-            #                                                KEY_BYTE + 256))
-            assert isinstance(KEY_BYTE, int) and 63 >= KEY_BYTE >= 0
-            process = Process(target=concurrent,
-                              args=(Guess_Matrix, Gates_Matrix, KEY_BYTE, Solutions,))
-            processes.append(process)
-            process.start()
-        for process in processes:
-            process.join()
-        return Solutions
+            for j in range(1, NUM_BITS):
+                hits[KEY_BYTE][0] = hits[KEY_BYTE][0].intersection(hits[KEY_BYTE][j])
+            Solutions[KEY_BYTE] = hits[KEY_BYTE][0]
+
+    # print("Hits: ", hits)
+    for KEY_BYTE in KEY_BYTES:
+        inters = [{}]   # 0 empty
+        for x in range(5):  # 1 2 3 4 5
+            inters.append(set(hits[KEY_BYTE][x]))
+        for x in range(1, 6):   # 12 13 14 15 23 24 25 34 35 45
+            for y in range(x + 1, 6):
+                inters.append((inters[x]).intersection(inters[y]))
+        for x in range(1, 6):   # 123 124 125 134 135 145 234 235 245 345
+            for y in range(x + 1, 6):
+                for z in range(y + 1, 6):
+                    inters.append((inters[x]).intersection(inters[y]).intersection(inters[z]))
+        for x in range(1, 6):   # 1234 1235 1245 1345 2345
+            for y in range(x + 1, 6):
+                for z in range(y + 1, 6):
+                    for v in range(z + 1, 6):
+                        inters.append(
+                            (inters[x]).intersection(inters[y]).intersection(inters[z]).intersection(
+                                inters[v]))
+        for i in range(1):
+            inters.append(set(hits[KEY_BYTE][0])
+                          .intersection(hits[KEY_BYTE][1])
+                          .intersection(hits[KEY_BYTE][2])
+                          .intersection(hits[KEY_BYTE][3])
+                          .intersection(hits[KEY_BYTE][4]))
+        # print("inters ", inters, len(inters))
+        print(inters[1], inters[2], inters[3], inters[4], inters[5])
+        print(inters[6], inters[7], inters[8], inters[9], inters[10], inters[11], inters[12], inters[13],
+              inters[14], inters[15])
+        print(inters[16], inters[17], inters[18], inters[19], inters[20], inters[21], inters[22], inters[23],
+              inters[24], inters[25])
+        print(inters[26], inters[27], inters[28], inters[29], inters[30])
+
+
+    recovered_key_bits = Solutions
+    recovered_key = ["_"] * 320
+    for i in recovered_key_bits:
+        bits = bin(list(recovered_key_bits[i])[0])[2:].zfill(5)
+        recovered_key[i + 0] = bits[0]
+        recovered_key[i + 64] = bits[1]
+        recovered_key[i + 128] = bits[2]
+        recovered_key[i + 192] = bits[3]
+        recovered_key[i + 256] = bits[4]
+    recovered_key_str = ''.join(recovered_key)
+    recovered_key_bytes = ""
+    if len(recovered_key_bits) == 64:
+        for i in range(40):
+            byte = recovered_key_str[i * 8:(i + 1) * 8]
+            recovered_key_bytes += str(hex(int(byte, 2))[2:].zfill(2))
+        print(recovered_key_bytes)
+        key_plaintext = ""
+        for i in range(40):
+            key_plaintext += chr(int((recovered_key_bytes[i * 2:i * 2 + 2]), 16))
+        print(key_plaintext)
+    return recovered_key_bytes
 
 
 if __name__ == "__main__":
@@ -313,65 +232,17 @@ if __name__ == "__main__":
 
     start = datetime.datetime.now()
     full_tuple = tuple(i for i in range(64))
-    recovered_key_bits = ascon_lda(
+    ascon_lda(
         args.n_traces,
         args.trace_dir,
         args.window_size,
         args.step,
-        MULTI_THREADED=False,
-        # KEY_BYTES=full_tuple
+        KEY_BYTES=full_tuple
         # KEY_BYTES=(0, )
-        # KEY_BYTES=(0, 1)
         # KEY_BYTES=(0, 1, 2, 3, 4)
-        KEY_BYTES=(0, 1, 2, 3, 4, 5, 6, 7, 8, 9),
     )
     end = datetime.datetime.now()
     print("Time: ", end - start)
-
-    print("Recovered key bits: ", recovered_key_bits)
-    recovered_key = ["_"] * 320
-    for i in recovered_key_bits:
-        bits = bin(list(recovered_key_bits[i])[0])[2:].zfill(5)
-        recovered_key[i + 0] = bits[0]
-        recovered_key[i + 64] = bits[1]
-        recovered_key[i + 128] = bits[2]
-        recovered_key[i + 192] = bits[3]
-        recovered_key[i + 256] = bits[4]
-    # print(recovered_key)
-    recovered_key_str = ''.join(recovered_key)
-    # print(recovered_key_str)
-    recovered_key_bytes = ""
-    if len(recovered_key_bits) == 64:
-        for i in range(40):
-            byte = recovered_key_str[i * 8:(i + 1) * 8]
-            recovered_key_bytes += str(hex(int(byte, 2))[2:].zfill(2))
-        # print(recovered_key_bytes)
-        key_plaintext = ""
-        for i in range(40):
-            key_plaintext += chr(int((recovered_key_bytes[i*2:i*2+2]), 16))
-        print(key_plaintext)
-
-    recovered_key = ["_"] * 320
-    for i in recovered_key_bits:
-        bits = bin(list(recovered_key_bits[i])[-1])[2:].zfill(5)
-        recovered_key[i + 0] = bits[0]
-        recovered_key[i + 64] = bits[1]
-        recovered_key[i + 128] = bits[2]
-        recovered_key[i + 192] = bits[3]
-        recovered_key[i + 256] = bits[4]
-    # print(recovered_key)
-    recovered_key_str = ''.join(recovered_key)
-    # print(recovered_key_str)
-    recovered_key_bytes = ""
-    if len(recovered_key_bits) == 64:
-        for i in range(40):
-            byte = recovered_key_str[i * 8:(i + 1) * 8]
-            recovered_key_bytes += str(hex(int(byte, 2))[2:].zfill(2))
-        # print(recovered_key_bytes)
-        key_plaintext = ""
-        for i in range(40):
-            key_plaintext += chr(int((recovered_key_bytes[i * 2:i * 2 + 2]), 16))
-        print(key_plaintext)
 
     """
     Results for:    ascon with 2 rounds clear
