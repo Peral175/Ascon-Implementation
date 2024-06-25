@@ -36,8 +36,8 @@ class ObfuscatedTransformer(CircuitTransformer):
 
         # todo: sometimes error some x is None ?
         # XOR varies widely and problem appears only when chaining
-        # if x == None or y == None:
-        #     print(x,y)
+        if x is None or y is None:
+            print(x, y)
         #     raise TypeError("x or y must be specified")
 
         if c < 90:
