@@ -86,9 +86,9 @@ def aes_lda(traces, traces_dir, window_size, window_step, KEY_BYTES=(0, 1, 2, 3,
     # ctr = 0
     for w in range(0, num_of_nodes, window_step):
         cols = set(Gates_Matrix[w:w + window_size])
-        nr_of_windows = num_of_nodes // window_step
+        # nr_of_windows = num_of_nodes // window_step
         # if ctr % (nr_of_windows // 3) == 0:
-        #     print("Current window: [{:4} / {}] Columns: {:4} - {:4} out of {} (unique columns: {:4})"
+        #     print("Current window: [{:4} / {:4}] Columns: {:4} - {:4} out of {} (unique columns: {:4})"
         #           .format(ctr, nr_of_windows, w, w+window_size, num_of_nodes, len(cols)))
         # ctr += 1
         window = matrix(GF(2), cols)
