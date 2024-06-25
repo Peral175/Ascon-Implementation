@@ -118,6 +118,11 @@ def ascon_perm(state, key=b"aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa", nr_rounds
     assert out == out_isw
     serialize_circuit(ASCON_ISW, "-isw_4")
 
+    ASCON_ISW = ISW_transform(C, 4)
+    out_isw = ASCON_ISW.evaluate(inp)  # linear masking
+    assert out == out_isw
+    serialize_circuit(ASCON_ISW, "-isw_5")
+
     ASCON_MINQ = MINQ_transform(C)
     out_minq = ASCON_MINQ.evaluate(inp)  # non-linear masking
     assert out == out_minq
@@ -137,6 +142,11 @@ def ascon_perm(state, key=b"aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa", nr_rounds
     out_ql = ASCON_QL.evaluate(inp)  # combined masking - 2 non-linear shares
     assert out == out_ql
     serialize_circuit(ASCON_QL, "-ql4")
+
+    ASCON_QL = QuadLin_transform(C, n_linear=5)
+    out_ql = ASCON_QL.evaluate(inp)  # combined masking - 2 non-linear shares
+    assert out == out_ql
+    serialize_circuit(ASCON_QL, "-ql5")
 
     # ASCON_CL = CubeLin_transform(C, n_linear=3)
     # out_cl = ASCON_CL.evaluate(inp)  # combined masking - 3 non-linear shares
