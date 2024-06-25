@@ -6,16 +6,14 @@ import os.path
 import pathlib
 from bitarray import frozenbitarray
 from collections import defaultdict
-from line_profiler import profile
-from multiprocessing import Process, Manager
 from sage.all import matrix, vector, GF
 
-STOP_AT_FIRST_CANDIDATE = False
+from line_profiler import profile
 
 
 @profile
-def aes_lda(traces, traces_dir, window_size, window_step, MULTI_THREADED=False,
-            KEY_BYTES=(0, 1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12, 13, 14, 15)):
+def aes_lda(traces, traces_dir, window_size, window_step, KEY_BYTES=(0, 1, 2, 3, 4, 5, 6, 7, 8,
+                                                                     9, 10, 11, 12, 13, 14, 15)):
     num_of_bytes = os.path.getsize(traces_dir / "0000.bin")
     num_of_nodes = num_of_bytes * 8
 
@@ -84,80 +82,41 @@ def aes_lda(traces, traces_dir, window_size, window_step, MULTI_THREADED=False,
     for i in range(num_of_nodes):
         Gates_Matrix[i] = frozenbitarray(bin(node_vectors[i])[2:].zfill(traces))
 
-    if not MULTI_THREADED:
-        Solutions = defaultdict(list)
-        for w in range(0, num_of_nodes, window_step):
-            cols = set(Gates_Matrix[w:w + window_size])
-            # print("window:", w, "-", w + window_size, "(", len(cols), ")", "/", num_of_nodes)
-            window = matrix(GF(2), cols)
-            kernel_matrix = window.right_kernel().matrix()
-            kernel_matrix = [frozenbitarray(row) for row in kernel_matrix]
+    Solutions = defaultdict(list)
+    # ctr = 0
+    for w in range(0, num_of_nodes, window_step):
+        cols = set(Gates_Matrix[w:w + window_size])
+        nr_of_windows = num_of_nodes // window_step
+        # if ctr % (nr_of_windows // 3) == 0:
+        #     print("Current window: [{:4} / {}] Columns: {:4} - {:4} out of {} (unique columns: {:4})"
+        #           .format(ctr, nr_of_windows, w, w+window_size, num_of_nodes, len(cols)))
+        # ctr += 1
+        window = matrix(GF(2), cols)
+        kernel_matrix = window.right_kernel().matrix()
+        kernel_matrix = [frozenbitarray(row) for row in kernel_matrix]
 
-            for KEY_BYTE in KEY_BYTES:
-                assert isinstance(KEY_BYTE, int) and 15 >= KEY_BYTE >= 0
-                # O(n^3 + nk)
-                for kg, target in enumerate(Guess_Matrix[KEY_BYTE]):
-                    match = True
-                    nm = 0
-                    for row in kernel_matrix:
-                        if (row & target).count(1) & 1:
-                            match = False
-                            break
-                        nm += 1
-                    if not match:
-                        continue
-                    sol = window.solve_left(vector(GF(2), target))  # verification
-                    Solutions[(KEY_BYTE, kg)] += [w]
-                    if STOP_AT_FIRST_CANDIDATE:
-                        DONE = True
-                        break
-                if DONE:
-                    break
-
-        return Solutions
-    elif MULTI_THREADED:
-        def concurrent(Guess_matrix, Gates_matrix, ID, sols):
-            for w in range(0, num_of_nodes, window_step):
-                cols = set(Gates_matrix[w:w + window_size])
-                # print("Thread ", ID, " window:", w, "-", w + window_size, "(", len(cols), ")", "/", num_of_nodes)
-                window = matrix(GF(2), cols)
-                kernel_matrix = window.right_kernel().matrix()
-                kernel_matrix = [frozenbitarray(row) for row in kernel_matrix]
-
-                # O(n^3 + nk)
-                for kg, target in enumerate(Guess_matrix):
-                    match = True
-                    nm = 0
-                    for row in kernel_matrix:
-                        if (row & target).count(1) & 1:
-                            match = False
-                            break
-                        nm += 1
-                    if not match:
-                        continue
-                    sol = window.solve_left(vector(GF(2), target))  # verification
-                    sols[kg] += [w]
-                    if STOP_AT_FIRST_CANDIDATE:
-                        Solutions[ID] = sols
-                        return
-            Solutions[ID] = sols
-
-        Solutions = Manager().dict()
-        processes = []
         for KEY_BYTE in KEY_BYTES:
             assert isinstance(KEY_BYTE, int) and 15 >= KEY_BYTE >= 0
-            process = Process(target=concurrent,
-                              args=(Guess_Matrix[KEY_BYTE], Gates_Matrix, KEY_BYTE, defaultdict(list),))
-            processes.append(process)
-            process.start()
-        for process in processes:
-            process.join()
+            # O(n^3 + nk)
+            for kg, target in enumerate(Guess_Matrix[KEY_BYTE]):
+                match = True
+                nm = 0
+                for row in kernel_matrix:
+                    if (row & target).count(1) & 1:
+                        match = False
+                        break
+                    nm += 1
+                if not match:
+                    continue
+                _ = window.solve_left(vector(GF(2), target))  # verification
+                Solutions[(KEY_BYTE, kg)] += [w]
 
-        Result = defaultdict(list)
-        for key in Solutions:
-            for inner_key in Solutions[key]:
-                Result[(key, inner_key)] = Solutions[key][inner_key]
-        return Result
+    # Print Key
+    key_bytes_string = "__" * 16
+    for i in Solutions.keys():
+        key_bytes_string = key_bytes_string[:i[0] * 2] + hex(i[1])[2:] + key_bytes_string[i[0] * 2 + 2:]
+    # print("Recovered key bytes as hex chars: ", key_bytes_string)
+    return key_bytes_string
 
 
 if __name__ == '__main__':
@@ -174,45 +133,37 @@ if __name__ == '__main__':
         '-T',
         '--n-traces',
         type=int,
-        default=256,
+        default=178,
         help='nr. traces'
     )
     parser.add_argument(
         '-W',
         '--window_size',
         type=int,
-        default=5,
+        default=128,
         help='sliding window size'
     )
     parser.add_argument(
         '-S',
         '--step',
         type=int,
-        default=1,
+        default=64,
         help='sliding window size step'
     )
     args = parser.parse_args()
 
     start = datetime.datetime.now()
-    recovered_key_bytes = aes_lda(
+    aes_lda(
         args.n_traces,
         args.trace_dir,
         args.window_size,
         args.step,
-        MULTI_THREADED=False,
-        # KEY_BYTES=(0, 1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12, 13, 14, 15)
+        KEY_BYTES=(0, 1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12, 13, 14, 15)
+        # KEY_BYTES=(0, 1, 2)
         # KEY_BYTES=(0,)
-        KEY_BYTES=(0, 1, 2)
     )
     end = datetime.datetime.now()
     print("Time: ", end - start)
-
-    print("Recovered key bytes: ", recovered_key_bytes)
-    key_bytes_string = "__" * 16
-    for i in recovered_key_bytes.keys():
-        key_bytes_string = key_bytes_string[:i[0] * 2] + hex(i[1])[2:] + key_bytes_string[i[0] * 2 + 2:]
-    print(key_bytes_string)
-
 """
     Run in Command Line:
     Results for:    aes lda with 2 rounds clear
@@ -238,4 +189,3 @@ if __name__ == '__main__':
     Mine:   17.0 15.8
     
     """
-# todo: add comments + experiments and plotting
