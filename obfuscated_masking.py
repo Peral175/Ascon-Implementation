@@ -30,15 +30,9 @@ class ObfuscatedTransformer(CircuitTransformer):
 
     def visit_XOR(self, node, x, y):
         from random import randint
-        # c = randint(0, 100)
-        c = 89
+        c = randint(0, 99)
+        # c = 89
         n = self.n
-
-        # todo: sometimes error some x is None ?
-        # XOR varies widely and problem appears only when chaining
-        if x is None or y is None:
-            print(x, y)
-        #     raise TypeError("x or y must be specified")
 
         if c < 90:
             # original
@@ -66,7 +60,7 @@ class ObfuscatedTransformer(CircuitTransformer):
 
     def visit_AND(self, node, x, y):
         from random import randint
-        c = randint(0, 100)
+        c = randint(0, 99)
         n = self.n
 
         if c < 90:
@@ -89,7 +83,7 @@ class ObfuscatedTransformer(CircuitTransformer):
 
     def visit_NOT(self, node, x):
         from random import randint
-        c = randint(0, 100)
+        c = randint(0, 99)
         n = self.n
 
         if c < 90:
@@ -450,5 +444,3 @@ for _ in range(1000):
     # out = C_obfus_2.evaluate(inp)
     # print("OUT", out)
     assert out1 == out2
-
-# todo: prng testing + n times same result testing
