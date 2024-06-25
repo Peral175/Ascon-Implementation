@@ -41,6 +41,11 @@ def circuit(key):
     C_ISW_4.print_stats()
     RawSerializer().serialize_to_file(C_ISW_4, "bin/aes2-isw4.bin")
 
+    C_ISW_5 = ISW(prng=prng, order=4).transform(C)
+    C_ISW_5.in_place_remove_unused_nodes()
+    C_ISW_5.print_stats()
+    RawSerializer().serialize_to_file(C_ISW_5, "bin/aes2-isw5.bin")
+
     C_MINQ = MINQ(prng=prng).transform(C)
     C_MINQ.in_place_remove_unused_nodes()
     C_MINQ.print_stats()
@@ -60,6 +65,11 @@ def circuit(key):
     C_QL4.in_place_remove_unused_nodes()
     C_QL4.print_stats()
     RawSerializer().serialize_to_file(C_QL4, "bin/aes2-quadlin4.bin")
+
+    C_QL5 = QuadLin(prng=prng, n_linear=5).transform(C)
+    C_QL5.in_place_remove_unused_nodes()
+    C_QL5.print_stats()
+    RawSerializer().serialize_to_file(C_QL5, "bin/aes2-quadlin5.bin")
 
 
 if __name__ == '__main__':
