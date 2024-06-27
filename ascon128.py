@@ -230,9 +230,9 @@ def even_mansour():
     # pt = 812545564329713676245859916367026775365407289012783556426457997015311926679201529462946091394920
     # pt = b"abcdefghabcdefghabcdefghabcdefghabcdefgh"
     # pt = b"1234567812345678123456781234567812345678"
-    # pt = b"aaaaaaaabbbbbbbbccccccccddddddddeeeeeeee"
+    pt = b"aaaaaaaabbbbbbbbccccccccddddddddeeeeeeee"
     # pt = b"\x00"*8+b"\x01"*1+b"\x00"*31
-    pt = b"\x00"*40
+    # pt = b"\x00"*40
 
     # k1 = 812512715624816776440459237248810020064558190857236543862207984151981621179302483734224793854305
     # k2 = 812512715624816776440459237248810020064558190857236543862207984151981621179302483734224793854305
@@ -249,6 +249,9 @@ def even_mansour():
 
     k1 = bytes(args.key, encoding="ascii")
     print("key: ", k1)
+    # from random import randbytes
+    # k1 = randbytes(40)
+    # input(k1)
 
     nam = data.get("naming")
     print("Naming: ", nam)

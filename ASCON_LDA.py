@@ -10,6 +10,7 @@ from sage.all import matrix, vector, GF
 from line_profiler import profile
 
 NUM_BITS = 5
+INTERSECTION_MODE = False
 
 
 @profile
@@ -140,61 +141,66 @@ def ascon_lda(traces, traces_dir, window_size, window_step,
                 hits[KEY_BYTE][0] = hits[KEY_BYTE][0].intersection(hits[KEY_BYTE][j])
             Solutions[KEY_BYTE] = hits[KEY_BYTE][0]
 
-    # print("Hits: ", hits)
-    for KEY_BYTE in KEY_BYTES:
-        inters = [{}]   # 0 empty
-        for x in range(5):  # 1 2 3 4 5
-            inters.append(set(hits[KEY_BYTE][x]))
-        for x in range(1, 6):   # 12 13 14 15 23 24 25 34 35 45
-            for y in range(x + 1, 6):
-                inters.append((inters[x]).intersection(inters[y]))
-        for x in range(1, 6):   # 123 124 125 134 135 145 234 235 245 345
-            for y in range(x + 1, 6):
-                for z in range(y + 1, 6):
-                    inters.append((inters[x]).intersection(inters[y]).intersection(inters[z]))
-        for x in range(1, 6):   # 1234 1235 1245 1345 2345
-            for y in range(x + 1, 6):
-                for z in range(y + 1, 6):
-                    for v in range(z + 1, 6):
-                        inters.append(
-                            (inters[x]).intersection(inters[y]).intersection(inters[z]).intersection(
-                                inters[v]))
-        for i in range(1):
-            inters.append(set(hits[KEY_BYTE][0])
-                          .intersection(hits[KEY_BYTE][1])
-                          .intersection(hits[KEY_BYTE][2])
-                          .intersection(hits[KEY_BYTE][3])
-                          .intersection(hits[KEY_BYTE][4]))
-        # print("inters ", inters, len(inters))
-        print(inters[1], inters[2], inters[3], inters[4], inters[5])
-        print(inters[6], inters[7], inters[8], inters[9], inters[10], inters[11], inters[12], inters[13],
-              inters[14], inters[15])
-        print(inters[16], inters[17], inters[18], inters[19], inters[20], inters[21], inters[22], inters[23],
-              inters[24], inters[25])
-        print(inters[26], inters[27], inters[28], inters[29], inters[30])
-
+    if INTERSECTION_MODE:
+        for KEY_BYTE in KEY_BYTES:
+            inters = [{}]  # 0 empty
+            for x in range(5):  # 1 2 3 4 5
+                inters.append(set(hits[KEY_BYTE][x]))
+            for x in range(1, 6):  # 12 13 14 15 23! 24 25 34 35! 45
+                for y in range(x + 1, 6):
+                    inters.append((inters[x]).intersection(inters[y]))
+            for x in range(1, 6):  # 123 124 125 134 135 145 234 235 245 345
+                for y in range(x + 1, 6):
+                    for z in range(y + 1, 6):
+                        inters.append((inters[x]).intersection(inters[y]).intersection(inters[z]))
+            for x in range(1, 6):  # 1234 1235 1245 1345 2345
+                for y in range(x + 1, 6):
+                    for z in range(y + 1, 6):
+                        for v in range(z + 1, 6):
+                            inters.append(
+                                (inters[x]).intersection(inters[y]).intersection(inters[z]).intersection(
+                                    inters[v]))
+            for i in range(1):
+                inters.append(set(hits[KEY_BYTE][0])
+                              .intersection(hits[KEY_BYTE][1])
+                              .intersection(hits[KEY_BYTE][2])
+                              .intersection(hits[KEY_BYTE][3])
+                              .intersection(hits[KEY_BYTE][4]))
+            # print("inters ", inters, len(inters))
+            print(inters[1], inters[2], inters[3], inters[4], inters[5])
+            print(inters[6], inters[7], inters[8], inters[9], inters[10], inters[11], inters[12], inters[13],
+                  inters[14], inters[15])
+            print(inters[16], inters[17], inters[18], inters[19], inters[20], inters[21], inters[22], inters[23],
+                  inters[24], inters[25])
+            print(inters[26], inters[27], inters[28], inters[29], inters[30])
 
     recovered_key_bits = Solutions
     recovered_key = ["_"] * 320
     for i in recovered_key_bits:
-        bits = bin(list(recovered_key_bits[i])[0])[2:].zfill(5)
-        recovered_key[i + 0] = bits[0]
-        recovered_key[i + 64] = bits[1]
-        recovered_key[i + 128] = bits[2]
-        recovered_key[i + 192] = bits[3]
-        recovered_key[i + 256] = bits[4]
+        try:
+            bits = bin(list(recovered_key_bits[i])[0])[2:].zfill(5)
+            recovered_key[i + 0] = bits[0]
+            recovered_key[i + 64] = bits[1]
+            recovered_key[i + 128] = bits[2]
+            recovered_key[i + 192] = bits[3]
+            recovered_key[i + 256] = bits[4]
+        except IndexError:
+            continue
     recovered_key_str = ''.join(recovered_key)
     recovered_key_bytes = ""
-    if len(recovered_key_bits) == 64:
+    if "_" in recovered_key_str:
+        print("Incomplete key recovery: ", recovered_key_str)
+        return recovered_key_str
+    else:
         for i in range(40):
             byte = recovered_key_str[i * 8:(i + 1) * 8]
             recovered_key_bytes += str(hex(int(byte, 2))[2:].zfill(2))
-        print(recovered_key_bytes)
+        print("Key recovery: ", recovered_key_bytes)
         key_plaintext = ""
         for i in range(40):
             key_plaintext += chr(int((recovered_key_bytes[i * 2:i * 2 + 2]), 16))
         print(key_plaintext)
-    return recovered_key_bytes
+        return recovered_key_bytes
 
 
 if __name__ == "__main__":

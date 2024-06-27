@@ -1,8 +1,8 @@
 #!/bin/bash
 
 nr_traces=2098
-key=abcdefghABCDEFGH
-#key='0123456789:;<=>?'
+#key=abcdefghABCDEFGH
+key='0123456789:;<=>?'
 
 ## 1. run aes with key as cmd argument
 python3 aes.py -K $key

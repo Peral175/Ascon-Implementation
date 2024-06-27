@@ -66,15 +66,18 @@ def attack(T, trace_dir):
     for i in range(16):
         if mostProbableKey[i] == -1:
             missingBytes += 1
+
     if missingBytes == 0:
+        res = ""
         print("Most probable key (char): ", end="")
         for i in range(16):
             print(chr(mostProbableKey[i]), end="")
         print("\n                   (hex): ", end="")
         for i in range(16):
             print(hex(mostProbableKey[i])[2:], end="")
+            res += hex(mostProbableKey[i])[2:]
         print()
-        return True, mostProbableKey
+        return res
     else:
         print("Impossible to find the key: %d bytes are missing" % missingBytes)
         print("The implementation may be resistant to this attack, but you can still try with more traces")

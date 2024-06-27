@@ -1,6 +1,9 @@
 #!/bin/bash
 
 nr_traces=2098
+#nr_traces=1074
+#key=test    # 395fda060f3175d8deec51f0caa31835a87b7a5eea951dd954a34e9ca35d7524c0a7b4b1fc0d6c07
+            # b'9_\xda\x06\x0f1u\xd8\xde\xecQ\xf0\xca\xa3\x185\xa8{z^\xea\x95\x1d\xd9T\xa3N\x9c\xa3]u$\xc0\xa7\xb4\xb1\xfc\rl\x07'
 key=abcdefghijklmnopqrstuvwxyz1234567890ABCD
 #key='0123456789:;<=>?@ABCDEFGHIJKLMNOPQRSTUVW'
 

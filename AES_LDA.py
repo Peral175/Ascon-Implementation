@@ -115,7 +115,7 @@ def aes_lda(traces, traces_dir, window_size, window_step, KEY_BYTES=(0, 1, 2, 3,
     key_bytes_string = "__" * 16
     for i in Solutions.keys():
         key_bytes_string = key_bytes_string[:i[0] * 2] + hex(i[1])[2:] + key_bytes_string[i[0] * 2 + 2:]
-    # print("Recovered key bytes as hex chars: ", key_bytes_string)
+    print("Recovered key bytes as hex chars: ", key_bytes_string)
     return key_bytes_string
 
 

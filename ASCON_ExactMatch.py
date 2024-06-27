@@ -80,8 +80,6 @@ def attack(T, trace_dir):
 
     # we want to find the intersection between all 5 lists
     intersection = sorted(set(set(set(set(r1).intersection(r2)).intersection(r3)).intersection(r4)).intersection(r5))
-    # intersection = sorted(set(set(r1).intersection(r3)).intersection(r5))
-
 
     if len(intersection) == 64:
         bits_matr = np.zeros((64, 5), dtype=np.uint8)
@@ -99,13 +97,15 @@ def attack(T, trace_dir):
             mostProbableKey[j // 8] = i
 
         recovered_key = ''
+        hex_string = ''
         for keyByte in mostProbableKey:
+            hex_string += hex(keyByte)[2:].zfill(2)
             try:
                 recovered_key += chr(keyByte)
             except ValueError:
                 recovered_key += '_'
         print("Recovered key: ", recovered_key)
-        return True, recovered_key
+        return hex_string
     else:
         print("Key was not fully recovered!", len(intersection))
         return False, intersection
