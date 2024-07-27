@@ -5,6 +5,7 @@ bin/
 traces/
 circuits/
 old/
+old*
 .ipynb_checkpoints/
 *.lprof
 *.gv
