@@ -9,3 +9,6 @@ old/
 *.lprof
 *.gv
 *.gv.pdf
+Daredevil/
+daredevil.config
+digraphs/
