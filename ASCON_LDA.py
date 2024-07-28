@@ -10,7 +10,7 @@ from sage.all import matrix, vector, GF
 from line_profiler import profile
 
 NUM_BITS = 5
-INTERSECTION_MODE = False
+INTERSECTION_MODE = True
 
 
 @profile
@@ -133,14 +133,14 @@ def ascon_lda(traces, traces_dir, window_size, window_step,
                         nm += 1
                     if not match:
                         continue
-                    _ = window.solve_left(vector(GF(2), target))  # verification
+                    # _ = window.solve_left(vector(GF(2), target))  # verification takes a long time (around 40%)
                     hits[KEY_BYTE][curr].add(kg)
 
         for KEY_BYTE in KEY_BYTES:
-            for j in range(1, NUM_BITS):
-                hits[KEY_BYTE][0] = hits[KEY_BYTE][0].intersection(hits[KEY_BYTE][j])
+            # for j in range(1, NUM_BITS):
+            #     hits[KEY_BYTE][0] = hits[KEY_BYTE][0].intersection(hits[KEY_BYTE][j])
             Solutions[KEY_BYTE] = hits[KEY_BYTE][0]
-
+    print("SOL", Solutions)
     if INTERSECTION_MODE:
         for KEY_BYTE in KEY_BYTES:
             inters = [{}]  # 0 empty
@@ -166,7 +166,7 @@ def ascon_lda(traces, traces_dir, window_size, window_step,
                               .intersection(hits[KEY_BYTE][2])
                               .intersection(hits[KEY_BYTE][3])
                               .intersection(hits[KEY_BYTE][4]))
-            # print("inters ", inters, len(inters))
+            print("inters ", inters, len(inters))
             print(inters[1], inters[2], inters[3], inters[4], inters[5])
             print(inters[6], inters[7], inters[8], inters[9], inters[10], inters[11], inters[12], inters[13],
                   inters[14], inters[15])

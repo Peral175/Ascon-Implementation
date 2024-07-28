@@ -47,7 +47,6 @@ def attack(T, trace_dir):
             dict3[plaintextBits * 32 + keyBitsGuess] = guessedVector3
             dict4[plaintextBits * 32 + keyBitsGuess] = guessedVector4
             dict5[plaintextBits * 32 + keyBitsGuess] = guessedVector5
-
     TRACES = []
     for traceNumber in range(T):
         ftrace = trace_dir / ("%04d.bin" % traceNumber)
@@ -80,7 +79,9 @@ def attack(T, trace_dir):
 
     # we want to find the intersection between all 5 lists
     intersection = sorted(set(set(set(set(r1).intersection(r2)).intersection(r3)).intersection(r4)).intersection(r5))
-
+    for i in r3:
+        if i >> 5 ==63:
+            print(i%32)
     if len(intersection) == 64:
         bits_matr = np.zeros((64, 5), dtype=np.uint8)
         for i in range(len(intersection)):

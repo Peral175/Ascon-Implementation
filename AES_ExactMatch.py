@@ -38,12 +38,12 @@ def attack(T, trace_dir):
             PLAINTEXTS += [f.read(16)]
 
     dictionary = {}
-    for plaintextByte in range(16):
+    for keyBytePos in range(16):
         for keyByteGuess in range(256):
             guessedVector = 0
             for traceNr in range(T):
-                guessedVector ^= selection_function(PLAINTEXTS[traceNr][plaintextByte], keyByteGuess) << traceNr
-            dictionary[guessedVector] = plaintextByte * 256 + keyByteGuess
+                guessedVector ^= selection_function(PLAINTEXTS[traceNr][keyBytePos], keyByteGuess) << traceNr
+            dictionary[guessedVector] = keyBytePos * 256 + keyByteGuess
     # print(len(dictionary))
 
     TRACES = []

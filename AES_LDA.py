@@ -108,7 +108,7 @@ def aes_lda(traces, traces_dir, window_size, window_step, KEY_BYTES=(0, 1, 2, 3,
                     nm += 1
                 if not match:
                     continue
-                _ = window.solve_left(vector(GF(2), target))  # verification
+                # _ = window.solve_left(vector(GF(2), target))  # verification
                 Solutions[(KEY_BYTE, kg)] += [w]
 
     # Print Key
