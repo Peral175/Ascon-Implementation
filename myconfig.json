@@ -1,4 +1,5 @@
 {
-  "key": "abcdefghijklmnopqrstuvwxyz1234567890ABCD",
+  "key1": "abcdefghijklmnopqrstuvwxyz1234567890ABCD",
+  "key2": "abcdefghijklmnopqrstuvwxyz1234567890abcd",
   "naming" : ""
 }
