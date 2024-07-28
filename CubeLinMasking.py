@@ -2,7 +2,6 @@ from functools import reduce
 from operator import xor
 import logging
 from wboxkit.masking import MaskingTransformer
-from circkit.transformers.core import CircuitTransformer
 from circkit.array import Array
 
 log = logging.getLogger(__name__)
@@ -116,15 +115,16 @@ class CubeLin(MaskingTransformer):
         lins[-1] = 1 ^ lins[-1]
         return x[0], x[1], x[2], lins
 
-#########################################################################################
-# DEBUGGING BELOW
-#
+
+# #########################################################################################
+# # DEBUGGING BELOW
+# #
 # from wboxkit.prng import NFSR, Pool
 # from circkit.boolean import OptBooleanCircuit as BooleanCircuit
 # nfsr = NFSR(taps=[[], [11], [50], [3, 107]], clocks_initial=100, clocks_per_step=1,)
 # prng = Pool(prng=nfsr, n=256)
 # C = BooleanCircuit(name="debug")
-# pt = Array(C.add_inputs(2, "x%d"))
+# pt = Array(C.add_inputs(128, "x%d"))
 # x0 = pt[0]
 # x1 = pt[1]
 # x2 = x1 ^ x0
@@ -134,17 +134,18 @@ class CubeLin(MaskingTransformer):
 # x6 = x1 & x1
 # x7 = x0 ^ x0
 # x8 = x0 & x0
-# # C1:  [0, 1, 1, 0, 1, 0, 0, 1, 0]
 # C.add_output([x0, x1, x2, x3, x4, x5, x7, x6, x8])
 # C.in_place_remove_unused_nodes()
-# inp = [1, 0]
-# out = C.evaluate(inp)           # regular circuit
-# print("C1: ", out)
-# ASCON_CL = CubeLin( n_linear=1).transform(C)
+# C.print_stats()
+# ASCON_CL = CubeLin(n_linear=3, prng=prng).transform(C)
 # ASCON_CL.in_place_remove_unused_nodes()
-# # ASCON_CL.print_stats()
-# out2 = ASCON_CL.evaluate(inp)
-# print("C2: ", out2)
-# assert out2 == out
-#
+# ASCON_CL.print_stats()
+# from random import getrandbits
+# for i in range(10000):
+#     inp = [getrandbits(1), getrandbits(1)]*64
+#     out1 = C.evaluate(inp)           # regular circuit
+#     out2 = ASCON_CL.evaluate(inp)
+#     assert out2 == out1
+#     # print(out1)
+#     # print(out2)
 # # Assertion fails only sometimes ==> refresh must be the problem --> yes, fixed
