@@ -1,5 +1,5 @@
 """
-This file is redundant; see circ_perm_bool.py for the boolean circuit."
+This file is redundant; see Ascon_P.py for the boolean circuit."
 """
 
 # import sys
