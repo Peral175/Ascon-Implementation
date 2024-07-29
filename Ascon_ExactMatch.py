@@ -136,13 +136,13 @@ if __name__ == "__main__":
     print("Time:", end - start)
     """
     Results for:    ascon simplified (=> without the constant addition) clear
-    python3 ASCON_ExactMatch.py -T 256 traces/abcdefghijklmnopqrstuvwxyz1234567890ABCD/ascon128_2R_simplified-clear/
+    python3 Ascon_ExactMatch.py -T 256 traces/abcdefghijklmnopqrstuvwxyz1234567890ABCD/ascon128_2R_simplified-clear/
     Time: 0:00:00.729389
     Recovered key:  abcdefghijklmnopqrstuvwxyz1234567890ABCD
     
     This attack does not find solutions for masked ascon (except higher order exact matching attack ?)
     
     Detailed timing analysis:
-    kernprof -l ASCON_ExactMatch.py -T 256 traces/abcdefghijklmnopqrstuvwxyz1234567890ABCD/ascon128_2R_simplified-clear/
-    python3 -m line_profiler -rmt "ASCON_ExactMatch.py.lprof"
+    kernprof -l Ascon_ExactMatch.py -T 256 traces/abcdefghijklmnopqrstuvwxyz1234567890ABCD/ascon128_2R_simplified-clear/
+    python3 -m line_profiler -rmt "Ascon_ExactMatch.py.lprof"
     """

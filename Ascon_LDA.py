@@ -252,7 +252,7 @@ if __name__ == "__main__":
 
     """
     Results for:    ascon with 2 rounds clear
-    python3 ASCON_LDA.py -T 256 traces/abcdefghABCDEFGH/aes2-clear/
+    python3 Ascon_LDA.py -T 256 traces/abcdefghABCDEFGH/aes2-clear/
     Most probable key (char): abcdefghABCDEFGH
                    (hex): 61626364656667684142434445464748
     Time: 0:00:00.241605

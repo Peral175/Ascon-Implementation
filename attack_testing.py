@@ -6,8 +6,8 @@ import timeit
 import time
 import AES_ExactMatch
 import AES_LDA
-import ASCON_ExactMatch
-import ASCON_LDA
+import Ascon_ExactMatch
+import Ascon_LDA
 
 aes_clear1 = pathlib.PosixPath("traces/abcdefghABCDEFGH/aes2-clear/")
 aes_isw2_1 = pathlib.PosixPath("traces/abcdefghABCDEFGH/aes2-isw2/")
@@ -101,7 +101,7 @@ class TestStringMethods(unittest.TestCase):
 
         target2 = self.ascon_clear2.parents[0].name  # secret key we want to find
         target2 = target2.encode('utf-8').hex()
-        r = ASCON_ExactMatch.attack(self.t, self.ascon_clear2)
+        r = Ascon_ExactMatch.attack(self.t, self.ascon_clear2)
         self.assertEqual(target2, r)
         r = ASCON_ExactMatch.attack(self.t, self.ascon_isw2_2)
         self.assertNotEqual(target2, r)
@@ -143,7 +143,7 @@ class TestStringMethods(unittest.TestCase):
                     tr = w_size + 50  # 2^50 chance of failure ?
                     print("Run nr. {:2}/{:2}  Traces:{:4}  Window:{:4}  Step:{:4}".format(j+1, self.nr_increments, tr, w_size, s_size))
                     print(self.tr_ascon[i])
-                    r = ASCON_LDA.ascon_lda(tr, self.tr_ascon[i], w_size, s_size)
+                    r = Ascon_LDA.ascon_lda(tr, self.tr_ascon[i], w_size, s_size)
                     self.assertEqual(target, r)
                     t_stop = time.time()
                     elapsed_time = str(t_stop - t_start)[:6]

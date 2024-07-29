@@ -1,0 +1,60 @@
+Below are the dependencies required to run my code, as well as some recommendations.
+
+Laptop OS:
+    - Ubuntu 22.04
+PC OS:
+    - Windows 10 + WSL2 with Ubuntu 22.04
+
+Requirements:
+    0. python                   [3.10]
+    1. sagemath                 [9.5-4]
+        sudo apt install sagemath
+    2. pip3                     [22.0.2]
+        sudo apt install python3-pip
+    3. binteger                 [0.15.1]
+        pip3 install binteger==0.15.1
+    4. bitarray                 [2.9.2]
+        pip3 install bitarray==2.9.2
+    5. numpy                    [1.21.5]
+        pip3 install numpy==1.21.5
+    6. matplotlib               [3.9.1]
+        pip3 install matplotlib==3.9.1
+    7. line_profiler            [4.1.3]
+        pip3 install line_profiler==4.1.3
+    8. wboxkit                  [0.4.3]
+        pip3 install wboxkit==0.4.3
+        sage -pip install wboxkit==0.4.3
+    9. circkit                  [0.1.1]
+        pip3 install circkit==0.1.1
+        sage -pip install circkit==0.1.1
+
+
+    Once the dependencies are installed, I recommend to run:
+        "bash aes_script.sh"
+            --> this script will run "python3 aes.py -K $key" to create the AES boolean circuit and
+                various masked implementations of this original circuit, with two keys defined in the file and
+                will then generate a set amount of traces (traces folder) on all of these circuits (circuits folder).
+        "bash ascon_script.sh"
+            --> this script will run "python3 Even_Mansour.py -K $key" to create the Ascon boolean circuit and
+                various masked implementations of this original circuit, with two keys defined in the file and
+                will then generate a set amount of traces (traces folder) on all of these circuits (circuits folder).
+
+    These traces will be used to perform attacks on AES and Ascon.
+
+Below are some explanations of what files are used for:
+    AES.py                  --> contains aes boolean circuit which is serialized used for trace generation
+    AES_ExactMatch.py       --> exact match attack for aes
+        - CLI:     python3 AES_ExactMatch.py -T NR_TRACES traces/KEY/CIRCUIT/
+    AES_LDA.py              --> linear decoding attack for aes
+        - CLI:     python3 AES_LDA.py traces/KEY/CIRCUIT/ -T NR_TRACES -W WINDOWSIZE -S WINDOWSTEP
+    Ascon128.py             --> ascon-128 AEAD implementation with duplex sponge mode
+    Ascon_ExactMatch.py     --> exact match attack for ascon
+        - CLI:     python3 Ascon_ExactMatch.py -T NR_TRACES traces/KEY/CIRCUIT/
+    Ascon_LDA.py            --> linear decoding attack for ascon
+        - CLI:     python3 Ascon_LDA.py traces/KEY/CIRCUIT/ -T NR_TRACES -W WINDOWSIZE -S WINDOWSTEP
+    Ascon_P.py              --> boolean circuit for isolated ascon permutation function; to be used with Even_Mansour.py
+    attack_testing.py       --> this file conducts attacks on aes and ascon (masked and non-masked), saves results and plots
+    CubeLinMasking.py       --> in this file I implemented cubic monomial according to SEL (2021) paper
+    Even_Mansour.py         --> even-mansour construction to be used with Ascon permutation function to create simple block ciphter for testing
+    obfuscated_masking.py   --> this file implements obfuscation layer to be placed on top of masking layer.
+    old_*.py                --> backup files that are no longer relevant

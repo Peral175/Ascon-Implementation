@@ -8,7 +8,7 @@ from wboxkit.prng import NFSR, Pool
 from wboxkit.serialize import RawSerializer
 
 
-def circuit(key=b'\x00'*40, nr_rounds=2, SERIALIZE=False, STATS=False):
+def circuit(key=b'\x00'*16, nr_rounds=2, SERIALIZE=False, STATS=False):
     nfsr = NFSR(
         taps=[[], [11], [50], [3, 107]],
         clocks_initial=100,
