@@ -3,10 +3,10 @@ import os.path
 import pathlib
 import datetime
 import numpy as np
-from line_profiler import profile
+import line_profiler
 
 
-@profile
+@line_profiler.profile
 def attack(T, trace_dir):
     numOfBytes = os.path.getsize(trace_dir / "0000.bin")
     numOfNodes = numOfBytes * 8
@@ -135,14 +135,12 @@ if __name__ == "__main__":
     end = datetime.datetime.now()
     print("Time:", end - start)
     """
-    Results for:    ascon simplified (=> without the constant addition) clear
-    python3 Ascon_ExactMatch.py -T 256 traces/abcdefghijklmnopqrstuvwxyz1234567890ABCD/ascon128_2R_simplified-clear/
-    Time: 0:00:00.729389
+    Results for:    ascon Non Constant Addition clear
+    python3 Ascon_ExactMatch.py -T 306 traces/abcdefghijklmnopqrstuvwxyz1234567890ABCD/asconP_2R_NCA-clear/
     Recovered key:  abcdefghijklmnopqrstuvwxyz1234567890ABCD
-    
-    This attack does not find solutions for masked ascon (except higher order exact matching attack ?)
+    Time: 0:00:02.654246
     
     Detailed timing analysis:
-    kernprof -l Ascon_ExactMatch.py -T 256 traces/abcdefghijklmnopqrstuvwxyz1234567890ABCD/ascon128_2R_simplified-clear/
+    kernprof -l Ascon_ExactMatch.py -T 306 traces/abcdefghijklmnopqrstuvwxyz1234567890ABCD/asconP_2R_NCA-clear/
     python3 -m line_profiler -rmt "Ascon_ExactMatch.py.lprof"
     """

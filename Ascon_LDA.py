@@ -7,13 +7,13 @@ import pathlib
 from bitarray import frozenbitarray
 from sage.all import matrix, vector, GF
 
-from line_profiler import profile
+import line_profiler
 
 NUM_BITS = 5
 INTERSECTION_MODE = True
 
 
-@profile
+@line_profiler.profile
 def ascon_lda(traces, traces_dir, window_size, window_step,
               KEY_BYTES=(0, 1, 2, 3, 4, 5, 6, 7,
                          8, 9, 10, 11, 12, 13, 14, 15,
@@ -136,11 +136,6 @@ def ascon_lda(traces, traces_dir, window_size, window_step,
                     # _ = window.solve_left(vector(GF(2), target))  # verification takes a long time (around 40%)
                     hits[KEY_BYTE][curr].add(kg)
 
-        for KEY_BYTE in KEY_BYTES:
-            # for j in range(1, NUM_BITS):
-            #     hits[KEY_BYTE][0] = hits[KEY_BYTE][0].intersection(hits[KEY_BYTE][j])
-            Solutions[KEY_BYTE] = hits[KEY_BYTE][0]
-    print("SOL", Solutions)
     if INTERSECTION_MODE:
         for KEY_BYTE in KEY_BYTES:
             inters = [{}]  # 0 empty
@@ -173,6 +168,11 @@ def ascon_lda(traces, traces_dir, window_size, window_step,
             print(inters[16], inters[17], inters[18], inters[19], inters[20], inters[21], inters[22], inters[23],
                   inters[24], inters[25])
             print(inters[26], inters[27], inters[28], inters[29], inters[30])
+
+    for KEY_BYTE in KEY_BYTES:
+        for j in range(1, NUM_BITS):
+            hits[KEY_BYTE][0] = hits[KEY_BYTE][0].intersection(hits[KEY_BYTE][j])
+        Solutions[KEY_BYTE] = hits[KEY_BYTE][0]
 
     recovered_key_bits = Solutions
     recovered_key = ["_"] * 320
@@ -251,25 +251,17 @@ if __name__ == "__main__":
     print("Time: ", end - start)
 
     """
-    Results for:    ascon with 2 rounds clear
-    python3 Ascon_LDA.py -T 256 traces/abcdefghABCDEFGH/aes2-clear/
-    Most probable key (char): abcdefghABCDEFGH
-                   (hex): 61626364656667684142434445464748
-    Time: 0:00:00.241605
-
-
-    This attack does not find solutions for masked aes (except higher order exact matching attack ?)
-
+    Results for:    ascon Non Constant Addition clear
+    python3 Ascon_LDA.py -T 306 -W 256 -S 128 traces/abcdefghijklmnopqrstuvwxyz1234567890ABCD/asconP_2R_NCA-clear/
+    Recovered key:  abcdefghijklmnopqrstuvwxyz1234567890ABCD
+    Time: 
+    
     Detailed timing analysis:
-    kernprof -l AES_ExactMatch.py -T 256 traces/abcdefghABCDEFGH/aes2-clear/
-    python3 -m line_profiler -rmt "AES_ExactMatch.py.lprof"
+    kernprof -l Ascon_LDA.py -T 306 -W 256 -S 128 traces/abcdefghijklmnopqrstuvwxyz1234567890ABCD/asconP_2R_NCA-clear/
+    python3 -m line_profiler -rmt "Ascon_ExactMatch.py.lprof"
     
     -------------------
-    Time:  0:00:43.940684   -   All  5 bits everywhere      - stop at first true
-    Time:  0:00:28.198702   -   Only 2 bits everywhere      - stop at first true        (with some errors)
-    3 bits should be always enough  --> notes for what bit influences what
-    
-    Single threaded and not stop early
-    3 minutes pc        16 sec multi not stop early
-    5 minutes laptop
+    Time:  0:00:05.414043   - 5 bits
+    Time:  0:00:00.000000   - 2 bits
+    3 bits should be always enough
     """

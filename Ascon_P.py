@@ -101,55 +101,64 @@ def perm(state, key=b'\x00'*40, nr_rounds=1, naming="", SERIALIZE=False, STATS=F
     if SERIALIZE:
         serialize_circuit(C, "-clear")
 
-        ASCON_ISW = ISW_transform(C, 1, STATS)
-        out_isw = ASCON_ISW.evaluate(inp)  # linear masking
-        assert out == out_isw
+    ASCON_ISW = ISW_transform(C, 1, STATS)
+    out_isw = ASCON_ISW.evaluate(inp)  # linear masking
+    assert out == out_isw
+    if SERIALIZE:
         serialize_circuit(ASCON_ISW, "-isw2")
 
-        ASCON_ISW = ISW_transform(C, 2, STATS)
-        out_isw = ASCON_ISW.evaluate(inp)  # linear masking
-        assert out == out_isw
+    ASCON_ISW = ISW_transform(C, 2, STATS)
+    out_isw = ASCON_ISW.evaluate(inp)  # linear masking
+    assert out == out_isw
+    if SERIALIZE:
         serialize_circuit(ASCON_ISW, "-isw3")
 
-        ASCON_ISW = ISW_transform(C, 3, STATS)
-        out_isw = ASCON_ISW.evaluate(inp)  # linear masking
-        assert out == out_isw
+    ASCON_ISW = ISW_transform(C, 3, STATS)
+    out_isw = ASCON_ISW.evaluate(inp)  # linear masking
+    assert out == out_isw
+    if SERIALIZE:
         serialize_circuit(ASCON_ISW, "-isw4")
 
-
-        ASCON_MINQ = MINQ_transform(C, STATS)
-        out_minq = ASCON_MINQ.evaluate(inp)  # minimalistic non-linear masking
-        assert out == out_minq
+    ASCON_MINQ = MINQ_transform(C, STATS)
+    out_minq = ASCON_MINQ.evaluate(inp)  # minimalistic non-linear masking
+    assert out == out_minq
+    if SERIALIZE:
         serialize_circuit(ASCON_MINQ, "-minq")
 
-        ASCON_QL = QuadLin_transform(C, n_linear=2, STATS=STATS)
-        out_ql = ASCON_QL.evaluate(inp)  # combined masking - 2 linear shares 2 non-linear shares
-        assert out == out_ql
+    ASCON_QL = QuadLin_transform(C, n_linear=2, STATS=STATS)
+    out_ql = ASCON_QL.evaluate(inp)  # combined masking - 2 linear shares 2 non-linear shares
+    assert out == out_ql
+    if SERIALIZE:
         serialize_circuit(ASCON_QL, "-ql2")
 
-        ASCON_QL = QuadLin_transform(C, n_linear=3, STATS=STATS)
-        out_ql = ASCON_QL.evaluate(inp)  # combined masking - 3 linear shares 2 non-linear shares
-        assert out == out_ql
+    ASCON_QL = QuadLin_transform(C, n_linear=3, STATS=STATS)
+    out_ql = ASCON_QL.evaluate(inp)  # combined masking - 3 linear shares 2 non-linear shares
+    assert out == out_ql
+    if SERIALIZE:
         serialize_circuit(ASCON_QL, "-ql3")
 
-        ASCON_QL = QuadLin_transform(C, n_linear=4, STATS=STATS)
-        out_ql = ASCON_QL.evaluate(inp)  # combined masking - 4 linear shares 2 non-linear shares
-        assert out == out_ql
+    ASCON_QL = QuadLin_transform(C, n_linear=4, STATS=STATS)
+    out_ql = ASCON_QL.evaluate(inp)  # combined masking - 4 linear shares 2 non-linear shares
+    assert out == out_ql
+    if SERIALIZE:
         serialize_circuit(ASCON_QL, "-ql4")
 
-        ASCON_CL = CubeLin_transform(C, n_linear=2, STATS=STATS)
-        out_cl = ASCON_CL.evaluate(inp)  # combined masking - 2 linear shares 3 non-linear shares
-        assert out == out_cl
+    ASCON_CL = CubeLin_transform(C, n_linear=2, STATS=STATS)
+    out_cl = ASCON_CL.evaluate(inp)  # combined masking - 2 linear shares 3 non-linear shares
+    assert out == out_cl
+    if SERIALIZE:
         serialize_circuit(ASCON_CL, "-cl2")
 
-        ASCON_CL = CubeLin_transform(C, n_linear=3, STATS=STATS)
-        out_cl = ASCON_CL.evaluate(inp)  # combined masking - 3 linear shares 3 non-linear shares
-        assert out == out_cl
+    ASCON_CL = CubeLin_transform(C, n_linear=3, STATS=STATS)
+    out_cl = ASCON_CL.evaluate(inp)  # combined masking - 3 linear shares 3 non-linear shares
+    assert out == out_cl
+    if SERIALIZE:
         serialize_circuit(ASCON_CL, "-cl3")
 
-        ASCON_CL = CubeLin_transform(C, n_linear=4, STATS=STATS)
-        out_cl = ASCON_CL.evaluate(inp)  # combined masking - 4 linear shares 3 non-linear shares
-        assert out == out_cl
+    ASCON_CL = CubeLin_transform(C, n_linear=4, STATS=STATS)
+    out_cl = ASCON_CL.evaluate(inp)  # combined masking - 4 linear shares 3 non-linear shares
+    assert out == out_cl
+    if SERIALIZE:
         serialize_circuit(ASCON_CL, "-cl4")
 
     return out

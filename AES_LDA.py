@@ -8,10 +8,10 @@ from bitarray import frozenbitarray
 from collections import defaultdict
 from sage.all import matrix, vector, GF
 
-from line_profiler import profile
+import line_profiler
 
 
-@profile
+@line_profiler.profile
 def aes_lda(traces, traces_dir, window_size, window_step, KEY_BYTES=(0, 1, 2, 3, 4, 5, 6, 7, 8,
                                                                      9, 10, 11, 12, 13, 14, 15)):
     num_of_bytes = os.path.getsize(traces_dir / "0000.bin")
@@ -164,28 +164,13 @@ if __name__ == '__main__':
     )
     end = datetime.datetime.now()
     print("Time: ", end - start)
-"""
+    """
     Run in Command Line:
     Results for:    aes lda with 2 rounds clear
-    python3 AES_LDA.py traces/abcdefghABCDEFGH/aes2-clear/ -T 512 -W 500 -S 500
-    Time: 0:00:04.319435        VS      Time:  0:00:06.950022   [Better: Time:  0:00:05.640891]
-    We have around 20 % slower performance for clear
-    python3 AES_LDA.py traces/abcdefghABCDEFGH/aes2-isw2/ -T 512 -W 500 -S 250
-    Time: 0:00:22.076182        VS      Time:  0:00:35.938154
-    We have around 40 % slower performance for isw2
-    python3 AES_LDA.py traces/abcdefghABCDEFGH/aes2-isw2/ -T 300 -W 256 -S 128
-    Time: 0:00:16.654401        VS      Time:  0:00:22.093473   [Better: Time:  0:00:22.872240]
-    We have around 27% % slower performance for isw2
-
+    python3 AES_LDA.py traces/abcdefghABCDEFGH/aes2-clear/ -T 562 -W 512 -S 256
+    Time:  0:00:17.367508
+    
     Detailed timing analysis:
-    kernprof -l AES_LDA.py traces/abcdefghABCDEFGH/aes2-clear/ -T 512 -W 500 -S 500
+    kernprof -l AES_LDA.py traces/abcdefghABCDEFGH/aes2-clear/ -T 562 -W 512 -S 256
     python3 -m line_profiler -rmt "AES_LDA.py.lprof"
-    
-    LDA on clear: 
-    Theirs: 5.6 6.7 6.5 5.5 6.5
-    Mine:   5.4 5.3 5.4 5.4 6.2
-    LDA on isw2: 
-    Theirs: 16.1 15.7
-    Mine:   17.0 15.8
-    
     """

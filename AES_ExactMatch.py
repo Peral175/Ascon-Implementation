@@ -2,10 +2,10 @@ import argparse
 import os.path
 import pathlib
 import datetime
-from line_profiler import profile
+import line_profiler
 
 
-@profile
+@line_profiler.profile
 def attack(T, trace_dir):
     numOfBytes = os.path.getsize(trace_dir / "0000.bin")
     numOfNodes = numOfBytes * 8
@@ -108,15 +108,15 @@ if __name__ == '__main__':
     print("Time:", end - start)
     """
     Results for:    aes with 2 rounds clear
-    python3 AES_ExactMatch.py -T 256 traces/abcdefghABCDEFGH/aes2-clear/
+    python3 AES_ExactMatch.py -T 306 traces/abcdefghABCDEFGH/aes2-clear/
     Most probable key (char): abcdefghABCDEFGH
                    (hex): 61626364656667684142434445464748
-    Time: 0:00:00.241605
+    Time: 0:00:01.915444
 
 
-    This attack does not find solutions for masked aes (except higher order exact matching attack ?)
+    This attack does not find solutions for masked aes
     
     Detailed timing analysis:
-    kernprof -l AES_ExactMatch.py -T 256 traces/abcdefghABCDEFGH/aes2-clear/
+    kernprof -l AES_ExactMatch.py -T 306 traces/abcdefghABCDEFGH/aes2-clear/
     python3 -m line_profiler -rmt "AES_ExactMatch.py.lprof"
     """
