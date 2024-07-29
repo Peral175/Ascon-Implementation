@@ -7,13 +7,13 @@ nr_traces=4146  # 4096 + 50
 
 key='abcdefghABCDEFGH'
 
-## 1. run aes with key as cmd argument
+# 1. run aes with key as cmd argument
 python3 aes.py -K $key
 
 # 2. mv bin to circuits folder
 mv ./bin/aes2* ./circuits/
 
-## 3. generate traces
+# 3. generate traces
 mkdir -p ./traces/$key
 
 wboxkit.trace -T $nr_traces circuits/aes2-clear.bin traces/$key
@@ -34,13 +34,13 @@ wboxkit.trace -T $nr_traces circuits/aes2-cl4.bin traces/$key
 
 key='0123456789:;<=>?'
 
-## 1. run aes with key as cmd argument
+# 1. run aes with key as cmd argument
 python3 aes.py -K $key
 
 # 2. mv bin to circuits folder
 mv ./bin/aes2* ./circuits/
 
-## 3. traces
+# 3. traces
 mkdir -p ./traces/$key
 
 wboxkit.trace -T $nr_traces circuits/aes2-clear.bin traces/$key
