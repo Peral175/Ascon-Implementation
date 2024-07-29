@@ -1,5 +1,7 @@
 #!/bin/bash
 
+# set line seperator: \n  (LF)
+
 #nr_traces=2098  # 2048 + 50
 nr_traces=4146  # 4096 + 50
 
