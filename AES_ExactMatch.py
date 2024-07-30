@@ -6,7 +6,7 @@ import line_profiler
 
 
 @line_profiler.profile
-def attack(T, trace_dir):
+def attack(T, trace_dir, verbose=False):
     numOfBytes = os.path.getsize(trace_dir / "0000.bin")
     numOfNodes = numOfBytes * 8
     AESSBox = [
@@ -69,18 +69,25 @@ def attack(T, trace_dir):
 
     if missingBytes == 0:
         res = ""
-        print("Most probable key (char): ", end="")
-        for i in range(16):
-            print(chr(mostProbableKey[i]), end="")
-        print("\n                   (hex): ", end="")
-        for i in range(16):
-            print(hex(mostProbableKey[i])[2:], end="")
-            res += hex(mostProbableKey[i])[2:]
-        print()
+        if verbose:
+            print("Most probable key (char): ", end="")
+            for i in range(16):
+                print(chr(mostProbableKey[i]), end="")
+            print("\n                   (hex): ", end="")
+            for i in range(16):
+                print(hex(mostProbableKey[i])[2:], end="")
+                res += hex(mostProbableKey[i])[2:]
+            print()
+        else:
+            for i in range(16):
+                res += hex(mostProbableKey[i])[2:]
         return res
     else:
-        print("Impossible to find the key: %d bytes are missing" % missingBytes)
-        print("The implementation may be resistant to this attack, but you can still try with more traces")
+        if verbose:
+            print("Impossible to find the key: %d bytes are missing" % missingBytes)
+            print("The implementation may be resistant to this attack, but you can still try with more traces")
+        # else:
+        #     print("No key bits recovered!")
         return False, mostProbableKey, missingBytes
 
 
@@ -103,7 +110,7 @@ if __name__ == '__main__':
     )
     args = parser.parse_args()
     start = datetime.datetime.now()
-    attack(args.n_traces, args.trace_dir)
+    attack(args.n_traces, args.trace_dir, verbose=True)
     end = datetime.datetime.now()
     print("Time:", end - start)
     """

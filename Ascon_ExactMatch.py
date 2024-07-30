@@ -7,7 +7,7 @@ import line_profiler
 
 
 @line_profiler.profile
-def attack(T, trace_dir):
+def attack(T, trace_dir, verbose=False):
     numOfBytes = os.path.getsize(trace_dir / "0000.bin")
     numOfNodes = numOfBytes * 8
 
@@ -78,14 +78,51 @@ def attack(T, trace_dir):
         vectInList(nodeVector, v5, r5)
 
     # we want to find the intersection between all 5 lists
-    intersection = sorted(set(set(set(set(r1).intersection(r2)).intersection(r3)).intersection(r4)).intersection(r5))
-    for i in r3:
-        if i >> 5 ==63:
-            print(i%32)
-    if len(intersection) == 64:
+    # intersection = sorted(set(set(set(set(r1).intersection(r2)).intersection(r3)).intersection(r4)).intersection(r5))
+    # print("I:", intersection)
+    # print("J:", [i % 32 for i in intersection])
+
+    FOUND_ALL = True
+    s = [set() for _ in range(64)]
+    s1 = [set() for _ in range(64)]
+    s2 = [set() for _ in range(64)]
+    s3 = [set() for _ in range(64)]
+    s4 = [set() for _ in range(64)]
+    s5 = [set() for _ in range(64)]
+    for i in range(64):  # key bits
+        for j in r1:  # for each list
+            if j >> 5 == i:
+                s1[i].add(j % 32)
+        for j in r2:  # for each list
+            if j >> 5 == i:
+                s2[i].add(j % 32)
+        for j in r3:  # for each list
+            if j >> 5 == i:
+                s3[i].add(j % 32)
+        for j in r4:  # for each list
+            if j >> 5 == i:
+                s4[i].add(j % 32)
+        for j in r5:  # for each list
+            if j >> 5 == i:
+                s5[i].add(j % 32)
+
+        r = s1[i].intersection(s2[i]).intersection(s3[i]).intersection(s4[i]).intersection(s5[i])
+        try:
+            (element,) = r
+            s[i] = element
+        except ValueError as e:
+            if verbose:
+                print("Multiple candidates for key partition {}/63: ".format(i),
+                      s1[i].intersection(s2[i]).intersection(s3[i]).intersection(s4[i]).intersection(s5[i]))
+            s[i] = r
+            FOUND_ALL = False
+    # print("S:", s, len(s))
+    intersection = s
+
+    if FOUND_ALL:
         bits_matr = np.zeros((64, 5), dtype=np.uint8)
         for i in range(len(intersection)):
-            bits = bin((list(intersection)[i] % 32))[2:].zfill(5)
+            bits = bin((intersection[i] % 32))[2:].zfill(5)
             bits_matr[i, :] = bits[0], bits[1], bits[2], bits[3], bits[4]
         bits_matr = bits_matr.T.flatten()
         mostProbableKey = [-1] * 40
@@ -105,10 +142,12 @@ def attack(T, trace_dir):
                 recovered_key += chr(keyByte)
             except ValueError:
                 recovered_key += '_'
-        print("Recovered key: ", recovered_key)
+        if verbose:
+            print("Recovered key: \n", recovered_key, "\n", hex_string)
         return hex_string
     else:
-        print("Key was not fully recovered!", len(intersection))
+        if verbose:
+            print("Key was not fully recovered!\n", intersection)
         return False, intersection
 
 
@@ -131,7 +170,7 @@ if __name__ == "__main__":
     )
     args = parser.parse_args()
     start = datetime.datetime.now()
-    attack(args.n_traces, args.trace_dir)
+    attack(args.n_traces, args.trace_dir, verbose=True)
     end = datetime.datetime.now()
     print("Time:", end - start)
     """
