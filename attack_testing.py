@@ -132,19 +132,6 @@ class TestMethods(unittest.TestCase):
         # plt.title("second key")
         # plt.legend(["1", "2", "3"])
         # plt.show()
-        """
-        DONE:   key has no effect on performance
-        Done:   proof of concept (works as intended)
-                minimum traces
-                show circuit size impacting performance
-                success vs failure on performance
-                show quickly become infeasible for lda
-                show exponential growth
-                ...
-                make nice
-                reboot pc
-                improve ascon performance  maybe
-        """
 
     def test_ascon_exact(self):
         for key, masks in self.ascon_exact_array:
@@ -161,8 +148,6 @@ class TestMethods(unittest.TestCase):
                         elapsed = end - start
                         print("{} elapsed time: {} with {} traces".format(masks[i].name, elapsed, t))
 
-    # todo: minimal window etc
-    # todo: masking + obfuscation comparison
 
     def test_lda_aes(self):
         nr_traces = 32 + 50
@@ -735,6 +720,27 @@ if __name__ == '__main__':
 
 # /usr/bin/python3 /home/lalex/.pycharm_helpers/pycharm/_jb_unittest_runner.py --target attack_testing.TestMethods.test_lda_aes
 # Testing started at 16:43 ...10 rounds interesting
+# Launching unittests with arguments python -m unittest attack_testing.TestMethods.test_lda_aes in /mnt/h/Master/Thesis/Implementation
+#
+# aes2-isw2 elapsed time: 179.04027676582336 with 82 traces
+# aes2-isw2 elapsed time: 152.65068101882935 with 114 traces
+# aes2-isw3 elapsed time: 346.1883487701416 with 82 traces
+# aes2-isw3 elapsed time: 291.05431485176086 with 114 traces
+# aes2-isw4 elapsed time: 566.847414970398 with 82 traces
+# aes2-isw4 elapsed time: 478.8140869140625 with 114 traces
+# aes2-minq elapsed time: 1567.1374037265778 with 82 traces
+#
+# aes2-minq elapsed time: 1181.6137132644653 with 114 traces
+# attack_testing.TestMethods.test_lda_aes: 4763.348 seconds
+#
+# Ran 1 test in 4763.350s
+#
+# OK
+#
+# Process finished with exit code 0
+
+# /usr/bin/python3 /home/lalex/.pycharm_helpers/pycharm/_jb_unittest_runner.py --target attack_testing.TestMethods.test_lda_aes
+# Testing started at 16:43 ... 10 rounds
 # Launching unittests with arguments python -m unittest attack_testing.TestMethods.test_lda_aes in /mnt/h/Master/Thesis/Implementation
 #
 # aes2-isw2 elapsed time: 179.04027676582336 with 82 traces
