@@ -12,7 +12,7 @@ INTERSECTION_MODE = True
 
 
 @line_profiler.profile
-def ascon_lda(traces, traces_dir, window_size, window_step, KEY_BYTES=(0,)):
+def ascon_lda(traces, traces_dir, window_size, window_step, KEY_BYTES=(0,), verbose=False):
     num_of_bytes = os.path.getsize(traces_dir / "0000.bin")
     num_of_nodes = num_of_bytes * 8
     NUM_BITS = 5
@@ -152,13 +152,14 @@ def ascon_lda(traces, traces_dir, window_size, window_step, KEY_BYTES=(0,)):
                               .intersection(hits[KEY_BYTE][2])
                               .intersection(hits[KEY_BYTE][3])
                               .intersection(hits[KEY_BYTE][4]))
-            print("inters ", inters, len(inters))
-            # print(inters[1], inters[2], inters[3], inters[4], inters[5])
-            # print(inters[6], inters[7], inters[8], inters[9], inters[10], inters[11], inters[12], inters[13],
-            #       inters[14], inters[15])
-            # print(inters[16], inters[17], inters[18], inters[19], inters[20], inters[21], inters[22], inters[23],
-            #       inters[24], inters[25])
-            # print(inters[26], inters[27], inters[28], inters[29], inters[30])
+            if verbose:
+                print("inters ", inters, len(inters))
+                # print(inters[1], inters[2], inters[3], inters[4], inters[5])
+                # print(inters[6], inters[7], inters[8], inters[9], inters[10], inters[11], inters[12], inters[13],
+                #       inters[14], inters[15])
+                # print(inters[16], inters[17], inters[18], inters[19], inters[20], inters[21], inters[22], inters[23],
+                #       inters[24], inters[25])
+                # print(inters[26], inters[27], inters[28], inters[29], inters[30])
 
             # Ranking:
             # if len(inters[-1]) == 1:
@@ -201,7 +202,8 @@ def ascon_lda(traces, traces_dir, window_size, window_step, KEY_BYTES=(0,)):
                 # Solutions[KEY_BYTE] = {bla4}
                 Solutions[KEY_BYTE] = t5
                 # input((t4, t5, len(t4)))
-            print(Solutions)
+            if verbose:
+                print(Solutions)
     # for KEY_BYTE in KEY_BYTES:
     #     for j in range(1, NUM_BITS):
     #         hits[KEY_BYTE][0] = hits[KEY_BYTE][0].intersection(hits[KEY_BYTE][j])
@@ -223,21 +225,24 @@ def ascon_lda(traces, traces_dir, window_size, window_step, KEY_BYTES=(0,)):
     recovered_key_str = ''.join(recovered_key)
     recovered_key_bytes = ""
     if "_" in recovered_key_str:
-        print("Incomplete key recovery: ", recovered_key_str)
+        if verbose:
+            print("Incomplete key recovery: ", recovered_key_str)
         return recovered_key_str
     else:
         for i in range(40):
             byte = recovered_key_str[i * 8:(i + 1) * 8]
             recovered_key_bytes += str(hex(int(byte, 2))[2:].zfill(2))
-        print("Key recovery: ", recovered_key_bytes)
+        if verbose:
+            print("Key recovery: ", recovered_key_bytes)
         key_plaintext = ""
         for i in range(40):
             key_plaintext += chr(int((recovered_key_bytes[i * 2:i * 2 + 2]), 16))
-        print(key_plaintext)
+        if verbose:
+            print(key_plaintext)
         return recovered_key_bytes
 
 
-def mini_ascon_lda(traces, traces_dir, window_size, window_step, KEY_BYTES=(0,)):
+def mini_ascon_lda(traces, traces_dir, window_size, window_step, KEY_BYTES=(0,), verbose=False):
     num_of_bytes = os.path.getsize(traces_dir / "0000.bin")
     num_of_nodes = num_of_bytes * 8
     NUM_BITS = 2
@@ -338,8 +343,8 @@ def mini_ascon_lda(traces, traces_dir, window_size, window_step, KEY_BYTES=(0,))
         for j in range(1, NUM_BITS):
             hits[KEY_BYTE][0] = hits[KEY_BYTE][0].intersection(hits[KEY_BYTE][j])
         Solutions[KEY_BYTE] = hits[KEY_BYTE][0]
-
-    print(Solutions)
+    if verbose:
+        print(Solutions)
 
     recovered_key_bits = Solutions
     recovered_key = ["_"] * 320
@@ -356,17 +361,20 @@ def mini_ascon_lda(traces, traces_dir, window_size, window_step, KEY_BYTES=(0,))
     recovered_key_str = ''.join(recovered_key)
     recovered_key_bytes = ""
     if "_" in recovered_key_str:
-        print("Incomplete key recovery: ", recovered_key_str)
+        if verbose:
+            print("Incomplete key recovery: ", recovered_key_str)
         return recovered_key_str
     else:
         for i in range(40):
             byte = recovered_key_str[i * 8:(i + 1) * 8]
             recovered_key_bytes += str(hex(int(byte, 2))[2:].zfill(2))
-        print("Key recovery: ", recovered_key_bytes)
+        if verbose:
+            print("Key recovery: ", recovered_key_bytes)
         key_plaintext = ""
         for i in range(40):
             key_plaintext += chr(int((recovered_key_bytes[i * 2:i * 2 + 2]), 16))
-        print(key_plaintext)
+        if verbose:
+            print(key_plaintext)
         return recovered_key_bytes
 
 
