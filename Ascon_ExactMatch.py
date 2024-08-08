@@ -77,11 +77,6 @@ def attack(T, trace_dir, verbose=False):
         vectInList(nodeVector, v4, r4)
         vectInList(nodeVector, v5, r5)
 
-    # we want to find the intersection between all 5 lists
-    # intersection = sorted(set(set(set(set(r1).intersection(r2)).intersection(r3)).intersection(r4)).intersection(r5))
-    # print("I:", intersection)
-    # print("J:", [i % 32 for i in intersection])
-
     FOUND_ALL = True
     s = [set() for _ in range(64)]
     s1 = [set() for _ in range(64)]
@@ -93,19 +88,18 @@ def attack(T, trace_dir, verbose=False):
         for j in r1:  # for each list
             if j >> 5 == i:
                 s1[i].add(j % 32)
-        for j in r2:  # for each list
+        for j in r2:
             if j >> 5 == i:
                 s2[i].add(j % 32)
-        for j in r3:  # for each list
+        for j in r3:
             if j >> 5 == i:
                 s3[i].add(j % 32)
-        for j in r4:  # for each list
+        for j in r4:
             if j >> 5 == i:
                 s4[i].add(j % 32)
-        for j in r5:  # for each list
+        for j in r5:
             if j >> 5 == i:
                 s5[i].add(j % 32)
-
         r = s1[i].intersection(s2[i]).intersection(s3[i]).intersection(s4[i]).intersection(s5[i])
         try:
             (element,) = r
@@ -116,7 +110,6 @@ def attack(T, trace_dir, verbose=False):
                       s1[i].intersection(s2[i]).intersection(s3[i]).intersection(s4[i]).intersection(s5[i]))
             s[i] = r
             FOUND_ALL = False
-    # print("S:", s, len(s))
     intersection = s
 
     if FOUND_ALL:

@@ -159,9 +159,10 @@ if __name__ == '__main__':
         args.trace_dir,
         args.window_size,
         args.step,
-        KEY_BYTES=(0, 1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12, 13, 14, 15)
+        KEY_BYTES=(0, 1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12, 13, 14, 15),
         # KEY_BYTES=(0, 1, 2)
         # KEY_BYTES=(0,)
+        verbose=True
     )
     end = datetime.datetime.now()
     print("Time: ", end - start)

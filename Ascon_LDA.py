@@ -8,11 +8,9 @@ from bitarray import frozenbitarray
 from sage.all import matrix, vector, GF
 import line_profiler
 
-INTERSECTION_MODE = True
-
 
 @line_profiler.profile
-def ascon_lda(traces, traces_dir, window_size, window_step, KEY_BYTES=(0,), verbose=False):
+def ascon_lda(traces, traces_dir, window_size, window_step, KEY_BYTES=(0,), verbose=False, RANKING=False):
     num_of_bytes = os.path.getsize(traces_dir / "0000.bin")
     num_of_nodes = num_of_bytes * 8
     NUM_BITS = 5
@@ -127,7 +125,7 @@ def ascon_lda(traces, traces_dir, window_size, window_step, KEY_BYTES=(0,), verb
                     # _ = window.solve_left(vector(GF(2), target))  # verification takes a long time (around 40%)
                     hits[KEY_BYTE][curr].add(kg)
 
-    if INTERSECTION_MODE:
+    if RANKING:
         for KEY_BYTE in KEY_BYTES:
             inters = [set()]  # 0 empty
             for x in range(5):  # 1 2 3 4 5
@@ -153,68 +151,35 @@ def ascon_lda(traces, traces_dir, window_size, window_step, KEY_BYTES=(0,), verb
                               .intersection(hits[KEY_BYTE][3])
                               .intersection(hits[KEY_BYTE][4]))
             if verbose:
-                print("inters ", inters, len(inters))
-                # print(inters[1], inters[2], inters[3], inters[4], inters[5])
-                # print(inters[6], inters[7], inters[8], inters[9], inters[10], inters[11], inters[12], inters[13],
-                #       inters[14], inters[15])
-                # print(inters[16], inters[17], inters[18], inters[19], inters[20], inters[21], inters[22], inters[23],
-                #       inters[24], inters[25])
-                # print(inters[26], inters[27], inters[28], inters[29], inters[30])
+                print("32 intersections: ", inters)
 
-            # Ranking:
-            # if len(inters[-1]) == 1:
-            #     Solutions[KEY_BYTE] = inters[-1]
-            #     continue
-            # elif min(map(len, inters[-6:-1])) == 1:
-            #     input((KEY_BYTE, min(map(len, inters[-6:-1])), min(inters[-6:-1], key=len)))
-            #     Solutions[KEY_BYTE] = min(inters[-6:-1], key=len)
-            #     continue
-            # elif min(map(len, inters[-16:-6])) == 1:
-            #     input(("A", KEY_BYTE, min(map(len, inters[-16:-6])), min(inters[-16:-6], key=len), inters[-16:-6]))
-            #     Solutions[KEY_BYTE] = min(inters[-16:-6], key=len)
-            #     continue
-            # elif min(map(len, inters[-26:-16])) == 1:
-            #     input(("B", KEY_BYTE, min(map(len, inters[-26:-16])), min(inters[-26:-16], key=len), inters[-26:-16]))
-            #     Solutions[KEY_BYTE] = min(inters[-26:-16], key=len)
-            #     continue
-            # elif min(map(len, inters[-31:-26])) == 1:
-            #     input(("C", KEY_BYTE, min(map(len, inters[-31:-26])), min(inters[-31:-26], key=len), inters[-31:-26]))
-            #     Solutions[KEY_BYTE] = min(inters[-31:-26], key=len)
-            #     continue
-            # else:
-            #     Solutions[KEY_BYTE] = min(inters[-31:-1], key=len)  # fix empty set here
-
-            t1 = sorted(inters, key=len)                    # sort list by set length
-            t2 = list(filter(lambda x: x != set(), t1))     # get rid of all empty sets
+            t1 = sorted(inters, key=len)  # sort list by set length
+            t2 = list(filter(lambda x: x != set(), t1))  # get rid of all empty sets
             try:
-                t3 = list(filter(lambda x: len(x) == 1, t2))    # find all sets of length 1
-                t4 = [list(_)[0] for _ in t3]                   # transform to list
-                t5 = max(set(t4), key=t4.count)                 # retrieve most common element
-                # Solutions[KEY_BYTE] = {bla4}
-                Solutions[KEY_BYTE] = t5
+                t3 = list(filter(lambda x: len(x) == 1, t2))  # find all sets of length 1
+                t4 = [list(_)[0] for _ in t3]  # transform to list
+                t5 = max(set(t4), key=t4.count)  # retrieve most common element
+                Solutions[KEY_BYTE] = [t5]
             except ValueError as e:
-                input(("Error", e))
-                t3 = list(filter(lambda x: 8 >= len(x) >= 2, t2))    # find all sets of length 1
-                # input((t3,len(t3)))
-                t4 = [list(_) for _ in t3]                   # transform to list
-                # print(KEY_BYTE, t4)
-                t5 = max(t4, key=t4.count)                 # retrieve most common element
-                # Solutions[KEY_BYTE] = {bla4}
-                Solutions[KEY_BYTE] = t5
-                # input((t4, t5, len(t4)))
-            if verbose:
-                print(Solutions)
-    # for KEY_BYTE in KEY_BYTES:
-    #     for j in range(1, NUM_BITS):
-    #         hits[KEY_BYTE][0] = hits[KEY_BYTE][0].intersection(hits[KEY_BYTE][j])
-    #     Solutions[KEY_BYTE] = hits[KEY_BYTE][0]
-
+                try:
+                    t3 = list(filter(lambda x: 3 >= len(x) >= 2, t2))  # find all sets of length 2 or 3
+                    t4 = [list(_) for _ in t3]  # transform to list
+                    t5 = max(t4, key=t4.count)  # retrieve most common element
+                    Solutions[KEY_BYTE] = [t5]
+                except ValueError as e:
+                    Solutions[KEY_BYTE] = [0]     # too many candidates
+            # if verbose:
+            #     print("Candidates: ", Solutions)
+    else:
+        for KEY_BYTE in KEY_BYTES:
+            for j in range(1, NUM_BITS):
+                hits[KEY_BYTE][0] = hits[KEY_BYTE][0].intersection(hits[KEY_BYTE][j])
+            Solutions[KEY_BYTE] = list(hits[KEY_BYTE][0])
     recovered_key_bits = Solutions
     recovered_key = ["_"] * 320
     for i in recovered_key_bits:
         try:
-            bits = bin(recovered_key_bits[i])[2:].zfill(5)
-            # bits = bin(list(recovered_key_bits[i])[0])[2:].zfill(5)
+            bits = bin(recovered_key_bits[i][0])[2:].zfill(5)
             recovered_key[i + 0] = bits[0]
             recovered_key[i + 64] = bits[1]
             recovered_key[i + 128] = bits[2]
@@ -222,6 +187,7 @@ def ascon_lda(traces, traces_dir, window_size, window_step, KEY_BYTES=(0,), verb
             recovered_key[i + 256] = bits[4]
         except IndexError:
             continue
+
     recovered_key_str = ''.join(recovered_key)
     recovered_key_bytes = ""
     if "_" in recovered_key_str:
@@ -242,7 +208,7 @@ def ascon_lda(traces, traces_dir, window_size, window_step, KEY_BYTES=(0,), verb
         return recovered_key_bytes
 
 
-def mini_ascon_lda(traces, traces_dir, window_size, window_step, KEY_BYTES=(0,), verbose=False):
+def mini_ascon_lda(traces, traces_dir, window_size, window_step, KEY_BYTES=(0,), verbose=False, RANKING=False):
     num_of_bytes = os.path.getsize(traces_dir / "0000.bin")
     num_of_nodes = num_of_bytes * 8
     NUM_BITS = 2
@@ -342,15 +308,12 @@ def mini_ascon_lda(traces, traces_dir, window_size, window_step, KEY_BYTES=(0,),
     for KEY_BYTE in KEY_BYTES:
         for j in range(1, NUM_BITS):
             hits[KEY_BYTE][0] = hits[KEY_BYTE][0].intersection(hits[KEY_BYTE][j])
-        Solutions[KEY_BYTE] = hits[KEY_BYTE][0]
-    if verbose:
-        print(Solutions)
-
+        Solutions[KEY_BYTE] = list(hits[KEY_BYTE][0])[0]
     recovered_key_bits = Solutions
     recovered_key = ["_"] * 320
     for i in recovered_key_bits:
         try:
-            bits = bin(list(recovered_key_bits[i])[0])[2:].zfill(5)
+            bits = bin(recovered_key_bits[i])[2:].zfill(5)
             recovered_key[i + 0] = bits[0]
             recovered_key[i + 64] = bits[1]
             recovered_key[i + 128] = bits[2]
@@ -358,6 +321,13 @@ def mini_ascon_lda(traces, traces_dir, window_size, window_step, KEY_BYTES=(0,),
             recovered_key[i + 256] = bits[4]
         except IndexError:
             continue
+        except TypeError:
+            bits = bin(recovered_key_bits[i][0])[2:].zfill(5)
+            recovered_key[i + 0] = bits[0]
+            recovered_key[i + 64] = bits[1]
+            recovered_key[i + 128] = bits[2]
+            recovered_key[i + 192] = bits[3]
+            recovered_key[i + 256] = bits[4]
     recovered_key_str = ''.join(recovered_key)
     recovered_key_bytes = ""
     if "_" in recovered_key_str:
@@ -413,7 +383,6 @@ if __name__ == "__main__":
 
     start = datetime.datetime.now()
     full_tuple = tuple(i for i in range(64))
-    # mini_ascon_lda(
     ascon_lda(
         args.n_traces,
         args.trace_dir,
@@ -422,7 +391,8 @@ if __name__ == "__main__":
         KEY_BYTES=full_tuple,
         # KEY_BYTES=(0, 1, 2, 3, 4, 5, 6, 7)
         # KEY_BYTES=(0,),
-        verbose=True
+        verbose=True,
+        RANKING=False
     )
     end = datetime.datetime.now()
     print("Time: ", end - start)
