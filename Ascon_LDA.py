@@ -187,6 +187,9 @@ def ascon_lda(traces, traces_dir, window_size, window_step, KEY_BYTES=(0,), verb
             recovered_key[i + 256] = bits[4]
         except IndexError:
             continue
+        except TypeError:
+            print(recovered_key_bits[i][0])
+            continue
 
     recovered_key_str = ''.join(recovered_key)
     recovered_key_bytes = ""

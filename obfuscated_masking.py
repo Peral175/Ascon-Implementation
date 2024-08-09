@@ -102,43 +102,43 @@ class ObfuscatedTransformer(CircuitTransformer):
             return (x | (1 ^ o)) ^ (x & o) ^ x ^ o
 
 
-# debugging below
-
-# adjusted prng to smaller size so graph is (somewhat) readable
-nfsr = NFSR(taps=[[], [11], [21], [3, 23]],
-            clocks_initial=17,
-            clocks_per_step=1, )
-prng = Pool(prng=nfsr, n=256)
-
-# below simple circuit for debugging and demonstration purposes
-C = BooleanCircuit(name="debuggingCircuit")
-a = Array(C.add_inputs(25, "a%d"))
-s = a[0]
-t = a[1]
-r = s ^ t  # XOR
-u = s & t  # AND
-v = ~s  # NOT
-C.add_output([s, t, r, u, v])
-C.in_place_remove_unused_nodes()
-C.print_stats()
-
-C_obfus_1 = ISW(order=1, prng=prng).transform(C)
-C_obfus_1.in_place_remove_unused_nodes()
-C_obfus_1.print_stats()
-# C_obfus_1.digraph().view()
-
-# Here we can chain obfuscation of operators on top of masking schemes
-C_obfus_1 = ObfuscatedTransformer(prng=prng, n=5, c=(98, 98, 98)).transform(C_obfus_1)
-C_obfus_1.in_place_remove_unused_nodes()
-C_obfus_1.print_stats()
-# C_obfus_1.digraph().view()
-
-inp = [0] * 25
-for _ in range(1000):
-    for i in range(25):
-        inp[i] = random.getrandbits(1)
-    out1 = C.evaluate(inp)
-    out2 = C_obfus_1.evaluate(inp)
-    # out3 = C_obfus_2.evaluate(inp)
-    assert out1 == out2
-    # assert out1 == out2 and out2 == out3
+# # debugging below
+#
+# # adjusted prng to smaller size so graph is (somewhat) readable
+# nfsr = NFSR(taps=[[], [11], [21], [3, 23]],
+#             clocks_initial=17,
+#             clocks_per_step=1, )
+# prng = Pool(prng=nfsr, n=256)
+#
+# # below simple circuit for debugging and demonstration purposes
+# C = BooleanCircuit(name="debuggingCircuit")
+# a = Array(C.add_inputs(25, "a%d"))
+# s = a[0]
+# t = a[1]
+# r = s ^ t  # XOR
+# u = s & t  # AND
+# v = ~s  # NOT
+# C.add_output([s, t, r, u, v])
+# C.in_place_remove_unused_nodes()
+# C.print_stats()
+#
+# C_obfus_1 = ISW(order=1, prng=prng).transform(C)
+# C_obfus_1.in_place_remove_unused_nodes()
+# C_obfus_1.print_stats()
+# # C_obfus_1.digraph().view()
+#
+# # Here we can chain obfuscation of operators on top of masking schemes
+# C_obfus_1 = ObfuscatedTransformer(prng=prng, n=5, c=(98, 98, 98)).transform(C_obfus_1)
+# C_obfus_1.in_place_remove_unused_nodes()
+# C_obfus_1.print_stats()
+# # C_obfus_1.digraph().view()
+#
+# inp = [0] * 25
+# for _ in range(1000):
+#     for i in range(25):
+#         inp[i] = random.getrandbits(1)
+#     out1 = C.evaluate(inp)
+#     out2 = C_obfus_1.evaluate(inp)
+#     # out3 = C_obfus_2.evaluate(inp)
+#     assert out1 == out2
+#     # assert out1 == out2 and out2 == out3

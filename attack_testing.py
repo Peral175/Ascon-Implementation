@@ -45,6 +45,13 @@ ascon_cl2_1 = pathlib.PosixPath("traces/abcdefghijklmnopqrstuvwxyz1234567890ABCD
 ascon_cl3_1 = pathlib.PosixPath("traces/abcdefghijklmnopqrstuvwxyz1234567890ABCD/asconP_2R_NCA-cl3/")
 ascon_cl4_1 = pathlib.PosixPath("traces/abcdefghijklmnopqrstuvwxyz1234567890ABCD/asconP_2R_NCA-cl4/")
 
+ascon_clear_obfus_1 = pathlib.PosixPath("traces/abcdefghijklmnopqrstuvwxyz1234567890ABCD/asconP_2R_NCA-clear_obfus/")
+ascon_isw2_obfus_1 = pathlib.PosixPath("traces/abcdefghijklmnopqrstuvwxyz1234567890ABCD/asconP_2R_NCA-isw2_obfus/")
+ascon_isw3_obfus_1 = pathlib.PosixPath("traces/abcdefghijklmnopqrstuvwxyz1234567890ABCD/asconP_2R_NCA-isw3_obfus/")
+ascon_isw4_obfus_1 = pathlib.PosixPath("traces/abcdefghijklmnopqrstuvwxyz1234567890ABCD/asconP_2R_NCA-isw4_obfus/")
+ascon_minq_obfus_1 = pathlib.PosixPath("traces/abcdefghijklmnopqrstuvwxyz1234567890ABCD/asconP_2R_NCA-minq_obfus/")
+ascon_ql2_obfus_1 = pathlib.PosixPath("traces/abcdefghijklmnopqrstuvwxyz1234567890ABCD/asconP_2R_NCA-ql2_obfus/")
+
 ascon_clear2 = pathlib.PosixPath("traces/0123456789:;<=>?@ABCDEFGHIJKLMNOPQRSTUVW/asconP_2R_NCA-clear/")
 ascon_isw2_2 = pathlib.PosixPath("traces/0123456789:;<=>?@ABCDEFGHIJKLMNOPQRSTUVW/asconP_2R_NCA-isw2/")
 ascon_isw3_2 = pathlib.PosixPath("traces/0123456789:;<=>?@ABCDEFGHIJKLMNOPQRSTUVW/asconP_2R_NCA-isw3/")
@@ -56,19 +63,6 @@ ascon_ql4_2 = pathlib.PosixPath("traces/0123456789:;<=>?@ABCDEFGHIJKLMNOPQRSTUVW
 ascon_cl2_2 = pathlib.PosixPath("traces/0123456789:;<=>?@ABCDEFGHIJKLMNOPQRSTUVW/asconP_2R_NCA-cl2/")
 ascon_cl3_2 = pathlib.PosixPath("traces/0123456789:;<=>?@ABCDEFGHIJKLMNOPQRSTUVW/asconP_2R_NCA-cl3/")
 ascon_cl4_2 = pathlib.PosixPath("traces/0123456789:;<=>?@ABCDEFGHIJKLMNOPQRSTUVW/asconP_2R_NCA-cl4/")
-
-tr_aes_1 = [aes_clear1, aes_isw2_1, aes_isw3_1, aes_isw4_1,
-            aes_minq_1, aes_ql2_1, aes_ql3_1, aes_ql4_1,
-            aes_cl2_1, aes_cl3_1, aes_cl4_1]
-tr_aes_2 = [aes_clear2, aes_isw2_2, aes_isw3_2, aes_isw4_2,
-            aes_minq_2, aes_ql2_2, aes_ql3_2, aes_ql4_2,
-            aes_cl2_2, aes_cl3_2, aes_cl4_2]
-tr_ascon_1 = [ascon_clear1, ascon_isw2_1, ascon_isw3_1, ascon_isw4_1,
-              ascon_minq_1, ascon_ql2_1, ascon_ql3_1, ascon_ql4_1,
-              ascon_cl2_1, ascon_cl3_1, ascon_cl4_1]
-tr_ascon_2 = [ascon_clear2, ascon_isw2_2, ascon_isw3_2, ascon_isw4_2,
-              ascon_minq_2, ascon_ql2_2, ascon_ql3_2, ascon_ql4_2,
-              ascon_cl2_2, ascon_cl3_2, ascon_cl4_2]
 
 # targets of our attacks
 aes_key_1 = aes_clear1.parents[0].name.encode('utf-8').hex()
@@ -86,21 +80,21 @@ class TestMethods(unittest.TestCase):
         t = time.time() - self.startTime
         print('%s: %.3f seconds' % (self.id(), t))
 
-    aes_lda_array = [(aes_key_1, tr_aes_1),
-                     (aes_key_2, tr_aes_2), ]
-    aes_lda_array_2 = [(aes_key_1, tr_aes_1[1:5])]
-    ascon_lda_array = [(ascon_key_1, tr_ascon_1),
-                       (ascon_key_2, tr_ascon_2)]
-
-    def test_aes_exact(self):
-        # 15 - 24 failed due to too few traces
+    def test_exact(self):
+        # Test duration around 2.5 minutes  (was 5)
+        # AES       15 - 24 failed due to too few traces
+        # Ascon needs only 16 traces (5-bit version)  -> but much slower
         aes_exact_array = [(aes_key_1, [aes_clear1, aes_isw2_1, aes_minq_1]),
-                           (aes_key_2, [aes_clear2, aes_isw2_2, aes_minq_2])]
-        all_times = []
+                           # (aes_key_2, [aes_clear2, aes_isw2_2, aes_minq_2])
+                           ]
+        ascon_exact_array = [(ascon_key_1, [ascon_clear1, ascon_isw2_1, ascon_minq_1]),
+                             # (ascon_key_2, [ascon_clear2, ascon_isw2_2, ascon_minq_2])
+                             ]
+        times = []
         for key, masks in aes_exact_array:
             for i in range(0, len(masks)):
                 timings = [[], []]
-                for t in range(15, 65, 1):
+                for t in range(15, 32, 1):
                     with self.subTest(name=(masks[i], t), T=t):
                         start = time.time()
                         r = AES_ExactMatch.attack(t, masks[i])  # non-masked
@@ -113,33 +107,11 @@ class TestMethods(unittest.TestCase):
                         timings[0].append(t)
                         timings[1].append(elapsed)
                         print("{} elapsed time: {} with {} traces".format(masks[i].name, elapsed, t))
-                all_times.append(timings)
-        print(all_times)
-        k1 = all_times[:3]
-        plt.subplot(1, 2, 1)
-        for x, y in k1:
-            print(x, y)
-            plt.plot(x, y, linestyle='-', marker='*')
-        plt.title("first key")
-        plt.legend(["1", "2", "3"])
-        k2 = all_times[3:]
-        plt.subplot(1, 2, 2)
-        for x, y in k2:
-            plt.plot(x, y, linestyle='-', marker='*')
-        plt.title("second key")
-        plt.legend(["1", "2", "3"])
-        plt.show()
-
-    def test_ascon_exact(self):
-        # ascon needs only 16 traces (5-bit version)
-        # much, much slower
-        ascon_exact_array = [(ascon_key_1, [ascon_clear1, ascon_isw2_1, ascon_minq_1]),
-                             (ascon_key_2, [ascon_clear2, ascon_isw2_2, ascon_minq_2])]
-        all_times = []
+                times.append(timings)
         for key, masks in ascon_exact_array:
             for i in range(0, len(masks)):
                 timings = [[], []]
-                for t in range(15, 65, 1):
+                for t in range(15, 32, 1):
                     with self.subTest(name=(masks[i], t), T=t):
                         start = time.time()
                         r = Ascon_ExactMatch.attack(t, masks[i])  # non-masked
@@ -152,65 +124,113 @@ class TestMethods(unittest.TestCase):
                         timings[0].append(t)
                         timings[1].append(elapsed)
                         print("{} elapsed time: {} with {} traces".format(masks[i].name, elapsed, t))
-                all_times.append(timings)
-        print(all_times)
-        k1 = all_times[:3]
+                times.append(timings)
+        k1 = times[:3]
         plt.subplot(1, 2, 1)
         for x, y in k1:
             print(x, y)
             plt.plot(x, y, linestyle='-', marker='*')
-        plt.title("first key")
-        plt.legend(["1", "2", "3"])
-        k2 = all_times[3:]
+        plt.title("AES")
+        plt.grid(axis='y', alpha=0.25, color='grey')
+        plt.xlabel("Nr. traces")
+        plt.ylabel("Time (in seconds)")
+        plt.legend(["Non-Masked", "ISW-2", "MINQ"], loc='upper left')
+        k2 = times[3:]
         plt.subplot(1, 2, 2)
         for x, y in k2:
             plt.plot(x, y, linestyle='-', marker='*')
-        plt.title("second key")
-        plt.legend(["1", "2", "3"])
+        plt.title("Em-Ascon-P")
+        plt.grid(axis='y', alpha=0.5, color='grey')
+        plt.xlabel("Nr. traces")
+        plt.ylabel("Time (in seconds)")
+        plt.legend(["Non-Masked", "ISW-2", "MINQ"], loc='upper left')
         plt.show()
 
-    def test_lda_aes(self):
-        nr_traces = 32 + 50
-        increment = 32
-        nr_of_runs = 10
-
-        KEY_BYTES = tuple(i for i in range(16))
-        # for key, masks in self.aes_lda_array:
-        for key, masks in self.aes_lda_array_2:
-            # key = key[:2]
+    def test_Ascon_POC(self):
+        # Proof of concept
+        # test runs for approx. 40 mins for 11; 8 mins for 6
+        # impact of ranking ?
+        ascon_array = [(ascon_key_1, [ascon_clear1, ascon_isw2_1,
+                                      ascon_isw3_1, ascon_isw4_1,
+                                      ascon_minq_1, ascon_ql2_1,
+                                      # ascon_ql3_1, ascon_ql4_1,
+                                      # ascon_cl2_1, ascon_cl3_1,
+                                      # ascon_cl4_1
+                                      ])]
+        window_size = 256
+        window_step = 128
+        nr_traces = window_size + 50  # 2^50
+        times = {}
+        KEY_BYTES = tuple(i for i in range(64))
+        for key, masks in ascon_array:
             for i in range(0, len(masks)):
-                for t in range(nr_traces, 64 + 50 + 1, increment):
-                    with self.subTest(name=(masks[i], t), T=t):
-                        start = time.time()
-                        for _ in range(nr_of_runs):
-                            r = AES_LDA.aes_lda(traces=t, traces_dir=masks[i], window_size=t - 50,
-                                                window_step=(t - 50) // 2, KEY_BYTES=KEY_BYTES)  # non-masked
-                            if i < 3:
-                                self.assertEqual(key, r)  # should succeed
-                            else:
-                                self.assertNotEqual(key, r)  # should fail
-                        end = time.time()
-                        elapsed = end - start
-                        print("{} elapsed time: {} with {} traces".format(masks[i].name, elapsed, t))
+                with self.subTest(name=(masks[i], nr_traces), T=nr_traces):
+                    start = time.time()
+                    r = Ascon_LDA.ascon_lda(traces=nr_traces, traces_dir=masks[i], window_size=window_size,
+                                            window_step=window_step, KEY_BYTES=KEY_BYTES, verbose=False,
+                                            RANKING=True)  # non-masked
+                    if i < 4:
+                        self.assertEqual(key, r)  # should succeed
+                    else:
+                        self.assertNotEqual(key, r)  # should fail
+                    end = time.time()
+                    elapsed = end - start
+                    times[masks[i].name] = elapsed
+                    print("{} elapsed time: {} with {} traces".format(masks[i].name, elapsed, nr_traces))
+        X = ["Non-Masked", "ISW-2", "ISW-3", "ISW-4", "MINQ", "QL-2"]
+        Y = list(times.values())
+        for x, y in zip(X, Y):
+            plt.bar(x, y)
+        plt.title("Ascon LDA (306 traces, 256 window size, 128 window step)")
+        plt.grid(axis='y', alpha=0.25, color='grey')
+        plt.xlabel("Implementations")
+        plt.xticks([])
+        plt.ylabel("Time (in seconds)")
+        plt.legend(["Non-Masked", "ISW-2", "ISW-3", "ISW-4", "MINQ", "QL-2"], loc='upper left')
+        plt.show()
 
-        # timings = [[None] * nr_increments for _ in range(len(tr_aes_1))]
-        # for i in range(len(tr_aes_1)):  # all the implementations
-        #     target = tr_aes_1[i].parents[0].name  # secret key we want to find
-        #     target = target.encode('utf-8').hex()  # bytes.fromhex("61626364656667684142434445464748")
-        #     for inc in range(nr_increments):
-        #         times = []
-        #         w_size = (inc + 1) * 64
-        #         for j in range(nr_of_runs):  # average of 10 runs
-        #             t_start = time.time()
-        #             s_size = w_size // 2
-        #             tr = w_size + 50  # 2^50 chance of failure ?
-        #             r = AES_LDA.aes_lda(tr, tr_aes_1[i], w_size, s_size)
-        #             self.assertEqual(target, r)
-        #             t_stop = time.time()
-        #             elapsed_time = str(t_stop - t_start)[:6]
-        #             times.append(float(elapsed_time))
-        #         timings[i][inc] = np.average(times)
-        #         print(timings)
+    def test_Ascon_Obfuscation(self):
+        # Impact of obfuscation
+        # test runs for approx. 3 minutes [45 mins]
+        ascon_array = [(ascon_key_1, [ascon_clear1, ascon_clear_obfus_1,
+                                      ascon_isw2_1, ascon_isw2_obfus_1,
+                                      ascon_isw3_1, ascon_isw3_obfus_1,
+                                      ascon_isw4_1, ascon_isw4_obfus_1,
+                                      ascon_minq_1, ascon_minq_obfus_1,
+                                      ascon_ql2_1, ascon_ql2_obfus_1,
+                                      ])]
+        window_size = 256
+        window_step = 128
+        nr_traces = window_size + 50  # 2^50
+        times = {}
+        KEY_BYTES = tuple(i for i in range(64))
+        for key, masks in ascon_array:
+            for i in range(0, len(masks)):
+                with self.subTest(name=(masks[i], nr_traces), T=nr_traces):
+                    start = time.time()
+                    r = Ascon_LDA.ascon_lda(traces=nr_traces, traces_dir=masks[i], window_size=window_size,
+                                            window_step=window_step, KEY_BYTES=KEY_BYTES, verbose=False,
+                                            RANKING=True)  # non-masked
+                    if i < 8:
+                        self.assertEqual(key, r)  # should succeed
+                    else:
+                        self.assertNotEqual(key, r)  # should fail
+                    end = time.time()
+                    elapsed = end - start
+                    times[masks[i].name] = elapsed
+                    print("{} elapsed time: {} with {} traces".format(masks[i].name, elapsed, nr_traces))
+        print("Times:", times)
+        X = ["Non-Masked", "ISW-2", "ISW-3", "ISW-4", "MINQ", "QL-2"]
+        # Y = list(times.values())
+        # for x, y in zip([0, 1, 2, 3, 4, 5], Y):
+        #     plt.bar(x, y)
+        # plt.title("Ascon LDA (306 traces, 256 window size, 128 window step)")
+        # plt.grid(axis='y', alpha=0.25, color='grey')
+        # plt.xlabel("Implementations")
+        # plt.xticks([0, 1, 2, 3, 4, 5], X)
+        # plt.ylabel("Time (in seconds)")
+        # plt.legend(["Non-Masked", "ISW-2", "ISW-3", "ISW-4", "MINQ", "QL-2"], loc='upper left')
+        # plt.show()
 
 
 if __name__ == '__main__':
