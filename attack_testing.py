@@ -86,12 +86,6 @@ class TestMethods(unittest.TestCase):
         t = time.time() - self.startTime
         print('%s: %.3f seconds' % (self.id(), t))
 
-    aes_exact_array = [(aes_key_1, [aes_clear1, aes_isw2_1, aes_minq_1]),
-                       (aes_key_2, [aes_clear2, aes_isw2_2, aes_minq_2])]
-
-    ascon_exact_array = [(ascon_key_1, [ascon_clear1, ascon_isw2_1, ascon_minq_1]),
-                         (ascon_key_2, [ascon_clear2, ascon_isw2_2, ascon_minq_2])]
-
     aes_lda_array = [(aes_key_1, tr_aes_1),
                      (aes_key_2, tr_aes_2), ]
     aes_lda_array_2 = [(aes_key_1, tr_aes_1[1:5])]
@@ -99,11 +93,14 @@ class TestMethods(unittest.TestCase):
                        (ascon_key_2, tr_ascon_2)]
 
     def test_aes_exact(self):
+        # 15 - 24 failed due to too few traces
+        aes_exact_array = [(aes_key_1, [aes_clear1, aes_isw2_1, aes_minq_1]),
+                           (aes_key_2, [aes_clear2, aes_isw2_2, aes_minq_2])]
         all_times = []
-        for key, masks in self.aes_exact_array:
+        for key, masks in aes_exact_array:
             for i in range(0, len(masks)):
                 timings = [[], []]
-                for t in range(32, 65, 8):
+                for t in range(15, 65, 1):
                     with self.subTest(name=(masks[i], t), T=t):
                         start = time.time()
                         r = AES_ExactMatch.attack(t, masks[i])  # non-masked
@@ -117,26 +114,32 @@ class TestMethods(unittest.TestCase):
                         timings[1].append(elapsed)
                         print("{} elapsed time: {} with {} traces".format(masks[i].name, elapsed, t))
                 all_times.append(timings)
-        # print(all_times)
-        # k1 = all_times[:3]
-        # plt.subplot(1, 2, 1)
-        # for x, y in k1:
-        #     print(x, y)
-        #     plt.plot(x, y, linestyle='-', marker='*')
-        # plt.title("first key")
-        # plt.legend(["1", "2", "3"])
-        # k2 = all_times[3:]
-        # plt.subplot(1, 2, 2)
-        # for x, y in k2:
-        #     plt.plot(x, y, linestyle='-', marker='*')
-        # plt.title("second key")
-        # plt.legend(["1", "2", "3"])
-        # plt.show()
+        print(all_times)
+        k1 = all_times[:3]
+        plt.subplot(1, 2, 1)
+        for x, y in k1:
+            print(x, y)
+            plt.plot(x, y, linestyle='-', marker='*')
+        plt.title("first key")
+        plt.legend(["1", "2", "3"])
+        k2 = all_times[3:]
+        plt.subplot(1, 2, 2)
+        for x, y in k2:
+            plt.plot(x, y, linestyle='-', marker='*')
+        plt.title("second key")
+        plt.legend(["1", "2", "3"])
+        plt.show()
 
     def test_ascon_exact(self):
-        for key, masks in self.ascon_exact_array:
+        # ascon needs only 16 traces (5-bit version)
+        # much, much slower
+        ascon_exact_array = [(ascon_key_1, [ascon_clear1, ascon_isw2_1, ascon_minq_1]),
+                             (ascon_key_2, [ascon_clear2, ascon_isw2_2, ascon_minq_2])]
+        all_times = []
+        for key, masks in ascon_exact_array:
             for i in range(0, len(masks)):
-                for t in range(32, 65, 16):
+                timings = [[], []]
+                for t in range(15, 65, 1):
                     with self.subTest(name=(masks[i], t), T=t):
                         start = time.time()
                         r = Ascon_ExactMatch.attack(t, masks[i])  # non-masked
@@ -146,8 +149,25 @@ class TestMethods(unittest.TestCase):
                             self.assertNotEqual(key, r)  # should fail
                         end = time.time()
                         elapsed = end - start
+                        timings[0].append(t)
+                        timings[1].append(elapsed)
                         print("{} elapsed time: {} with {} traces".format(masks[i].name, elapsed, t))
-
+                all_times.append(timings)
+        print(all_times)
+        k1 = all_times[:3]
+        plt.subplot(1, 2, 1)
+        for x, y in k1:
+            print(x, y)
+            plt.plot(x, y, linestyle='-', marker='*')
+        plt.title("first key")
+        plt.legend(["1", "2", "3"])
+        k2 = all_times[3:]
+        plt.subplot(1, 2, 2)
+        for x, y in k2:
+            plt.plot(x, y, linestyle='-', marker='*')
+        plt.title("second key")
+        plt.legend(["1", "2", "3"])
+        plt.show()
 
     def test_lda_aes(self):
         nr_traces = 32 + 50

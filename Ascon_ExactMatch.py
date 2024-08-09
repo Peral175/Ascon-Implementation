@@ -101,6 +101,7 @@ def attack(T, trace_dir, verbose=False):
             if j >> 5 == i:
                 s5[i].add(j % 32)
         r = s1[i].intersection(s2[i]).intersection(s3[i]).intersection(s4[i]).intersection(s5[i])
+        # print(r, s4[i].intersection(s5[i]), s1[i].intersection(s2[i]))
         try:
             (element,) = r
             s[i] = element
