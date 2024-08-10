@@ -220,18 +220,18 @@ class TestMethods(unittest.TestCase):
         #             times[masks[i].name] = elapsed
         #             print("{} elapsed time: {} with {} traces".format(masks[i].name, elapsed, nr_traces))
         # print("Times:", times)
-        times = {   'asconP_2R_NCA-clear':          5.329787015914917,
-                    'asconP_2R_NCA-clear_obfus':    39.920722246170044,
-                    'asconP_2R_NCA-isw2':           13.455626964569092,
-                    'asconP_2R_NCA-isw2_obfus':     128.6323697566986,
-                    'asconP_2R_NCA-isw3':           24.09725522994995,
-                    'asconP_2R_NCA-isw3_obfus':     243.27532172203064,
-                    'asconP_2R_NCA-isw4':           38.605958461761475,
-                    'asconP_2R_NCA-isw4_obfus':     393.8332350254059,
-                    'asconP_2R_NCA-minq':           118.43666768074036,
-                    'asconP_2R_NCA-minq_obfus':     1188.7132730484009,
-                    'asconP_2R_NCA-ql2':            154.98308968544006,
-                    'asconP_2R_NCA-ql2_obfus':      1509.6942660808563}
+        times = {   'asconP_2R_NCA-clear':          5,
+                    'asconP_2R_NCA-clear_obfus':    39,
+                    'asconP_2R_NCA-isw2':           13,
+                    'asconP_2R_NCA-isw2_obfus':     128,
+                    'asconP_2R_NCA-isw3':           24,
+                    'asconP_2R_NCA-isw3_obfus':     243,
+                    'asconP_2R_NCA-isw4':           38,
+                    'asconP_2R_NCA-isw4_obfus':     393,
+                    'asconP_2R_NCA-minq':           118,
+                    'asconP_2R_NCA-minq_obfus':     1188,
+                    'asconP_2R_NCA-ql2':            154,
+                    'asconP_2R_NCA-ql2_obfus':      1509}
         # X = ["Clear", "Clear-obfus",
         #      "ISW-2", "ISW-2-obfus",
         #      "ISW-3", "ISW-3-obfus",
@@ -250,11 +250,14 @@ class TestMethods(unittest.TestCase):
         XX = np.arange(len(X), dtype=np.float64)
         fig, ax = plt.subplots()
         rects1 = ax.bar(XX-0.35/2, Y1, 0.35)
+        # ax.plot(XX-0.35/2, Y1, marker='*')
         rects2 = ax.bar(XX+0.35/2, Y2, 0.35)
+        # ax.plot(XX+0.35/2, Y2, marker='*')
         ax.set_ylabel('Time (in seconds)')
+        ax.grid(axis='y', alpha=0.25, color='grey', which='both')
         ax.set_title('Obfuscation')
         ax.set_xticks(XX, X)
-        ax.legend(X, loc='upper left')
+        ax.legend(["Masked", "Masked+Obfuscated"], loc='upper left')
         ax.bar_label(rects1, padding=3)
         ax.bar_label(rects2, padding=3)
         fig.tight_layout()
