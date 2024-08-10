@@ -189,7 +189,12 @@ def ascon_lda(traces, traces_dir, window_size, window_step, KEY_BYTES=(0,), verb
             continue
         except TypeError:
             print(recovered_key_bits[i][0])
-            continue
+            bits = bin(recovered_key_bits[i][0][0])[2:].zfill(5)
+            recovered_key[i + 0] = bits[0]
+            recovered_key[i + 64] = bits[1]
+            recovered_key[i + 128] = bits[2]
+            recovered_key[i + 192] = bits[3]
+            recovered_key[i + 256] = bits[4]
 
     recovered_key_str = ''.join(recovered_key)
     recovered_key_bytes = ""
