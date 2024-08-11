@@ -178,18 +178,21 @@ class TestMethods(unittest.TestCase):
         #                 self.assertNotEqual(key, r)  # should fail
         # print(times)
         X = ["Non-Masked", "ISW-2", "ISW-3", "ISW-4", "MINQ", "QL-2"]
-        # times = {'asconP_2R_NCA-clear': 5.526602745056152, 'asconP_2R_NCA-isw2': 16.88768172264099, 'asconP_2R_NCA-isw3': 51.91937470436096, 'asconP_2R_NCA-isw4': 144.25258374214172, 'asconP_2R_NCA-minq': 462.48216485977173, 'asconP_2R_NCA-ql2': 609.8035924434662}
-        times = {'asconP_2R_NCA-clear': 5.050966739654541, 'asconP_2R_NCA-isw2': 16.82824683189392,
-                 'asconP_2R_NCA-isw3': 35.9543673992157, 'asconP_2R_NCA-isw4': 54.096439361572266,
-                 'asconP_2R_NCA-minq': 168.81626796722412, 'asconP_2R_NCA-ql2': 215.08399510383606}
+        times = {'asconP_2R_NCA-clear': 5.526602745056152, 'asconP_2R_NCA-isw2': 16.88768172264099,
+                 'asconP_2R_NCA-isw3': 51.91937470436096, 'asconP_2R_NCA-isw4': 144.25258374214172,
+                 'asconP_2R_NCA-minq': 462.48216485977173, 'asconP_2R_NCA-ql2': 609.8035924434662}
+        # times = {'asconP_2R_NCA-clear': 5.050966739654541, 'asconP_2R_NCA-isw2': 16.82824683189392,
+        #          'asconP_2R_NCA-isw3': 35.9543673992157, 'asconP_2R_NCA-isw4': 54.096439361572266,
+        #          'asconP_2R_NCA-minq': 168.81626796722412, 'asconP_2R_NCA-ql2': 215.08399510383606}
         Y = list(times.values())
         for x, y in zip(X, Y):
-            plt.bar(x, y)
-        # plt.title("Ascon LDA (370 traces, 320 window size, 80 window step)")
-        plt.title("Ascon LDA + Ranking (104 traces, 64 window size, 16 window step)")
+            rects = plt.bar(x, int(y))
+            plt.bar_label(rects, padding=3)
+        plt.title("Ascon LDA (370 traces, 320 window size, 80 window step)")
+        # plt.title("Ascon LDA + Ranking (104 traces, 64 window size, 16 window step)")
         plt.grid(axis='y', alpha=0.25, color='grey')
         plt.xlabel("Implementations")
-        plt.xticks(X)
+        # plt.xticks(X)
         plt.ylabel("Time (in seconds)")
         # plt.legend(["Non-Masked", "ISW-2", "ISW-3", "ISW-4", "MINQ", "QL-2"], loc='upper left')
         plt.show()
