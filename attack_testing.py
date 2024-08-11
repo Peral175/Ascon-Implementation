@@ -256,97 +256,133 @@ class TestMethods(unittest.TestCase):
         # attack_testing.TestMethods.test_Ascon_Obfuscation: 3858.980 seconds
 
     def test_minimal_window(self):
-        # get the minimal window size for all
-        # compare LDA with RANKING
-        # it recovers some bits earlier than others --> we do full key
-        # clear requires a window of 1
-        # isw-2 200 128 32    2
-        # isw-3 300 192 48    16
-        # isw-4 400 257 64    16
+        # # get the minimal window size for all
+        # # compare LDA with RANKING
+        # # it recovers some bits earlier than others --> we do full key
+        # # clear requires a window of 1
+        # # isw-2 200 128 32    2
+        # # isw-3 300 192 48    16
+        # # isw-4 400 257 64    16
         # KEY_BYTES = tuple(i for i in range(64))
         # # CLEAR
         # start = time.time()
         # r = Ascon_LDA.ascon_lda(traces=51, traces_dir=ascon_clear1, window_size=1, window_step=1, KEY_BYTES=KEY_BYTES,
         #                         verbose=False, RANKING=False)
         # elapsed = time.time() - start
-        # print(ascon_clear1.name, elapsed, r, ascon_key_1)
+        # print(ascon_clear1.name, elapsed, r, "\n", ascon_key_1)
+        # self.assertEqual(r,ascon_key_1)
         # # CLEAR + RANKING
         # start = time.time()
         # r = Ascon_LDA.ascon_lda(traces=51, traces_dir=ascon_clear1, window_size=1, window_step=1, KEY_BYTES=KEY_BYTES,
         #                         verbose=False, RANKING=True)
         # elapsed = time.time() - start
-        # print(ascon_clear1.name, elapsed, r, ascon_key_1)
-        #
+        # print(ascon_clear1.name, elapsed, r, "\n", ascon_key_1)
+        # self.assertEqual(r, ascon_key_1)
         # # ISW-2
-        # start = time.time()
-        # r = Ascon_LDA.ascon_lda(traces=178, traces_dir=ascon_isw2_1, window_size=127, window_step=1, KEY_BYTES=KEY_BYTES,
-        #                         verbose=False, RANKING=False)
-        # elapsed = time.time() - start
-        # print(ascon_isw2_1.name, elapsed, r, ascon_key_1)
+        # # start = time.time()
+        # # r = Ascon_LDA.ascon_lda(traces=178, traces_dir=ascon_isw2_1, window_size=127, window_step=1, KEY_BYTES=KEY_BYTES,
+        # #                         verbose=False, RANKING=False)
+        # # elapsed = time.time() - start
+        # # print(ascon_isw2_1.name, elapsed, r, ascon_key_1)
         # start = time.time()
         # r = Ascon_LDA.ascon_lda(traces=178, traces_dir=ascon_isw2_1, window_size=128, window_step=1, KEY_BYTES=KEY_BYTES,
         #                         verbose=False, RANKING=False)
         # elapsed = time.time() - start
-        # print(ascon_isw2_1.name, elapsed, r, ascon_key_1)
+        # print(ascon_isw2_1.name, elapsed, r, "\n", ascon_key_1)
+        # self.assertEqual(r, ascon_key_1)
         # # ISW-2 + RANKING
         # start = time.time()
         # r = Ascon_LDA.ascon_lda(traces=52, traces_dir=ascon_isw2_1, window_size=2, window_step=1, KEY_BYTES=KEY_BYTES,
         #                         verbose=False, RANKING=True)
         # elapsed = time.time() - start
-        # print(ascon_isw2_1.name, elapsed, r, ascon_key_1)
+        # print(ascon_isw2_1.name, elapsed, r, "\n", ascon_key_1)
+        # self.assertEqual(r, ascon_key_1)
         #
         # # ISW-3
-        # start = time.time()
-        # r = Ascon_LDA.ascon_lda(traces=242, traces_dir=ascon_isw3_1, window_size=191, window_step=1, KEY_BYTES=KEY_BYTES,
-        #                         verbose=False, RANKING=False)
-        # elapsed = time.time() - start
-        # print(ascon_isw3_1.name, elapsed, r, ascon_key_1)
+        # # start = time.time()
+        # # r = Ascon_LDA.ascon_lda(traces=242, traces_dir=ascon_isw3_1, window_size=191, window_step=1, KEY_BYTES=KEY_BYTES,
+        # #                         verbose=False, RANKING=False)
+        # # elapsed = time.time() - start
+        # # print(ascon_isw3_1.name, elapsed, r, ascon_key_1)
         # start = time.time()
         # r = Ascon_LDA.ascon_lda(traces=242, traces_dir=ascon_isw3_1, window_size=192, window_step=1, KEY_BYTES=KEY_BYTES,
         #                         verbose=False, RANKING=False)
         # elapsed = time.time() - start
-        # print(ascon_isw3_1.name, elapsed, r, ascon_key_1)
+        # print(ascon_isw3_1.name, elapsed, r, "\n", ascon_key_1)
+        # self.assertEqual(r, ascon_key_1)
         # # ISW-3 + RANKING
-        # start = time.time()
-        # r = Ascon_LDA.ascon_lda(traces=66, traces_dir=ascon_isw3_1, window_size=15, window_step=1, KEY_BYTES=KEY_BYTES,
-        #                         verbose=False, RANKING=True)
-        # elapsed = time.time() - start
-        # print(ascon_isw3_1.name, elapsed, r, ascon_key_1)
+        # # start = time.time()
+        # # r = Ascon_LDA.ascon_lda(traces=66, traces_dir=ascon_isw3_1, window_size=15, window_step=1, KEY_BYTES=KEY_BYTES,
+        # #                         verbose=False, RANKING=True)
+        # # elapsed = time.time() - start
+        # # print(ascon_isw3_1.name, elapsed, r, ascon_key_1)
         # start = time.time()
         # r = Ascon_LDA.ascon_lda(traces=66, traces_dir=ascon_isw3_1, window_size=16, window_step=1, KEY_BYTES=KEY_BYTES,
         #                         verbose=False, RANKING=True)
         # elapsed = time.time() - start
-        # print(ascon_isw3_1.name, elapsed, r, ascon_key_1)
+        # print(ascon_isw3_1.name, elapsed, r, "\n", ascon_key_1)
+        # self.assertEqual(r, ascon_key_1)
         #
         # # ISW-4
+        # start = time.time()
+        # r = Ascon_LDA.ascon_lda(traces=307, traces_dir=ascon_isw4_1, window_size=255, window_step=1, KEY_BYTES=KEY_BYTES,
+        #                         verbose=False, RANKING=False)
+        # elapsed = time.time() - start
+        # print(ascon_isw4_1.name, elapsed, r, "\n", ascon_key_1)
+        # self.assertNotEqual(r, ascon_key_1)
         # start = time.time()
         # r = Ascon_LDA.ascon_lda(traces=307, traces_dir=ascon_isw4_1, window_size=256, window_step=1, KEY_BYTES=KEY_BYTES,
         #                         verbose=False, RANKING=False)
         # elapsed = time.time() - start
-        # print(ascon_isw4_1.name, elapsed, r, ascon_key_1)
-        # start = time.time()
-        # r = Ascon_LDA.ascon_lda(traces=307, traces_dir=ascon_isw4_1, window_size=257, window_step=1, KEY_BYTES=KEY_BYTES,
-        #                         verbose=False, RANKING=False)
-        # elapsed = time.time() - start
-        # print(ascon_isw4_1.name, elapsed, r, ascon_key_1)
+        # print(ascon_isw4_1.name, elapsed, r, "\n", ascon_key_1)
+        # self.assertEqual(r, ascon_key_1)
         # # ISW-4 + RANKING
-        # start = time.time()
-        # r = Ascon_LDA.ascon_lda(traces=66, traces_dir=ascon_isw4_1, window_size=15, window_step=1, KEY_BYTES=KEY_BYTES,
-        #                         verbose=False, RANKING=True)
-        # elapsed = time.time() - start
-        # print(ascon_isw4_1.name, elapsed, r, ascon_key_1)
+        # # start = time.time()
+        # # r = Ascon_LDA.ascon_lda(traces=66, traces_dir=ascon_isw4_1, window_size=15, window_step=1, KEY_BYTES=KEY_BYTES,
+        # #                         verbose=False, RANKING=True)
+        # # elapsed = time.time() - start
+        # # print(ascon_isw4_1.name, elapsed, r, ascon_key_1)
         # start = time.time()
         # r = Ascon_LDA.ascon_lda(traces=66, traces_dir=ascon_isw4_1, window_size=16, window_step=1, KEY_BYTES=KEY_BYTES,
         #                         verbose=False, RANKING=True)
         # elapsed = time.time() - start
-        # print(ascon_isw4_1.name, elapsed, r, ascon_key_1)
-        minimums = [(45.49471855163574, 1, 45.362316846847534, 1),
-                    (531.8086071014404, 128, 145.47295308113098, 2),
-                    (1729.2524342536926, 192, 326.1257462501526, 16),
-                    (4528.478308439255, 256, 527.2801456451416, 16)]
+        # print(ascon_isw4_1.name, elapsed, r, "\n", ascon_key_1)
+        # self.assertEqual(r, ascon_key_1)
+        # Testing started at 10: 54...
+        # Launching unittests with arguments python -m unittest attack_testing.TestMethods.test_minimal_window in / mnt / h / Master / Thesis / Implementation
+        # asconP_2R_NCA - clear
+        # 45.333993673324585
+        # 6162636465666768696a6b6c6d6e6f707172737475767778797a3132333435363738393041424344
+        # asconP_2R_NCA - clear
+        # 45.29067778587341
+        # 6162636465666768696a6b6c6d6e6f707172737475767778797a3132333435363738393041424344
+        # asconP_2R_NCA - isw2
+        # 528.4037179946899
+        # 6162636465666768696a6b6c6d6e6f707172737475767778797a3132333435363738393041424344
+        # asconP_2R_NCA - isw2
+        # 146.19058322906494
+        # 6162636465666768696a6b6c6d6e6f707172737475767778797a3132333435363738393041424344
+        # asconP_2R_NCA - isw3
+        # 1721.6577894687653
+        # 6162636465666768696a6b6c6d6e6f707172737475767778797a3132333435363738393041424344
+        # asconP_2R_NCA - isw3
+        # 327.3436858654022
+        # 6162636465666768696a6b6c6d6e6f707172737475767778797a3132333435363738393041424344
+        # asconP_2R_NCA - isw4
+        # 4503.883012533188
+        # 0110000101_0___00110001101__010001__0101011001100110011101______0110100101_0___00110101101__110001__1101011011100110111101______0111000101_1___00111001101__010001__0101011101100111011101______0111100101_1___00011000100__001000__0011001101000011010100______0011011100_1___00011100100__000001__0001010000100100001101______
+        # asconP_2R_NCA - isw4
+        # 4489.008816480637
+        # 6162636465666768696a6b6c6d6e6f707172737475767778797a3132333435363738393041424344
+        # asconP_2R_NCA - isw4
+        # 523.3566451072693
+        # 6162636465666768696a6b6c6d6e6f707172737475767778797a3132333435363738393041424344
+        # Ran 1 test in 12330.472 s OK#
+        # attack_testing.TestMethods.test_minimal_window: 12330.471 seconds
+        # Process finished with exit code 0
         labels = ["Clear", "ISW-2", "ISW-3", "ISW-4"]
-        r_nr = [(45.49471855163574, 1), (531.8086071014404, 128), (1729.2524342536926, 192), (4528.478308439255, 256)]
-        r_r = [(45.362316846847534, 1), (145.47295308113098, 2), (326.1257462501526, 16), (527.2801456451416, 16)]
+        r_nr = [(45.333993673324585, 1), (528.4037179946899, 128), (1721.6577894687653, 192), (4489.008816480637, 256)]
+        r_r = [(45.29067778587341, 1), (146.19058322906494, 2), (327.3436858654022, 16), (523.3566451072693, 16)]
         X_2 = list(zip(*r_nr))[1]
         Y_2 = list(zip(*r_r))[1]
         x = np.arange(4, dtype=np.float64)
@@ -411,7 +447,8 @@ class TestMethods(unittest.TestCase):
         # 4531.824024438858
         # 6162636465666768696a6b6c6d6e6f707172737475767778797a3132333435363738393041424344
         # asconP_2R_NCA - isw4
-        # 4528.478308439255
+        # 4528.478308439255 --> 4489.008816480637 [256]
+        # 6162636465666768696a6b6c6d6e6f707172737475767778797a3132333435363738393041424344
         # 6162636465666768696a6b6c6d6e6f707172737475767778797a3132333435363738393041424344
         # asconP_2R_NCA - isw4
         # 532.0215246677399
