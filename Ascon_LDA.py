@@ -98,8 +98,8 @@ def ascon_lda(traces, traces_dir, window_size, window_step, KEY_BYTES=(0,), verb
         Gates_Matrix[i] = frozenbitarray(bin(node_vectors[i])[2:].zfill(traces))
 
     Solutions = {}
-    hits = [[] for _ in range(len(KEY_BYTES))]
-    for li in range(len(KEY_BYTES)):
+    hits = [[] for _ in range(64)]
+    for li in range(64):
         for _ in range(NUM_BITS):
             hits[li].append(set())
     for w in range(0, num_of_nodes, window_step):
@@ -168,8 +168,8 @@ def ascon_lda(traces, traces_dir, window_size, window_step, KEY_BYTES=(0,), verb
                     Solutions[KEY_BYTE] = [t5]
                 except ValueError as e:
                     Solutions[KEY_BYTE] = [0]     # too many candidates
-            # if verbose:
-            #     print("Candidates: ", Solutions)
+            if verbose:
+                print("Candidates: ", Solutions)
     else:
         for KEY_BYTE in KEY_BYTES:
             for j in range(1, NUM_BITS):
@@ -400,7 +400,7 @@ if __name__ == "__main__":
         # KEY_BYTES=(0, 1, 2, 3, 4, 5, 6, 7)
         # KEY_BYTES=(0,),
         verbose=True,
-        RANKING=False
+        RANKING=True
     )
     end = datetime.datetime.now()
     print("Time: ", end - start)
