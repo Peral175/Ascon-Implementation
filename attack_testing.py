@@ -147,45 +147,51 @@ class TestMethods(unittest.TestCase):
         plt.show()
 
     def test_Ascon_POC(self):
-        # Proof of concept
-        # test runs for approx. 40 mins for 11; 8 mins for 6
-        ascon_array = [(ascon_key_1, [ascon_clear1, ascon_isw2_1,
-                                      ascon_isw3_1, ascon_isw4_1,
-                                      ascon_minq_1, ascon_ql2_1,
-                                      # ascon_ql3_1, ascon_ql4_1,
-                                      # ascon_cl2_1, ascon_cl3_1,
-                                      # ascon_cl4_1
-                                      ])]
-        window_size = 256
-        window_step = 128
-        nr_traces = window_size + 50  # 2^50
-        times = {}
-        KEY_BYTES = tuple(i for i in range(64))
-        for key, masks in ascon_array:
-            for i in range(0, len(masks)):
-                with self.subTest(name=(masks[i], nr_traces), T=nr_traces):
-                    start = time.time()
-                    r = Ascon_LDA.ascon_lda(traces=nr_traces, traces_dir=masks[i], window_size=window_size,
-                                            window_step=window_step, KEY_BYTES=KEY_BYTES, verbose=False,
-                                            RANKING=True)  # non-masked
-                    if i < 4:
-                        self.assertEqual(key, r)  # should succeed
-                    else:
-                        self.assertNotEqual(key, r)  # should fail
-                    end = time.time()
-                    elapsed = end - start
-                    times[masks[i].name] = elapsed
-                    print("{} elapsed time: {} with {} traces".format(masks[i].name, elapsed, nr_traces))
+        # # Proof of concept
+        # # test runs for approx. 15 mins for 6
+        # ascon_array = [(ascon_key_1, [ascon_clear1, ascon_isw2_1,
+        #                               ascon_isw3_1, ascon_isw4_1,
+        #                               ascon_minq_1, ascon_ql2_1,
+        #                               # ascon_ql3_1, ascon_ql4_1,
+        #                               # ascon_cl2_1, ascon_cl3_1,
+        #                               # ascon_cl4_1
+        #                               ])]
+        # window_size = 64
+        # window_step = 16
+        # nr_traces = window_size + 50  # 2^50
+        # times = {}
+        # KEY_BYTES = tuple(i for i in range(64))
+        # for key, masks in ascon_array:
+        #     for i in range(0, len(masks)):
+        #         with self.subTest(name=(masks[i], nr_traces), T=nr_traces):
+        #             start = time.time()
+        #             r = Ascon_LDA.ascon_lda(traces=nr_traces, traces_dir=masks[i], window_size=window_size,
+        #                                     window_step=window_step, KEY_BYTES=KEY_BYTES, verbose=False,
+        #                                     RANKING=True)  # non-masked
+        #             end = time.time()
+        #             elapsed = end - start
+        #             times[masks[i].name] = elapsed
+        #             print("{} elapsed time: {} with {} traces".format(masks[i].name, elapsed, nr_traces))
+        #             if i < 4:
+        #                 self.assertEqual(key, r)  # should succeed
+        #             else:
+        #                 self.assertNotEqual(key, r)  # should fail
+        # print(times)
         X = ["Non-Masked", "ISW-2", "ISW-3", "ISW-4", "MINQ", "QL-2"]
+        # times = {'asconP_2R_NCA-clear': 5.526602745056152, 'asconP_2R_NCA-isw2': 16.88768172264099, 'asconP_2R_NCA-isw3': 51.91937470436096, 'asconP_2R_NCA-isw4': 144.25258374214172, 'asconP_2R_NCA-minq': 462.48216485977173, 'asconP_2R_NCA-ql2': 609.8035924434662}
+        times = {'asconP_2R_NCA-clear': 5.050966739654541, 'asconP_2R_NCA-isw2': 16.82824683189392,
+                 'asconP_2R_NCA-isw3': 35.9543673992157, 'asconP_2R_NCA-isw4': 54.096439361572266,
+                 'asconP_2R_NCA-minq': 168.81626796722412, 'asconP_2R_NCA-ql2': 215.08399510383606}
         Y = list(times.values())
         for x, y in zip(X, Y):
             plt.bar(x, y)
-        plt.title("Ascon LDA (306 traces, 256 window size, 128 window step)")
+        # plt.title("Ascon LDA (370 traces, 320 window size, 80 window step)")
+        plt.title("Ascon LDA + Ranking (104 traces, 64 window size, 16 window step)")
         plt.grid(axis='y', alpha=0.25, color='grey')
         plt.xlabel("Implementations")
-        plt.xticks([])
+        plt.xticks(X)
         plt.ylabel("Time (in seconds)")
-        plt.legend(["Non-Masked", "ISW-2", "ISW-3", "ISW-4", "MINQ", "QL-2"], loc='upper left')
+        # plt.legend(["Non-Masked", "ISW-2", "ISW-3", "ISW-4", "MINQ", "QL-2"], loc='upper left')
         plt.show()
 
     def test_Ascon_Obfuscation(self):
@@ -257,139 +263,161 @@ class TestMethods(unittest.TestCase):
         # isw-2 200 128 32    2
         # isw-3 300 192 48    16
         # isw-4 400 257 64    16
-        KEY_BYTES = tuple(i for i in range(64))
-        # CLEAR
-        start = time.time()
-        r = Ascon_LDA.ascon_lda(traces=51, traces_dir=ascon_clear1, window_size=1, window_step=1, KEY_BYTES=KEY_BYTES,
-                                verbose=False, RANKING=False)
-        elapsed = time.time() - start
-        print(ascon_clear1.name, elapsed, r, ascon_key_1)
-        # CLEAR + RANKING
-        start = time.time()
-        r = Ascon_LDA.ascon_lda(traces=51, traces_dir=ascon_clear1, window_size=1, window_step=1, KEY_BYTES=KEY_BYTES,
-                                verbose=False, RANKING=True)
-        elapsed = time.time() - start
-        print(ascon_clear1.name, elapsed, r, ascon_key_1)
-
-        # ISW-2
-        start = time.time()
-        r = Ascon_LDA.ascon_lda(traces=178, traces_dir=ascon_isw2_1, window_size=127, window_step=1, KEY_BYTES=KEY_BYTES,
-                                verbose=False, RANKING=False)
-        elapsed = time.time() - start
-        print(ascon_isw2_1.name, elapsed, r, ascon_key_1)
-        start = time.time()
-        r = Ascon_LDA.ascon_lda(traces=178, traces_dir=ascon_isw2_1, window_size=128, window_step=1, KEY_BYTES=KEY_BYTES,
-                                verbose=False, RANKING=False)
-        elapsed = time.time() - start
-        print(ascon_isw2_1.name, elapsed, r, ascon_key_1)
-        # ISW-2 + RANKING
-        start = time.time()
-        r = Ascon_LDA.ascon_lda(traces=52, traces_dir=ascon_isw2_1, window_size=2, window_step=1, KEY_BYTES=KEY_BYTES,
-                                verbose=False, RANKING=True)
-        elapsed = time.time() - start
-        print(ascon_isw2_1.name, elapsed, r, ascon_key_1)
-
-        # ISW-3
-        start = time.time()
-        r = Ascon_LDA.ascon_lda(traces=242, traces_dir=ascon_isw3_1, window_size=191, window_step=1, KEY_BYTES=KEY_BYTES,
-                                verbose=False, RANKING=False)
-        elapsed = time.time() - start
-        print(ascon_isw3_1.name, elapsed, r, ascon_key_1)
-        start = time.time()
-        r = Ascon_LDA.ascon_lda(traces=242, traces_dir=ascon_isw3_1, window_size=192, window_step=1, KEY_BYTES=KEY_BYTES,
-                                verbose=False, RANKING=False)
-        elapsed = time.time() - start
-        print(ascon_isw3_1.name, elapsed, r, ascon_key_1)
-        # ISW-3 + RANKING
-        start = time.time()
-        r = Ascon_LDA.ascon_lda(traces=66, traces_dir=ascon_isw3_1, window_size=15, window_step=1, KEY_BYTES=KEY_BYTES,
-                                verbose=False, RANKING=True)
-        elapsed = time.time() - start
-        print(ascon_isw3_1.name, elapsed, r, ascon_key_1)
-        start = time.time()
-        r = Ascon_LDA.ascon_lda(traces=66, traces_dir=ascon_isw3_1, window_size=16, window_step=1, KEY_BYTES=KEY_BYTES,
-                                verbose=False, RANKING=True)
-        elapsed = time.time() - start
-        print(ascon_isw3_1.name, elapsed, r, ascon_key_1)
-
-        # ISW-4
-        start = time.time()
-        r = Ascon_LDA.ascon_lda(traces=307, traces_dir=ascon_isw4_1, window_size=256, window_step=1, KEY_BYTES=KEY_BYTES,
-                                verbose=False, RANKING=False)
-        elapsed = time.time() - start
-        print(ascon_isw4_1.name, elapsed, r, ascon_key_1)
-        start = time.time()
-        r = Ascon_LDA.ascon_lda(traces=307, traces_dir=ascon_isw4_1, window_size=257, window_step=1, KEY_BYTES=KEY_BYTES,
-                                verbose=False, RANKING=False)
-        elapsed = time.time() - start
-        print(ascon_isw4_1.name, elapsed, r, ascon_key_1)
-        # ISW-4 + RANKING
-        start = time.time()
-        r = Ascon_LDA.ascon_lda(traces=66, traces_dir=ascon_isw4_1, window_size=15, window_step=1, KEY_BYTES=KEY_BYTES,
-                                verbose=False, RANKING=True)
-        elapsed = time.time() - start
-        print(ascon_isw4_1.name, elapsed, r, ascon_key_1)
-        start = time.time()
-        r = Ascon_LDA.ascon_lda(traces=66, traces_dir=ascon_isw4_1, window_size=16, window_step=1, KEY_BYTES=KEY_BYTES,
-                                verbose=False, RANKING=True)
-        elapsed = time.time() - start
-        print(ascon_isw4_1.name, elapsed, r, ascon_key_1)
-
+        # KEY_BYTES = tuple(i for i in range(64))
+        # # CLEAR
+        # start = time.time()
+        # r = Ascon_LDA.ascon_lda(traces=51, traces_dir=ascon_clear1, window_size=1, window_step=1, KEY_BYTES=KEY_BYTES,
+        #                         verbose=False, RANKING=False)
+        # elapsed = time.time() - start
+        # print(ascon_clear1.name, elapsed, r, ascon_key_1)
+        # # CLEAR + RANKING
+        # start = time.time()
+        # r = Ascon_LDA.ascon_lda(traces=51, traces_dir=ascon_clear1, window_size=1, window_step=1, KEY_BYTES=KEY_BYTES,
+        #                         verbose=False, RANKING=True)
+        # elapsed = time.time() - start
+        # print(ascon_clear1.name, elapsed, r, ascon_key_1)
+        #
+        # # ISW-2
+        # start = time.time()
+        # r = Ascon_LDA.ascon_lda(traces=178, traces_dir=ascon_isw2_1, window_size=127, window_step=1, KEY_BYTES=KEY_BYTES,
+        #                         verbose=False, RANKING=False)
+        # elapsed = time.time() - start
+        # print(ascon_isw2_1.name, elapsed, r, ascon_key_1)
+        # start = time.time()
+        # r = Ascon_LDA.ascon_lda(traces=178, traces_dir=ascon_isw2_1, window_size=128, window_step=1, KEY_BYTES=KEY_BYTES,
+        #                         verbose=False, RANKING=False)
+        # elapsed = time.time() - start
+        # print(ascon_isw2_1.name, elapsed, r, ascon_key_1)
+        # # ISW-2 + RANKING
+        # start = time.time()
+        # r = Ascon_LDA.ascon_lda(traces=52, traces_dir=ascon_isw2_1, window_size=2, window_step=1, KEY_BYTES=KEY_BYTES,
+        #                         verbose=False, RANKING=True)
+        # elapsed = time.time() - start
+        # print(ascon_isw2_1.name, elapsed, r, ascon_key_1)
+        #
+        # # ISW-3
+        # start = time.time()
+        # r = Ascon_LDA.ascon_lda(traces=242, traces_dir=ascon_isw3_1, window_size=191, window_step=1, KEY_BYTES=KEY_BYTES,
+        #                         verbose=False, RANKING=False)
+        # elapsed = time.time() - start
+        # print(ascon_isw3_1.name, elapsed, r, ascon_key_1)
+        # start = time.time()
+        # r = Ascon_LDA.ascon_lda(traces=242, traces_dir=ascon_isw3_1, window_size=192, window_step=1, KEY_BYTES=KEY_BYTES,
+        #                         verbose=False, RANKING=False)
+        # elapsed = time.time() - start
+        # print(ascon_isw3_1.name, elapsed, r, ascon_key_1)
+        # # ISW-3 + RANKING
+        # start = time.time()
+        # r = Ascon_LDA.ascon_lda(traces=66, traces_dir=ascon_isw3_1, window_size=15, window_step=1, KEY_BYTES=KEY_BYTES,
+        #                         verbose=False, RANKING=True)
+        # elapsed = time.time() - start
+        # print(ascon_isw3_1.name, elapsed, r, ascon_key_1)
+        # start = time.time()
+        # r = Ascon_LDA.ascon_lda(traces=66, traces_dir=ascon_isw3_1, window_size=16, window_step=1, KEY_BYTES=KEY_BYTES,
+        #                         verbose=False, RANKING=True)
+        # elapsed = time.time() - start
+        # print(ascon_isw3_1.name, elapsed, r, ascon_key_1)
+        #
+        # # ISW-4
+        # start = time.time()
+        # r = Ascon_LDA.ascon_lda(traces=307, traces_dir=ascon_isw4_1, window_size=256, window_step=1, KEY_BYTES=KEY_BYTES,
+        #                         verbose=False, RANKING=False)
+        # elapsed = time.time() - start
+        # print(ascon_isw4_1.name, elapsed, r, ascon_key_1)
+        # start = time.time()
+        # r = Ascon_LDA.ascon_lda(traces=307, traces_dir=ascon_isw4_1, window_size=257, window_step=1, KEY_BYTES=KEY_BYTES,
+        #                         verbose=False, RANKING=False)
+        # elapsed = time.time() - start
+        # print(ascon_isw4_1.name, elapsed, r, ascon_key_1)
+        # # ISW-4 + RANKING
+        # start = time.time()
+        # r = Ascon_LDA.ascon_lda(traces=66, traces_dir=ascon_isw4_1, window_size=15, window_step=1, KEY_BYTES=KEY_BYTES,
+        #                         verbose=False, RANKING=True)
+        # elapsed = time.time() - start
+        # print(ascon_isw4_1.name, elapsed, r, ascon_key_1)
+        # start = time.time()
+        # r = Ascon_LDA.ascon_lda(traces=66, traces_dir=ascon_isw4_1, window_size=16, window_step=1, KEY_BYTES=KEY_BYTES,
+        #                         verbose=False, RANKING=True)
+        # elapsed = time.time() - start
+        # print(ascon_isw4_1.name, elapsed, r, ascon_key_1)
+        minimums = [(45.49471855163574, 1, 45.362316846847534, 1),
+                    (531.8086071014404, 128, 145.47295308113098, 2),
+                    (1729.2524342536926, 192, 326.1257462501526, 16),
+                    (4528.478308439255, 256, 527.2801456451416, 16)]
+        labels = ["Clear", "ISW-2", "ISW-3", "ISW-4"]
+        r_nr = [(45.49471855163574, 1), (531.8086071014404, 128), (1729.2524342536926, 192), (4528.478308439255, 256)]
+        r_r = [(45.362316846847534, 1), (145.47295308113098, 2), (326.1257462501526, 16), (527.2801456451416, 16)]
+        X_2 = list(zip(*r_nr))[1]
+        Y_2 = list(zip(*r_r))[1]
+        x = np.arange(4, dtype=np.float64)
+        fig, ax = plt.subplots()
+        rects1 = ax.bar(x - 0.35 / 2, X_2, 0.35)
+        rects2 = ax.bar(x + 0.35 / 2, Y_2, 0.35)
+        ax.set_ylabel('Window Size')
+        ax.grid(axis='y', alpha=0.25, color='grey', which='both')
+        ax.set_title('Minimal Window Size')
+        ax.set_xticks(x, labels)
+        ax.legend(["LDA", "LDA+Ranking"], loc='upper left')
+        ax.bar_label(rects1, padding=3)
+        ax.bar_label(rects2, padding=3)
+        fig.tight_layout()
+        plt.show()
+        X_1 = list(zip(*r_nr))[0]
+        Y_1 = list(zip(*r_r))[0]
+        x = np.arange(4, dtype=np.float64)
+        fig, ax = plt.subplots()
+        rects1 = ax.plot(X_1, marker='*')
+        rects2 = ax.plot(Y_1, marker='*')
+        ax.set_ylabel('Time (in seconds)')
+        ax.grid(axis='y', alpha=0.25, color='grey', which='both')
+        ax.set_title('Minimal Window Size')
+        ax.set_xticks(x, labels)
+        ax.legend(["LDA", "LDA+Ranking"], loc='upper left')
+        # ax.bar_label(rects1, padding=3)
+        # ax.bar_label(rects2, padding=3)
+        fig.tight_layout()
+        plt.show()
         # Launching unittests
         # with arguments python -m unittest attack_testing.TestMethods.test_minimal_window in / mnt / h / Master / Thesis / Implementation
         #
         # asconP_2R_NCA - clear
         # 45.49471855163574
         # 6162636465666768696a6b6c6d6e6f707172737475767778797a3132333435363738393041424344
-        # 6162636465666768696a6b6c6d6e6f707172737475767778797a3132333435363738393041424344
         # asconP_2R_NCA - clear
         # 45.362316846847534
-        # 6162636465666768696a6b6c6d6e6f707172737475767778797a3132333435363738393041424344
         # 6162636465666768696a6b6c6d6e6f707172737475767778797a3132333435363738393041424344
         # asconP_2R_NCA - isw2
         # 534.5282273292542
         # 01100001011000100110001101100100011001010110011001100111011010_001101001011010100110101101101100011011010110111001101111011100_001110001011100100111001101110100011101010111011001110111011110_001111001011110100011000100110010001100110011010000110101001101_000110111001110000011100100110000010000010100001001000011010001_0
-        # 6162636465666768696a6b6c6d6e6f707172737475767778797a3132333435363738393041424344
         # asconP_2R_NCA - isw2
         # 531.8086071014404
-        # 6162636465666768696a6b6c6d6e6f707172737475767778797a3132333435363738393041424344
         # 6162636465666768696a6b6c6d6e6f707172737475767778797a3132333435363738393041424344
         # asconP_2R_NCA - isw2
         # 145.47295308113098
         # 6162636465666768696a6b6c6d6e6f707172737475767778797a3132333435363738393041424344
-        # 6162636465666768696a6b6c6d6e6f707172737475767778797a3132333435363738393041424344
         # asconP_2R_NCA - isw3
         # 1738.102302312851
         # 0110000101100__00_10001101100100011001010110011001100111011___000110100101101__00_10101101101100011011010110111001101111011___000111000101110__00_11001101110100011101010111011001110111011___000111100101111__00_11000100110010001100110011010000110101001___100011011100111__00_11100100110000010000010100001001000011010___00
-        # 6162636465666768696a6b6c6d6e6f707172737475767778797a3132333435363738393041424344
         # asconP_2R_NCA - isw3
         # 1729.2524342536926
-        # 6162636465666768696a6b6c6d6e6f707172737475767778797a3132333435363738393041424344
         # 6162636465666768696a6b6c6d6e6f707172737475767778797a3132333435363738393041424344
         # asconP_2R_NCA - isw3
         # 329.59919834136963
         # 61606164656465686968696c6d6c6d60616061646564656869682120212425242528292041404144
-        # 6162636465666768696a6b6c6d6e6f707172737475767778797a3132333435363738393041424344
         # asconP_2R_NCA - isw3
         # 326.1257462501526
-        # 6162636465666768696a6b6c6d6e6f707172737475767778797a3132333435363738393041424344
         # 6162636465666768696a6b6c6d6e6f707172737475767778797a3132333435363738393041424344
         # asconP_2R_NCA - isw4
         # 4531.824024438858
         # 6162636465666768696a6b6c6d6e6f707172737475767778797a3132333435363738393041424344
-        # 6162636465666768696a6b6c6d6e6f707172737475767778797a3132333435363738393041424344
         # asconP_2R_NCA - isw4
         # 4528.478308439255
-        # 6162636465666768696a6b6c6d6e6f707172737475767778797a3132333435363738393041424344
         # 6162636465666768696a6b6c6d6e6f707172737475767778797a3132333435363738393041424344
         # asconP_2R_NCA - isw4
         # 532.0215246677399
         # 41404144454445404140414445444550515051545554555051501110111415141510111041404144
-        # 6162636465666768696a6b6c6d6e6f707172737475767778797a3132333435363738393041424344
-        #
         # asconP_2R_NCA - isw4
         # 527.2801456451416
-        # 6162636465666768696a6b6c6d6e6f707172737475767778797a3132333435363738393041424344
         # 6162636465666768696a6b6c6d6e6f707172737475767778797a3132333435363738393041424344
         # attack_testing.TestMethods.test_minimal_window: 15545.353
         # seconds
@@ -398,51 +426,229 @@ class TestMethods(unittest.TestCase):
         # Process finished with exit code 0
 
     def test_2v5bits(self):
-        # difference in performance for 2 vs 5 bits ascon
-        # test runs for around 6 mins
-        # 5 bit slower but decreasingly so
-        ascon_array = [(ascon_key_1, [
-            # ascon_clear1,
-            ascon_isw2_1,
-            # ascon_isw3_1, ascon_isw4_1,
-            # ascon_minq_1, ascon_ql2_1,
-            # ascon_ql3_1, ascon_ql4_1,
-            # ascon_cl2_1, ascon_cl3_1,
-            # ascon_cl4_1
-        ])]
-        window_size = 32
-        window_step = 32
-        # nr_traces = window_size + 50  # 2^50
-        times = {}
-        KEY_BYTES = tuple(i for i in range(64))
-        for key, masks in ascon_array:
-            for i in range(0, len(masks)):
-                for w in range(window_size, window_size * 15, window_step):
-                    print("w", w)
-                    with self.subTest(name=(masks[i], w + 50), T=w + 50):
-                        start1 = time.time()
-                        r1 = Ascon_LDA.ascon_lda(traces=w + 50, traces_dir=masks[i], window_size=w,
-                                                 window_step=w // 2, KEY_BYTES=KEY_BYTES,
-                                                 verbose=False,
-                                                 RANKING=False)
-                        print("r1\t", r1)
-                        end1 = time.time()
-                        elapsed1 = end1 - start1
-                        start2 = time.time()
-                        r2 = Ascon_LDA.mini_ascon_lda(traces=w + 50, traces_dir=masks[i], window_size=w,
-                                                      window_step=w // 2, KEY_BYTES=KEY_BYTES,
-                                                      verbose=False,
-                                                      RANKING=False)
-                        print("r2\t", r2)
-                        print("key\t", key)
-                        end2 = time.time()
-                        elapsed2 = end2 - start2
-                        print("Times: ", (elapsed1, elapsed2))
-                        times[masks[i].name + "-" + str(w)] = (elapsed1, elapsed2)
-                        print("{} elapsed time: {} with {} traces".format(masks[i].name, (elapsed1, elapsed2), w + 50))
-                        self.assertEqual(key, r1)
-                        self.assertEqual(key, r2)
-        print(times)
+        # # difference in performance for 2 vs 5 bits ascon
+        # # test runs for around 6 mins
+        # # 5 bit slower but decreasingly so
+        # ascon_array = [(ascon_key_1, [
+        #     # ascon_clear1,
+        #     ascon_isw2_1,
+        #     # ascon_isw3_1, ascon_isw4_1,
+        #     # ascon_minq_1, ascon_ql2_1,
+        #     # ascon_ql3_1, ascon_ql4_1,
+        #     # ascon_cl2_1, ascon_cl3_1,
+        #     # ascon_cl4_1
+        # ])]
+        # window_size = 32
+        # window_step = 32
+        # # nr_traces = window_size + 50  # 2^50
+        # times1 = {}
+        # times2 = {}
+        # KEY_BYTES = tuple(i for i in range(64))
+        # for key, masks in ascon_array:
+        #     for i in range(0, len(masks)):
+        #         for _ in range(5):
+        #             for w in range(window_size, window_size * 15, window_step):
+        #                 print("w", w)
+        #                 with self.subTest(name=(masks[i], w + 50), T=w + 50):
+        #                     start1 = time.time()
+        #                     r1 = Ascon_LDA.ascon_lda(traces=w + 50, traces_dir=masks[i], window_size=w,
+        #                                              window_step=w // 2, KEY_BYTES=KEY_BYTES,
+        #                                              verbose=False,
+        #                                              RANKING=False)
+        #                     print("r1\t", r1)
+        #                     end1 = time.time()
+        #                     elapsed1 = end1 - start1
+        #                     start2 = time.time()
+        #                     r2 = Ascon_LDA.mini_ascon_lda(traces=w + 50, traces_dir=masks[i], window_size=w,
+        #                                                   window_step=w // 2, KEY_BYTES=KEY_BYTES,
+        #                                                   verbose=False,
+        #                                                   RANKING=False)
+        #                     print("r2\t", r2)
+        #                     print("key\t", key)
+        #                     end2 = time.time()
+        #                     elapsed2 = end2 - start2
+        #                     print("Times: ", (elapsed1, elapsed2))
+        #                     times1[masks[i].name + "-e1-"+str(_)+"-" + str(w)] = elapsed1
+        #                     times2[masks[i].name + "-e2-"+str(_)+"-" + str(w)] = elapsed2
+        #                     print("{} elapsed time: {} with {} traces".format(masks[i].name, (elapsed1, elapsed2), w + 50))
+        #                     self.assertEqual(key, r1)
+        #                     self.assertEqual(key, r2)
+        # print(times1)
+        # print(times2)
+        # print(len(times1))
+        # times = {'asconP_2R_NCA-isw2-32': (9.321946382522583, 8.113517761230469),   # F T
+        #          'asconP_2R_NCA-isw2-64': (6.98106575012207, 6.530013084411621),    # F T
+        #          'asconP_2R_NCA-isw2-96': (6.663027763366699, 5.90791654586792),    # F T
+        #          'asconP_2R_NCA-isw2-128': (6.661635398864746, 5.896665334701538),  # F T
+        #          'asconP_2R_NCA-isw2-160': (6.546462535858154, 6.201824188232422),
+        #          'asconP_2R_NCA-isw2-192': (6.993530035018921, 6.704261541366577),
+        #          'asconP_2R_NCA-isw2-224': (7.583965063095093, 7.240850210189819),
+        #          'asconP_2R_NCA-isw2-256': (8.283821821212769, 7.919913291931152),
+        #          'asconP_2R_NCA-isw2-288': (8.885507345199585, 8.541930913925171),
+        #          'asconP_2R_NCA-isw2-320': (9.613505125045776, 9.191009521484375),
+        #          'asconP_2R_NCA-isw2-352': (10.15358853340149, 9.74407958984375),
+        #          'asconP_2R_NCA-isw2-384': (10.850411653518677, 10.460332155227661),
+        #          'asconP_2R_NCA-isw2-416': (11.724337816238403, 11.408489227294922),
+        #          'asconP_2R_NCA-isw2-448': (12.32200288772583, 11.933516263961792)}
+        # label = ["Non-Masked", "ISW-2", "ISW-3", "ISW-4", "MINQ", "QL-2"]
+        times1 = {
+            'asconP_2R_NCA-isw2e1-0-32': [9.353684902191162],
+            'asconP_2R_NCA-isw2e1-0-64': [6.825925588607788],
+            'asconP_2R_NCA-isw2e1-0-96': [6.308010578155518],
+            'asconP_2R_NCA-isw2e1-0-128': [6.300734043121338],
+            'asconP_2R_NCA-isw2e1-0-160': [6.642865896224976],
+            'asconP_2R_NCA-isw2e1-0-192': [7.3873677253723145],
+            'asconP_2R_NCA-isw2e1-0-224': [10.394385576248169],
+            'asconP_2R_NCA-isw2e1-0-256': [20.601011753082275],
+            'asconP_2R_NCA-isw2e1-0-288': [21.82456350326538],
+            'asconP_2R_NCA-isw2e1-0-320': [23.44320559501648],
+            'asconP_2R_NCA-isw2e1-0-352': [24.635647773742676],
+            'asconP_2R_NCA-isw2e1-0-384': [26.37549901008606],
+            'asconP_2R_NCA-isw2e1-0-416': [28.39501976966858],
+            'asconP_2R_NCA-isw2e1-0-448': [30.516767740249634],
+            'asconP_2R_NCA-isw2e1-1-32': [22.66486930847168],
+            'asconP_2R_NCA-isw2e1-1-64': [16.82642412185669],
+            'asconP_2R_NCA-isw2e1-1-96': [15.211930990219116],
+            'asconP_2R_NCA-isw2e1-1-128': [15.157908201217651],
+            'asconP_2R_NCA-isw2e1-1-160': [16.011788368225098],
+            'asconP_2R_NCA-isw2e1-1-192': [17.11225938796997],
+            'asconP_2R_NCA-isw2e1-1-224': [18.418660640716553],
+            'asconP_2R_NCA-isw2e1-1-256': [20.20003390312195],
+            'asconP_2R_NCA-isw2e1-1-288': [21.54514789581299],
+            'asconP_2R_NCA-isw2e1-1-320': [23.172249794006348],
+            'asconP_2R_NCA-isw2e1-1-352': [24.604676246643066],
+            'asconP_2R_NCA-isw2e1-1-384': [26.488014221191406],
+            'asconP_2R_NCA-isw2e1-1-416': [28.637735843658447],
+            'asconP_2R_NCA-isw2e1-1-448': [29.72106623649597],
+            'asconP_2R_NCA-isw2e1-2-32': [22.521564960479736],
+            'asconP_2R_NCA-isw2e1-2-64': [16.668323516845703],
+            'asconP_2R_NCA-isw2e1-2-96': [15.295588970184326],
+            'asconP_2R_NCA-isw2e1-2-128': [15.219266891479492],
+            'asconP_2R_NCA-isw2e1-2-160': [16.094303131103516],
+            'asconP_2R_NCA-isw2e1-2-192': [17.17998456954956],
+            'asconP_2R_NCA-isw2e1-2-224': [18.579587936401367],
+            'asconP_2R_NCA-isw2e1-2-256': [20.215274333953857],
+            'asconP_2R_NCA-isw2e1-2-288': [21.533568859100342],
+            'asconP_2R_NCA-isw2e1-2-320': [23.205177783966064],
+            'asconP_2R_NCA-isw2e1-2-352': [24.531989336013794],
+            'asconP_2R_NCA-isw2e1-2-384': [26.378181219100952],
+            'asconP_2R_NCA-isw2e1-2-416': [28.622577667236328],
+            'asconP_2R_NCA-isw2e1-2-448': [29.83880090713501],
+            'asconP_2R_NCA-isw2e1-3-32': [22.556459426879883],
+            'asconP_2R_NCA-isw2e1-3-64': [17.11897563934326],
+            'asconP_2R_NCA-isw2e1-3-96': [15.23517107963562],
+            'asconP_2R_NCA-isw2e1-3-128': [15.183934926986694],
+            'asconP_2R_NCA-isw2e1-3-160': [15.947891473770142],
+            'asconP_2R_NCA-isw2e1-3-192': [17.07996416091919],
+            'asconP_2R_NCA-isw2e1-3-224': [18.49725866317749],
+            'asconP_2R_NCA-isw2e1-3-256': [20.13697624206543],
+            'asconP_2R_NCA-isw2e1-3-288': [21.54644227027893],
+            'asconP_2R_NCA-isw2e1-3-320': [23.202287435531616],
+            'asconP_2R_NCA-isw2e1-3-352': [24.566598653793335],
+            'asconP_2R_NCA-isw2e1-3-384': [26.263603925704956],
+            'asconP_2R_NCA-isw2e1-3-416': [28.42494487762451],
+            'asconP_2R_NCA-isw2e1-3-448': [29.836621522903442],
+            'asconP_2R_NCA-isw2e1-4-32': [22.70076298713684],
+            'asconP_2R_NCA-isw2e1-4-64': [16.53908371925354],
+            'asconP_2R_NCA-isw2e1-4-96': [15.280580520629883],
+            'asconP_2R_NCA-isw2e1-4-128': [15.24152135848999],
+            'asconP_2R_NCA-isw2e1-4-160': [16.51780104637146],
+            'asconP_2R_NCA-isw2e1-4-192': [17.112196922302246],
+            'asconP_2R_NCA-isw2e1-4-224': [18.47835659980774],
+            'asconP_2R_NCA-isw2e1-4-256': [20.723551511764526],
+            'asconP_2R_NCA-isw2e1-4-288': [21.618741989135742],
+            'asconP_2R_NCA-isw2e1-4-320': [23.204020261764526],
+            'asconP_2R_NCA-isw2e1-4-352': [24.590930938720703],
+            'asconP_2R_NCA-isw2e1-4-384': [26.54103922843933],
+            'asconP_2R_NCA-isw2e1-4-416': [28.487539291381836],
+            'asconP_2R_NCA-isw2e1-4-448': [30.01022696495056]}
+        times2 = {'asconP_2R_NCA-isw2e2-0-32': [7.809126138687134],
+                  'asconP_2R_NCA-isw2e2-0-64': [5.9967429637908936],
+                  'asconP_2R_NCA-isw2e2-0-96': [5.742457866668701],
+                  'asconP_2R_NCA-isw2e2-0-128': [5.867757320404053],
+                  'asconP_2R_NCA-isw2e2-0-160': [6.243370294570923],
+                  'asconP_2R_NCA-isw2e2-0-192': [7.543330669403076],
+                  'asconP_2R_NCA-isw2e2-0-224': [18.758337020874023],
+                  'asconP_2R_NCA-isw2e2-0-256': [20.315582036972046],
+                  'asconP_2R_NCA-isw2e2-0-288': [21.135919094085693],
+                  'asconP_2R_NCA-isw2e2-0-320': [22.743025541305542],
+                  'asconP_2R_NCA-isw2e2-0-352': [24.04570770263672],
+                  'asconP_2R_NCA-isw2e2-0-384': [25.75600004196167],
+                  'asconP_2R_NCA-isw2e2-0-416': [28.054408311843872],
+                  'asconP_2R_NCA-isw2e2-0-448': [29.320696115493774],
+                  'asconP_2R_NCA-isw2e2-1-32': [19.861725330352783],
+                  'asconP_2R_NCA-isw2e2-1-64': [15.200570821762085],
+                  'asconP_2R_NCA-isw2e2-1-96': [14.273238182067871],
+                  'asconP_2R_NCA-isw2e2-1-128': [14.443653583526611],
+                  'asconP_2R_NCA-isw2e2-1-160': [15.317109823226929],
+                  'asconP_2R_NCA-isw2e2-1-192': [16.535764932632446],
+                  'asconP_2R_NCA-isw2e2-1-224': [17.871933937072754],
+                  'asconP_2R_NCA-isw2e2-1-256': [19.540664434432983],
+                  'asconP_2R_NCA-isw2e2-1-288': [20.870407342910767],
+                  'asconP_2R_NCA-isw2e2-1-320': [22.60249662399292],
+                  'asconP_2R_NCA-isw2e2-1-352': [23.95364761352539],
+                  'asconP_2R_NCA-isw2e2-1-384': [25.87070107460022],
+                  'asconP_2R_NCA-isw2e2-1-416': [28.18632435798645],
+                  'asconP_2R_NCA-isw2e2-1-448': [29.2610342502594],
+                  'asconP_2R_NCA-isw2e2-2-32': [19.981114864349365],
+                  'asconP_2R_NCA-isw2e2-2-64': [15.180844068527222],
+                  'asconP_2R_NCA-isw2e2-2-96': [14.346033811569214],
+                  'asconP_2R_NCA-isw2e2-2-128': [14.39934229850769],
+                  'asconP_2R_NCA-isw2e2-2-160': [15.39604139328003],
+                  'asconP_2R_NCA-isw2e2-2-192': [16.558502435684204],
+                  'asconP_2R_NCA-isw2e2-2-224': [17.807085514068604],
+                  'asconP_2R_NCA-isw2e2-2-256': [19.881505727767944],
+                  'asconP_2R_NCA-isw2e2-2-288': [21.298915147781372],
+                  'asconP_2R_NCA-isw2e2-2-320': [22.62593984603882],
+                  'asconP_2R_NCA-isw2e2-2-352': [24.056336879730225],
+                  'asconP_2R_NCA-isw2e2-2-384': [26.571644067764282],
+                  'asconP_2R_NCA-isw2e2-2-416': [27.97531819343567],
+                  'asconP_2R_NCA-isw2e2-2-448': [29.40782380104065],
+                  'asconP_2R_NCA-isw2e2-3-32': [20.171040534973145],
+                  'asconP_2R_NCA-isw2e2-3-64': [15.138816356658936],
+                  'asconP_2R_NCA-isw2e2-3-96': [15.398377895355225],
+                  'asconP_2R_NCA-isw2e2-3-128': [14.404290676116943],
+                  'asconP_2R_NCA-isw2e2-3-160': [15.292654514312744],
+                  'asconP_2R_NCA-isw2e2-3-192': [16.5341899394989],
+                  'asconP_2R_NCA-isw2e2-3-224': [17.928816080093384],
+                  'asconP_2R_NCA-isw2e2-3-256': [19.646547317504883],
+                  'asconP_2R_NCA-isw2e2-3-288': [20.910773992538452],
+                  'asconP_2R_NCA-isw2e2-3-320': [22.65920329093933],
+                  'asconP_2R_NCA-isw2e2-3-352': [25.07425856590271],
+                  'asconP_2R_NCA-isw2e2-3-384': [25.76795983314514],
+                  'asconP_2R_NCA-isw2e2-3-416': [27.909476041793823],
+                  'asconP_2R_NCA-isw2e2-3-448': [29.255433082580566],
+                  'asconP_2R_NCA-isw2e2-4-32': [19.861956119537354],
+                  'asconP_2R_NCA-isw2e2-4-64': [15.309233665466309],
+                  'asconP_2R_NCA-isw2e2-4-96': [14.281099557876587],
+                  'asconP_2R_NCA-isw2e2-4-128': [14.566631317138672],
+                  'asconP_2R_NCA-isw2e2-4-160': [15.675753116607666],
+                  'asconP_2R_NCA-isw2e2-4-192': [16.613996028900146],
+                  'asconP_2R_NCA-isw2e2-4-224': [17.81789994239807],
+                  'asconP_2R_NCA-isw2e2-4-256': [20.10734534263611],
+                  'asconP_2R_NCA-isw2e2-4-288': [20.969107151031494],
+                  'asconP_2R_NCA-isw2e2-4-320': [22.621777057647705],
+                  'asconP_2R_NCA-isw2e2-4-352': [24.024951696395874],
+                  'asconP_2R_NCA-isw2e2-4-384': [25.927953004837036],
+                  'asconP_2R_NCA-isw2e2-4-416': [28.06125521659851],
+                  'asconP_2R_NCA-isw2e2-4-448': [29.27479362487793]}
+        z = [32, 64, 96, 128, 160, 192, 224, 256, 288, 320, 352, 384, 416, 448]
+        x = [9.321946382522583, 6.98106575012207, 6.663027763366699, 6.661635398864746, 6.546462535858154,
+             6.993530035018921, 7.583965063095093, 8.283821821212769, 8.885507345199585, 9.613505125045776,
+             10.15358853340149, 10.850411653518677, 11.724337816238403, 12.32200288772583]
+        y = [8.113517761230469, 6.530013084411621, 5.90791654586792, 5.896665334701538, 6.201824188232422,
+             6.704261541366577, 7.240850210189819, 7.919913291931152, 8.541930913925171, 9.191009521484375,
+             9.74407958984375, 10.460332155227661, 11.408489227294922, 11.933516263961792]
+        plt.fill_between(z, x, y, alpha=0.5, linewidth=0.1, linestyle='--')
+        plt.plot(z, x, marker='*')
+        plt.plot(z, y, marker='*')
+        plt.title("Ascon LDA 5 bit vs 2 bit")
+        plt.grid(axis='y', alpha=0.25, color='grey')
+        plt.xlabel("Window Size")
+        # plt.xticks(X)
+        plt.ylabel("Time (in seconds)")
+        plt.legend(["5-bit", "2-bit"], loc='upper left')
+        plt.show()
 
     def test_ranking(self):
         # proof ranking -- no need
@@ -486,567 +692,3 @@ class TestMethods(unittest.TestCase):
 
 if __name__ == '__main__':
     unittest.main()
-
-# aes2-clear elapsed time: 5.520910739898682 with 114 traces
-# aes2-clear elapsed time: 5.674640417098999 with 130 traces
-# aes2-clear elapsed time: 5.86058497428894 with 146 traces
-# aes2-clear elapsed time: 6.194171190261841 with 162 traces
-# aes2-clear elapsed time: 6.575989246368408 with 178 traces
-# aes2-clear elapsed time: 7.071808576583862 with 194 traces
-# aes2-clear elapsed time: 7.388443231582642 with 210 traces
-# aes2-clear elapsed time: 7.6459572315216064 with 226 traces
-# aes2-clear elapsed time: 8.18288803100586 with 242 traces
-# aes2-clear elapsed time: 8.520897388458252 with 258 traces
-# aes2-clear elapsed time: 8.872462749481201 with 274 traces
-# aes2-clear elapsed time: 9.432048320770264 with 290 traces
-# aes2-clear elapsed time: 9.761123418807983 with 306 traces
-# aes2-isw2 elapsed time: 15.296777486801147 with 114 traces
-# aes2-isw2 elapsed time: 15.46338939666748 with 130 traces
-# aes2-isw2 elapsed time: 15.881580591201782 with 146 traces
-# aes2-isw2 elapsed time: 16.60208821296692 with 162 traces
-# aes2-isw2 elapsed time: 17.273742198944092 with 178 traces
-# aes2-isw2 elapsed time: 18.219271183013916 with 194 traces
-# aes2-isw2 elapsed time: 19.09377670288086 with 210 traces
-# aes2-isw2 elapsed time: 20.00856328010559 with 226 traces
-# aes2-isw2 elapsed time: 21.2017343044281 with 242 traces
-# aes2-isw2 elapsed time: 22.283329486846924 with 258 traces
-# aes2-isw2 elapsed time: 23.36983561515808 with 274 traces
-# aes2-isw2 elapsed time: 24.418556690216064 with 290 traces
-# aes2-isw2 elapsed time: 25.453880071640015 with 306 traces
-# aes2-isw3 elapsed time: 29.41950035095215 with 114 traces
-# aes2-isw3 elapsed time: 29.292570114135742 with 130 traces
-# aes2-isw3 elapsed time: 30.14198350906372 with 146 traces
-# aes2-isw3 elapsed time: 31.051223516464233 with 162 traces
-# aes2-isw3 elapsed time: 32.464845418930054 with 178 traces
-# aes2-isw3 elapsed time: 33.69513511657715 with 194 traces
-# aes2-isw3 elapsed time: 35.35506510734558 with 210 traces
-# aes2-isw3 elapsed time: 37.163738489151 with 226 traces
-# aes2-isw3 elapsed time: 39.77147197723389 with 242 traces
-# aes2-isw3 elapsed time: 41.331775188446045 with 258 traces
-# aes2-isw3 elapsed time: 43.45059823989868 with 274 traces
-# aes2-isw3 elapsed time: 44.8979070186615 with 290 traces
-# aes2-isw3 elapsed time: 47.347625494003296 with 306 traces
-# aes2-isw4 elapsed time: 48.14706230163574 with 114 traces
-# aes2-isw4 elapsed time: 47.70807886123657 with 130 traces
-# aes2-isw4 elapsed time: 49.17772030830383 with 146 traces
-# aes2-isw4 elapsed time: 50.43869185447693 with 162 traces
-# aes2-isw4 elapsed time: 52.766879081726074 with 178 traces
-# aes2-isw4 elapsed time: 54.52900505065918 with 194 traces
-# aes2-isw4 elapsed time: 57.955275774002075 with 210 traces
-# aes2-isw4 elapsed time: 60.04417824745178 with 226 traces
-# aes2-isw4 elapsed time: 63.084022998809814 with 242 traces
-# aes2-isw4 elapsed time: 65.65831160545349 with 258 traces
-# aes2-isw4 elapsed time: 68.94679546356201 with 274 traces
-# aes2-isw4 elapsed time: 71.91768765449524 with 290 traces
-# aes2-isw4 elapsed time: 75.06888437271118 with 306 traces
-# aes2-minq elapsed time: 120.32065200805664 with 114 traces
-# aes2-minq elapsed time: 119.07404446601868 with 130 traces
-# aes2-minq elapsed time: 120.71823835372925 with 146 traces
-# aes2-minq elapsed time: 124.49672842025757 with 162 traces
-# aes2-minq elapsed time: 128.613618850708 with 178 traces
-# aes2-minq elapsed time: 132.31436562538147 with 194 traces
-# aes2-minq elapsed time: 138.38968110084534 with 210 traces
-# aes2-minq elapsed time: 143.63537788391113 with 226 traces
-# aes2-minq elapsed time: 150.31783843040466 with 242 traces
-# aes2-minq elapsed time: 156.75036883354187 with 258 traces
-# aes2-minq elapsed time: 164.2995162010193 with 274 traces
-# aes2-minq elapsed time: 171.07203030586243 with 290 traces
-# aes2-minq elapsed time: 178.11124753952026 with 306 traces
-# aes2-ql2 elapsed time: 157.20459866523743 with 114 traces
-# aes2-ql2 elapsed time: 158.08742809295654 with 130 traces
-# aes2-ql2 elapsed time: 158.14853048324585 with 146 traces
-# aes2-ql2 elapsed time: 161.78663969039917 with 162 traces
-# aes2-ql2 elapsed time: 166.98678851127625 with 178 traces
-# aes2-ql2 elapsed time: 173.4004409313202 with 194 traces
-# aes2-ql2 elapsed time: 179.7280077934265 with 210 traces
-# aes2-ql2 elapsed time: 187.6796407699585 with 226 traces
-# aes2-ql2 elapsed time: 194.8364701271057 with 242 traces
-# aes2-ql2 elapsed time: 204.93873238563538 with 258 traces
-# aes2-ql2 elapsed time: 213.20660710334778 with 274 traces
-# aes2-ql2 elapsed time: 221.3427414894104 with 290 traces
-# aes2-ql2 elapsed time: 230.69302463531494 with 306 traces
-# aes2-ql3 elapsed time: 211.10276985168457 with 114 traces
-# aes2-ql3 elapsed time: 207.0895972251892 with 130 traces
-# aes2-ql3 elapsed time: 210.6625497341156 with 146 traces
-# aes2-ql3 elapsed time: 215.1593337059021 with 162 traces
-# aes2-ql3 elapsed time: 223.23983025550842 with 178 traces
-# aes2-ql3 elapsed time: 230.21345782279968 with 194 traces
-# aes2-ql3 elapsed time: 240.4984645843506 with 210 traces
-# aes2-ql3 elapsed time: 249.94672536849976 with 226 traces
-# aes2-ql3 elapsed time: 260.14381170272827 with 242 traces
-# aes2-ql3 elapsed time: 272.6399509906769 with 258 traces
-# aes2-ql3 elapsed time: 285.5906307697296 with 274 traces
-# aes2-ql3 elapsed time: 295.57088351249695 with 290 traces
-# aes2-ql3 elapsed time: 307.3969316482544 with 306 traces
-# aes2-ql4 elapsed time: 280.29691314697266 with 114 traces
-# aes2-ql4 elapsed time: 277.0191991329193 with 130 traces
-# aes2-ql4 elapsed time: 280.92984104156494 with 146 traces
-# aes2-ql4 elapsed time: 288.3605799674988 with 162 traces
-# aes2-ql4 elapsed time: 297.8920066356659 with 178 traces
-# aes2-ql4 elapsed time: 307.46907567977905 with 194 traces
-# aes2-ql4 elapsed time: 319.83290815353394 with 210 traces
-# aes2-ql4 elapsed time: 334.9429361820221 with 226 traces
-# aes2-ql4 elapsed time: 348.4918112754822 with 242 traces
-# aes2-ql4 elapsed time: 364.78632140159607 with 258 traces
-# aes2-ql4 elapsed time: 380.5983986854553 with 274 traces
-# aes2-ql4 elapsed time: 396.6848073005676 with 290 traces
-# aes2-ql4 elapsed time: 412.7790722846985 with 306 traces
-# aes2-cl2 elapsed time: 387.7007484436035 with 114 traces
-# aes2-cl2 elapsed time: 381.4245676994324 with 130 traces
-# aes2-cl2 elapsed time: 386.1526472568512 with 146 traces
-# aes2-cl2 elapsed time: 396.35721158981323 with 162 traces
-# aes2-cl2 elapsed time: 409.23515605926514 with 178 traces
-# aes2-cl2 elapsed time: 422.7187349796295 with 194 traces
-# aes2-cl2 elapsed time: 436.81358075141907 with 210 traces
-# aes2-cl2 elapsed time: 453.6931862831116 with 226 traces
-# aes2-cl2 elapsed time: 470.57132935523987 with 242 traces
-# aes2-cl2 elapsed time: 490.7526378631592 with 258 traces
-# aes2-cl2 elapsed time: 510.9798753261566 with 274 traces
-# aes2-cl2 elapsed time: 531.1320381164551 with 290 traces
-# aes2-cl2 elapsed time: 552.0145440101624 with 306 traces
-# aes2-cl3 elapsed time: 459.06303453445435 with 114 traces
-# aes2-cl3 elapsed time: 451.1157121658325 with 130 traces
-# aes2-cl3 elapsed time: 458.215252161026 with 146 traces
-# aes2-cl3 elapsed time: 468.9189176559448 with 162 traces
-# aes2-cl3 elapsed time: 482.58494997024536 with 178 traces
-# aes2-cl3 elapsed time: 501.21766114234924 with 194 traces
-# aes2-cl3 elapsed time: 517.5306992530823 with 210 traces
-# aes2-cl3 elapsed time: 538.6653575897217 with 226 traces
-# aes2-cl3 elapsed time: 559.7463760375977 with 242 traces
-# aes2-cl3 elapsed time: 583.4668281078339 with 258 traces
-# aes2-cl3 elapsed time: 606.5393524169922 with 274 traces
-# aes2-cl3 elapsed time: 629.5527305603027 with 290 traces
-# aes2-cl3 elapsed time: 655.6227695941925 with 306 traces
-# aes2-cl4 elapsed time: 547.6667892932892 with 114 traces
-# aes2-cl4 elapsed time: 538.7054128646851 with 130 traces
-# aes2-cl4 elapsed time: 545.6823585033417 with 146 traces
-# aes2-cl4 elapsed time: 557.9427447319031 with 162 traces
-# aes2-cl4 elapsed time: 575.7643027305603 with 178 traces
-# aes2-cl4 elapsed time: 592.4037399291992 with 194 traces
-# aes2-cl4 elapsed time: 617.60245013237 with 210 traces
-# aes2-cl4 elapsed time: 641.076824426651 with 226 traces
-# aes2-cl4 elapsed time: 666.1659469604492 with 242 traces
-# aes2-cl4 elapsed time: 693.1522631645203 with 258 traces
-# aes2-cl4 elapsed time: 721.8711318969727 with 274 traces
-# aes2-cl4 elapsed time: 748.0055179595947 with 290 traces
-# aes2-cl4 elapsed time: 781.506728887558 with 306 traces
-# aes2-clear elapsed time: 5.510002613067627 with 114 traces
-# aes2-clear elapsed time: 5.636198997497559 with 130 traces
-# aes2-clear elapsed time: 5.952534914016724 with 146 traces
-# aes2-clear elapsed time: 6.203113794326782 with 162 traces
-# aes2-clear elapsed time: 6.562439918518066 with 178 traces
-# aes2-clear elapsed time: 6.99556040763855 with 194 traces
-# aes2-clear elapsed time: 7.366389513015747 with 210 traces
-# aes2-clear elapsed time: 7.660674333572388 with 226 traces
-# aes2-clear elapsed time: 8.08679485321045 with 242 traces
-# aes2-clear elapsed time: 8.559169054031372 with 258 traces
-# aes2-clear elapsed time: 8.855508804321289 with 274 traces
-# aes2-clear elapsed time: 9.447039604187012 with 290 traces
-# aes2-clear elapsed time: 9.818166494369507 with 306 traces
-# aes2-isw2 elapsed time: 15.303198099136353 with 114 traces
-# aes2-isw2 elapsed time: 15.444081544876099 with 130 traces
-# aes2-isw2 elapsed time: 15.995335102081299 with 146 traces
-# aes2-isw2 elapsed time: 16.623050451278687 with 162 traces
-# aes2-isw2 elapsed time: 17.330716371536255 with 178 traces
-# aes2-isw2 elapsed time: 18.22111463546753 with 194 traces
-# aes2-isw2 elapsed time: 19.213433504104614 with 210 traces
-# aes2-isw2 elapsed time: 20.12177538871765 with 226 traces
-# aes2-isw2 elapsed time: 21.193077564239502 with 242 traces
-# aes2-isw2 elapsed time: 22.377628564834595 with 258 traces
-# aes2-isw2 elapsed time: 23.391473531723022 with 274 traces
-# aes2-isw2 elapsed time: 24.427293062210083 with 290 traces
-# aes2-isw2 elapsed time: 25.516074657440186 with 306 traces
-# aes2-isw3 elapsed time: 29.388243198394775 with 114 traces
-# aes2-isw3 elapsed time: 29.269273281097412 with 130 traces
-# aes2-isw3 elapsed time: 30.103126287460327 with 146 traces
-# aes2-isw3 elapsed time: 31.034419298171997 with 162 traces
-# aes2-isw3 elapsed time: 32.46589684486389 with 178 traces
-# aes2-isw3 elapsed time: 33.6596896648407 with 194 traces
-# aes2-isw3 elapsed time: 35.36994552612305 with 210 traces
-# aes2-isw3 elapsed time: 36.975207805633545 with 226 traces
-
-# ----------------------------------------------------------
-
-# /usr/bin/python3 /home/lalex/.pycharm_helpers/pycharm/_jb_unittest_runner.py --target attack_testing.TestMethods.test_lda_aes
-# Testing started at 02:15 ...
-# Launching unittests with arguments python -m unittest attack_testing.TestMethods.test_lda_aes in /mnt/h/Master/Thesis/Implementation
-#
-# aes2-clear elapsed time: 5.440603733062744 with 114 traces
-# aes2-clear elapsed time: 5.589576244354248 with 130 traces
-# aes2-clear elapsed time: 5.86006760597229 with 146 traces
-# aes2-clear elapsed time: 6.128944635391235 with 162 traces
-# aes2-clear elapsed time: 6.638039588928223 with 178 traces
-# aes2-isw2 elapsed time: 15.312106370925903 with 114 traces
-# aes2-isw2 elapsed time: 15.313214778900146 with 130 traces
-# aes2-isw2 elapsed time: 15.720897674560547 with 146 traces
-# aes2-isw2 elapsed time: 16.444363832473755 with 162 traces
-# aes2-isw2 elapsed time: 17.17342782020569 with 178 traces
-# aes2-isw3 elapsed time: 29.11679434776306 with 114 traces
-# aes2-isw3 elapsed time: 29.107664823532104 with 130 traces
-# aes2-isw3 elapsed time: 29.68756103515625 with 146 traces
-# aes2-isw3 elapsed time: 30.728752851486206 with 162 traces
-# aes2-isw3 elapsed time: 32.09496450424194 with 178 traces
-# aes2-isw4 elapsed time: 47.20313596725464 with 114 traces
-# aes2-isw4 elapsed time: 47.088515520095825 with 130 traces
-# aes2-isw4 elapsed time: 48.01134371757507 with 146 traces
-# aes2-isw4 elapsed time: 49.70813202857971 with 162 traces
-# aes2-isw4 elapsed time: 51.68973970413208 with 178 traces
-# aes2-minq elapsed time: 118.6519525051117 with 114 traces
-# aes2-minq elapsed time: 117.54326820373535 with 130 traces
-# aes2-minq elapsed time: 119.22465348243713 with 146 traces
-# aes2-minq elapsed time: 122.14904522895813 with 162 traces
-# aes2-minq elapsed time: 126.67842364311218 with 178 traces
-# aes2-ql2 elapsed time: 155.82058835029602 with 114 traces
-# aes2-ql2 elapsed time: 153.62791466712952 with 130 traces
-# aes2-ql2 elapsed time: 155.9987211227417 with 146 traces
-# aes2-ql2 elapsed time: 159.8354208469391 with 162 traces
-# aes2-ql2 elapsed time: 165.56592178344727 with 178 traces
-# aes2-ql3 elapsed time: 207.59663271903992 with 114 traces
-# aes2-ql3 elapsed time: 206.0067207813263 with 130 traces
-# aes2-ql3 elapsed time: 207.60635781288147 with 146 traces
-# aes2-ql3 elapsed time: 212.86365342140198 with 162 traces
-# aes2-ql3 elapsed time: 220.57341861724854 with 178 traces
-# aes2-ql4 elapsed time: 277.0586121082306 with 114 traces
-# aes2-ql4 elapsed time: 273.1708483695984 with 130 traces
-# aes2-ql4 elapsed time: 277.6653802394867 with 146 traces
-# aes2-ql4 elapsed time: 284.8244435787201 with 162 traces
-# aes2-ql4 elapsed time: 295.172000169754 with 178 traces
-# aes2-cl2 elapsed time: 382.41150736808777 with 114 traces
-# aes2-cl2 elapsed time: 378.23337411880493 with 130 traces
-# aes2-cl2 elapsed time: 382.8083791732788 with 146 traces
-# aes2-cl2 elapsed time: 393.0264000892639 with 162 traces
-# aes2-cl2 elapsed time: 403.2573926448822 with 178 traces
-# aes2-cl3 elapsed time: 453.5750889778137 with 114 traces
-# aes2-cl3 elapsed time: 447.6094694137573 with 130 traces
-# aes2-cl3 elapsed time: 457.56841802597046 with 146 traces
-# aes2-cl3 elapsed time: 462.6275517940521 with 162 traces
-# aes2-cl3 elapsed time: 476.4398093223572 with 178 traces
-# aes2-cl4 elapsed time: 540.9084677696228 with 114 traces
-# aes2-cl4 elapsed time: 532.7154381275177 with 130 traces
-# aes2-cl4 elapsed time: 539.3741252422333 with 146 traces
-# aes2-cl4 elapsed time: 551.1416063308716 with 162 traces
-# aes2-cl4 elapsed time: 568.976927280426 with 178 traces
-# aes2-clear elapsed time: 5.399395942687988 with 114 traces
-# aes2-clear elapsed time: 5.533383369445801 with 130 traces
-# aes2-clear elapsed time: 5.793898105621338 with 146 traces
-# aes2-clear elapsed time: 6.099315404891968 with 162 traces
-# aes2-clear elapsed time: 6.400784492492676 with 178 traces
-# aes2-isw2 elapsed time: 15.073419332504272 with 114 traces
-# aes2-isw2 elapsed time: 15.194902420043945 with 130 traces
-# aes2-isw2 elapsed time: 15.706335544586182 with 146 traces
-# aes2-isw2 elapsed time: 16.35288119316101 with 162 traces
-# aes2-isw2 elapsed time: 17.073833227157593 with 178 traces
-# aes2-isw3 elapsed time: 29.085712909698486 with 114 traces
-# aes2-isw3 elapsed time: 29.044951677322388 with 130 traces
-# aes2-isw3 elapsed time: 29.58515238761902 with 146 traces
-# aes2-isw3 elapsed time: 30.64351987838745 with 162 traces
-# aes2-isw3 elapsed time: 31.9698588848114 with 178 traces
-# aes2-isw4 elapsed time: 47.53949809074402 with 114 traces
-# aes2-isw4 elapsed time: 47.33109712600708 with 130 traces
-# aes2-isw4 elapsed time: 48.23528528213501 with 146 traces
-# aes2-isw4 elapsed time: 49.664515256881714 with 162 traces
-# aes2-isw4 elapsed time: 52.0170738697052 with 178 traces
-# aes2-minq elapsed time: 118.55967283248901 with 114 traces
-# aes2-minq elapsed time: 118.00641298294067 with 130 traces
-# aes2-minq elapsed time: 119.16126227378845 with 146 traces
-# aes2-minq elapsed time: 122.54500317573547 with 162 traces
-# aes2-minq elapsed time: 126.7432632446289 with 178 traces
-# aes2-ql2 elapsed time: 155.59618997573853 with 114 traces
-# aes2-ql2 elapsed time: 153.823246717453 with 130 traces
-# aes2-ql2 elapsed time: 156.41197657585144 with 146 traces
-# aes2-ql2 elapsed time: 160.32181978225708 with 162 traces
-# aes2-ql2 elapsed time: 165.67775440216064 with 178 traces
-# aes2-ql3 elapsed time: 207.43609166145325 with 114 traces
-# aes2-ql3 elapsed time: 205.70971536636353 with 130 traces
-# aes2-ql3 elapsed time: 207.9787118434906 with 146 traces
-# aes2-ql3 elapsed time: 213.15508890151978 with 162 traces
-# aes2-ql3 elapsed time: 221.28459072113037 with 178 traces
-# aes2-ql4 elapsed time: 275.65827465057373 with 114 traces
-# aes2-ql4 elapsed time: 274.0285704135895 with 130 traces
-# aes2-ql4 elapsed time: 278.4408299922943 with 146 traces
-# aes2-ql4 elapsed time: 284.69360184669495 with 162 traces
-# aes2-ql4 elapsed time: 294.73777174949646 with 178 traces
-# aes2-cl2 elapsed time: 382.0649411678314 with 114 traces
-# aes2-cl2 elapsed time: 376.9695768356323 with 130 traces
-# aes2-cl2 elapsed time: 382.44805574417114 with 146 traces
-# aes2-cl2 elapsed time: 391.27912616729736 with 162 traces
-# aes2-cl2 elapsed time: 403.1166338920593 with 178 traces
-# aes2-cl3 elapsed time: 452.53746032714844 with 114 traces
-# aes2-cl3 elapsed time: 445.7825827598572 with 130 traces
-# aes2-cl3 elapsed time: 455.49481177330017 with 146 traces
-# aes2-cl3 elapsed time: 462.06910014152527 with 162 traces
-# aes2-cl3 elapsed time: 477.19150614738464 with 178 traces
-# aes2-cl4 elapsed time: 539.9586865901947 with 114 traces
-# aes2-cl4 elapsed time: 533.4961614608765 with 130 traces
-# aes2-cl4 elapsed time: 539.4677183628082 with 146 traces
-# aes2-cl4 elapsed time: 551.9476993083954 with 162 traces
-# aes2-cl4 elapsed time: 568.2315185070038 with 178 traces
-# attack_testing.TestMethods.test_lda_aes: 22658.155 seconds
-#
-#
-# Ran 1 test in 22658.173s
-#
-# OK
-#
-# Process finished with exit code 0
-
-# /usr/bin/python3 /home/lalex/.pycharm_helpers/pycharm/_jb_unittest_runner.py --target attack_testing.TestMethods.test_lda_aes
-# Testing started at 11:10 ...nr_of_runs = 2
-# Launching unittests with arguments python -m unittest attack_testing.TestMethods.test_lda_aes in /mnt/h/Master/Thesis/Implementation
-#
-# aes2-isw2 elapsed time: 31.321855306625366 with 114 traces
-# aes2-isw2 elapsed time: 31.76059627532959 with 115 traces
-# aes2-isw2 elapsed time: 31.05227017402649 with 116 traces
-# aes2-isw2 elapsed time: 31.668189764022827 with 117 traces
-# aes2-isw2 elapsed time: 31.172528505325317 with 118 traces
-# aes2-isw2 elapsed time: 31.603604793548584 with 119 traces
-# aes2-isw2 elapsed time: 31.08590865135193 with 120 traces
-# aes2-isw2 elapsed time: 31.86269760131836 with 121 traces
-# aes2-isw2 elapsed time: 31.257648468017578 with 122 traces
-# aes2-isw2 elapsed time: 31.78044843673706 with 123 traces
-# aes2-isw2 elapsed time: 31.285975217819214 with 124 traces
-# aes2-isw2 elapsed time: 31.872957468032837 with 125 traces
-# aes2-isw2 elapsed time: 31.563244342803955 with 126 traces
-# aes2-isw2 elapsed time: 31.798345804214478 with 127 traces
-# aes2-isw2 elapsed time: 31.272671699523926 with 128 traces
-# aes2-isw2 elapsed time: 31.703857898712158 with 129 traces
-# aes2-isw2 elapsed time: 31.67380142211914 with 130 traces
-# aes2-isw2 elapsed time: 32.11700487136841 with 131 traces
-# aes2-isw2 elapsed time: 31.62382698059082 with 132 traces
-# aes2-isw2 elapsed time: 32.070857524871826 with 133 traces
-# aes2-isw2 elapsed time: 31.711243629455566 with 134 traces
-# aes2-isw2 elapsed time: 32.14047884941101 with 135 traces
-# aes2-isw2 elapsed time: 31.996427059173584 with 136 traces
-# aes2-isw2 elapsed time: 32.310078620910645 with 137 traces
-# aes2-isw2 elapsed time: 31.919031858444214 with 138 traces
-# aes2-isw2 elapsed time: 32.61269807815552 with 139 traces
-# aes2-isw2 elapsed time: 32.22621989250183 with 140 traces
-# aes2-isw2 elapsed time: 32.62111020088196 with 141 traces
-# aes2-isw2 elapsed time: 32.13924860954285 with 142 traces
-# aes2-isw2 elapsed time: 32.64653301239014 with 143 traces
-# aes2-isw2 elapsed time: 32.35359811782837 with 144 traces
-# aes2-isw2 elapsed time: 33.19170331954956 with 145 traces
-# aes2-isw2 elapsed time: 33.17460632324219 with 146 traces
-# aes2-isw2 elapsed time: 33.20589518547058 with 147 traces
-# aes2-isw2 elapsed time: 32.825392961502075 with 148 traces
-# aes2-isw2 elapsed time: 33.27979612350464 with 149 traces
-# aes2-isw2 elapsed time: 33.01585531234741 with 150 traces
-# aes2-isw2 elapsed time: 33.542444705963135 with 151 traces
-# aes2-isw2 elapsed time: 33.12322950363159 with 152 traces
-# aes2-isw2 elapsed time: 33.85692763328552 with 153 traces
-# aes2-isw2 elapsed time: 33.64441275596619 with 154 traces
-# aes2-isw2 elapsed time: 33.7867636680603 with 155 traces
-# aes2-isw2 elapsed time: 33.57568049430847 with 156 traces
-# aes2-isw2 elapsed time: 33.79194688796997 with 157 traces
-# aes2-isw2 elapsed time: 33.73282289505005 with 158 traces
-# aes2-isw2 elapsed time: 33.94224190711975 with 159 traces
-# aes2-isw2 elapsed time: 33.97358512878418 with 160 traces
-# aes2-isw2 elapsed time: 34.26030731201172 with 161 traces
-# aes2-isw2 elapsed time: 34.57201790809631 with 162 traces
-# aes2-isw2 elapsed time: 34.8571412563324 with 163 traces
-# aes2-isw2 elapsed time: 34.228737115859985 with 164 traces
-# aes2-isw2 elapsed time: 34.66454195976257 with 165 traces
-# aes2-isw2 elapsed time: 34.45488977432251 with 166 traces
-# aes2-isw2 elapsed time: 35.010910987854004 with 167 traces
-# aes2-isw2 elapsed time: 34.74202513694763 with 168 traces
-# aes2-isw2 elapsed time: 34.946144819259644 with 169 traces
-# aes2-isw2 elapsed time: 35.1293466091156 with 170 traces
-# aes2-isw2 elapsed time: 35.312386989593506 with 171 traces
-# aes2-isw2 elapsed time: 35.20147466659546 with 172 traces
-# aes2-isw2 elapsed time: 35.738041400909424 with 173 traces
-# aes2-isw2 elapsed time: 35.34731578826904 with 174 traces
-# aes2-isw2 elapsed time: 35.88392114639282 with 175 traces
-# aes2-isw2 elapsed time: 35.99100637435913 with 176 traces
-# aes2-isw2 elapsed time: 35.82339024543762 with 177 traces
-# aes2-isw2 elapsed time: 35.88321375846863 with 178 traces
-# attack_testing.TestMethods.test_lda_aes: 2153.947 seconds
-#
-#
-# Ran 1 test in 2153.958s
-#
-# OK
-#
-# Process finished with exit code 0
-
-# /usr/bin/python3 /home/lalex/.pycharm_helpers/pycharm/_jb_unittest_runner.py --target attack_testing.TestMethods.test_lda_aes
-# Testing started at 11:47 ...  nr_of_runs = 10
-# Launching unittests with arguments python -m unittest attack_testing.TestMethods.test_lda_aes in /mnt/h/Master/Thesis/Implementation
-#
-# aes2-isw2 elapsed time: 151.1662003993988 with 114 traces
-# aes2-isw2 elapsed time: 153.11829352378845 with 115 traces
-# aes2-isw2 elapsed time: 149.38470673561096 with 116 traces
-# aes2-isw2 elapsed time: 151.89494371414185 with 117 traces
-# aes2-isw2 elapsed time: 149.06058073043823 with 118 traces
-# aes2-isw2 elapsed time: 151.53233456611633 with 119 traces
-# aes2-isw2 elapsed time: 149.07679152488708 with 120 traces
-# aes2-isw2 elapsed time: 151.48894214630127 with 121 traces
-# aes2-isw2 elapsed time: 149.9481976032257 with 122 traces
-# aes2-isw2 elapsed time: 151.6413698196411 with 123 traces
-# aes2-isw2 elapsed time: 149.68853068351746 with 124 traces
-# aes2-isw2 elapsed time: 151.51526713371277 with 125 traces
-# aes2-isw2 elapsed time: 149.8083381652832 with 126 traces
-# aes2-isw2 elapsed time: 152.08639907836914 with 127 traces
-# aes2-isw2 elapsed time: 149.3576889038086 with 128 traces
-# aes2-isw2 elapsed time: 151.55494022369385 with 129 traces
-# aes2-isw2 elapsed time: 151.4204740524292 with 130 traces
-# aes2-isw2 elapsed time: 153.12977242469788 with 131 traces
-# aes2-isw2 elapsed time: 150.68136715888977 with 132 traces
-# aes2-isw2 elapsed time: 152.82630443572998 with 133 traces
-# aes2-isw2 elapsed time: 151.0110604763031 with 134 traces
-# aes2-isw2 elapsed time: 152.96717524528503 with 135 traces
-# aes2-isw2 elapsed time: 151.57221221923828 with 136 traces
-# aes2-isw2 elapsed time: 153.8116853237152 with 137 traces
-# aes2-isw2 elapsed time: 152.7844934463501 with 138 traces
-# aes2-isw2 elapsed time: 154.51919651031494 with 139 traces
-# aes2-isw2 elapsed time: 153.5360128879547 with 140 traces
-# aes2-isw2 elapsed time: 155.45614194869995 with 141 traces
-# aes2-isw2 elapsed time: 153.85382199287415 with 142 traces
-# aes2-isw2 elapsed time: 155.74161005020142 with 143 traces
-# aes2-isw2 elapsed time: 154.20560240745544 with 144 traces
-# aes2-isw2 elapsed time: 156.15001773834229 with 145 traces
-# aes2-isw2 elapsed time: 156.83631920814514 with 146 traces
-# attack_testing.TestMethods.test_lda_aes: 5022.832 seconds
-#
-#
-# Ran 1 test in 5022.837s
-#
-# OK
-#
-# Process finished with exit code 0
-
-# /usr/bin/python3 /home/lalex/.pycharm_helpers/pycharm/_jb_unittest_runner.py --target attack_testing.TestMethods.test_lda_aes
-# Testing started at 13:56 ...  10 rounds
-# Launching unittests with arguments python -m unittest attack_testing.TestMethods.test_lda_aes in /mnt/h/Master/Thesis/Implementation
-#
-# aes2-isw2 elapsed time: 152.15811777114868 with 114 traces
-# aes2-isw2 elapsed time: 157.1763665676117 with 146 traces
-# aes2-isw2 elapsed time: 170.6532952785492 with 178 traces
-# aes2-isw3 elapsed time: 289.79916524887085 with 114 traces
-# aes2-isw3 elapsed time: 298.6478519439697 with 146 traces
-# aes2-isw3 elapsed time: 319.20194721221924 with 178 traces
-# aes2-isw4 elapsed time: 472.81574988365173 with 114 traces
-# aes2-isw4 elapsed time: 480.8398094177246 with 146 traces
-# aes2-isw4 elapsed time: 517.5399718284607 with 178 traces
-# attack_testing.TestMethods.test_lda_aes: 3224.332 seconds
-# SubTest failure: Traceback (most recent call last):
-#   File "/usr/lib/python3.10/unittest/case.py", line 59, in testPartExecutor
-#     yield
-#   File "/usr/lib/python3.10/unittest/case.py", line 498, in subTest
-#     yield
-#   File "/mnt/h/Master/Thesis/Implementation/attack_testing.py", line 181, in test_lda_aes
-#     self.assertEqual(key, r)  # should succeed
-#   File "/home/lalex/.pycharm_helpers/pycharm/teamcity/diff_tools.py", line 33, in _patched_equals
-#     old(self, first, second, msg)
-# AssertionError: '61626364656667684142434445464748' != ''
-# - 61626364656667684142434445464748
-# +
-#
-#
-#
-#
-# Ran 1 test in 3224.346s
-#
-# FAILED (failures=3)
-#
-# SubTest failure: Traceback (most recent call last):
-#   File "/usr/lib/python3.10/unittest/case.py", line 59, in testPartExecutor
-#     yield
-#   File "/usr/lib/python3.10/unittest/case.py", line 498, in subTest
-#     yield
-#   File "/mnt/h/Master/Thesis/Implementation/attack_testing.py", line 181, in test_lda_aes
-#     self.assertEqual(key, r)  # should succeed
-#   File "/home/lalex/.pycharm_helpers/pycharm/teamcity/diff_tools.py", line 33, in _patched_equals
-#     old(self, first, second, msg)
-# AssertionError: '61626364656667684142434445464748' != ''
-# - 61626364656667684142434445464748
-# +
-#
-#
-#
-# SubTest failure: Traceback (most recent call last):
-#   File "/usr/lib/python3.10/unittest/case.py", line 59, in testPartExecutor
-#     yield
-#   File "/usr/lib/python3.10/unittest/case.py", line 498, in subTest
-#     yield
-#   File "/mnt/h/Master/Thesis/Implementation/attack_testing.py", line 181, in test_lda_aes
-#     self.assertEqual(key, r)  # should succeed
-#   File "/home/lalex/.pycharm_helpers/pycharm/teamcity/diff_tools.py", line 33, in _patched_equals
-#     old(self, first, second, msg)
-# AssertionError: '61626364656667684142434445464748' != ''
-# - 61626364656667684142434445464748
-# +
-#
-#
-#
-#
-# One or more subtests failed
-# Failed subtests list: (name=(PosixPath('traces/abcdefghABCDEFGH/aes2-minq'), 114), T=114), (name=(PosixPath('traces/abcdefghABCDEFGH/aes2-minq'), 146), T=146), (name=(PosixPath('traces/abcdefghABCDEFGH/aes2-minq'), 178), T=178)
-#
-# Process finished with exit code 1
-
-# /usr/bin/python3 /home/lalex/.pycharm_helpers/pycharm/_jb_unittest_runner.py --target attack_testing.TestMethods.test_lda_aes
-# Testing started at 14:51 ...  10 rounds
-# Launching unittests with arguments python -m unittest attack_testing.TestMethods.test_lda_aes in /mnt/h/Master/Thesis/Implementation
-#
-# aes2-isw2 elapsed time: 154.2543625831604 with 114 traces
-# aes2-isw2 elapsed time: 159.5877764225006 with 146 traces
-# aes2-isw2 elapsed time: 173.32448744773865 with 178 traces
-# aes2-isw3 elapsed time: 294.77472472190857 with 114 traces
-# aes2-isw3 elapsed time: 301.4629063606262 with 146 traces
-# aes2-isw3 elapsed time: 324.3542935848236 with 178 traces
-# aes2-isw4 elapsed time: 477.828795671463 with 114 traces
-# aes2-isw4 elapsed time: 487.29572105407715 with 146 traces
-# aes2-isw4 elapsed time: 523.0008361339569 with 178 traces
-# aes2-minq elapsed time: 1211.1801557540894 with 114 traces
-# aes2-minq elapsed time: 1211.8934774398804 with 146 traces
-#
-#
-# Ran 1 test in 6598.826s
-#
-# OK
-# aes2-minq elapsed time: 1279.8623569011688 with 178 traces
-# attack_testing.TestMethods.test_lda_aes: 6598.822 seconds
-#
-# Process finished with exit code 0
-
-# /usr/bin/python3 /home/lalex/.pycharm_helpers/pycharm/_jb_unittest_runner.py --target attack_testing.TestMethods.test_lda_aes
-# Testing started at 16:43 ...10 rounds interesting
-# Launching unittests with arguments python -m unittest attack_testing.TestMethods.test_lda_aes in /mnt/h/Master/Thesis/Implementation
-#
-# aes2-isw2 elapsed time: 179.04027676582336 with 82 traces
-# aes2-isw2 elapsed time: 152.65068101882935 with 114 traces
-# aes2-isw3 elapsed time: 346.1883487701416 with 82 traces
-# aes2-isw3 elapsed time: 291.05431485176086 with 114 traces
-# aes2-isw4 elapsed time: 566.847414970398 with 82 traces
-# aes2-isw4 elapsed time: 478.8140869140625 with 114 traces
-# aes2-minq elapsed time: 1567.1374037265778 with 82 traces
-#
-# aes2-minq elapsed time: 1181.6137132644653 with 114 traces
-# attack_testing.TestMethods.test_lda_aes: 4763.348 seconds
-#
-# Ran 1 test in 4763.350s
-#
-# OK
-#
-# Process finished with exit code 0
-
-# /usr/bin/python3 /home/lalex/.pycharm_helpers/pycharm/_jb_unittest_runner.py --target attack_testing.TestMethods.test_lda_aes
-# Testing started at 16:43 ... 10 rounds
-# Launching unittests with arguments python -m unittest attack_testing.TestMethods.test_lda_aes in /mnt/h/Master/Thesis/Implementation
-#
-# aes2-isw2 elapsed time: 179.04027676582336 with 82 traces
-# aes2-isw2 elapsed time: 152.65068101882935 with 114 traces
-# aes2-isw3 elapsed time: 346.1883487701416 with 82 traces
-# aes2-isw3 elapsed time: 291.05431485176086 with 114 traces
-# aes2-isw4 elapsed time: 566.847414970398 with 82 traces
-# aes2-isw4 elapsed time: 478.8140869140625 with 114 traces
-# aes2-minq elapsed time: 1567.1374037265778 with 82 traces
-#
-# aes2-minq elapsed time: 1181.6137132644653 with 114 traces
-# attack_testing.TestMethods.test_lda_aes: 4763.348 seconds
-#
-# Ran 1 test in 4763.350s
-#
-# OK
-#
-# Process finished with exit code 0
