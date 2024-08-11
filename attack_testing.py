@@ -605,8 +605,17 @@ class TestMethods(unittest.TestCase):
         # y = [8.113517761230469, 6.530013084411621, 5.90791654586792, 5.896665334701538, 6.201824188232422,
         #      6.704261541366577, 7.240850210189819, 7.919913291931152, 8.541930913925171, 9.191009521484375,
         #      9.74407958984375, 10.460332155227661, 11.408489227294922, 11.933516263961792]
-        x = times1.values()
-        y = times2.values()
+        xx = list(times1.values())
+        yy = list(times2.values())
+        x = []
+        y = []
+        for i in range(14):
+            t1 = xx[i::14]
+            t2 = yy[i::14]
+            r1 = np.average(t1)
+            r2 = np.average(t2)
+            x.append(r1)
+            y.append(r2)
         plt.plot(z, x, marker='*')
         plt.plot(z, y, marker='*')
         plt.fill_between(z, x, y, alpha=0.5, linewidth=0.1, linestyle='--', color='grey')
