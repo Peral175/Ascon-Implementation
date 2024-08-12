@@ -147,93 +147,152 @@ class TestMethods(unittest.TestCase):
         plt.show()
 
     def test_Ascon_POC(self):
-        # # Proof of concept
-        # # test runs for approx. 15 mins for 6
-        # ascon_array = [(ascon_key_1, [ascon_clear1, ascon_isw2_1,
-        #                               ascon_isw3_1, ascon_isw4_1,
-        #                               ascon_minq_1, ascon_ql2_1,
-        #                               # ascon_ql3_1, ascon_ql4_1,
-        #                               # ascon_cl2_1, ascon_cl3_1,
-        #                               # ascon_cl4_1
-        #                               ])]
-        # window_size = 64
-        # window_step = 16
-        # nr_traces = window_size + 50  # 2^50
-        # times = {}
-        # KEY_BYTES = tuple(i for i in range(64))
-        # for key, masks in ascon_array:
-        #     for i in range(0, len(masks)):
-        #         with self.subTest(name=(masks[i], nr_traces), T=nr_traces):
-        #             start = time.time()
-        #             r = Ascon_LDA.ascon_lda(traces=nr_traces, traces_dir=masks[i], window_size=window_size,
-        #                                     window_step=window_step, KEY_BYTES=KEY_BYTES, verbose=False,
-        #                                     RANKING=True)  # non-masked
-        #             end = time.time()
-        #             elapsed = end - start
-        #             times[masks[i].name] = elapsed
-        #             print("{} elapsed time: {} with {} traces".format(masks[i].name, elapsed, nr_traces))
-        #             if i < 4:
-        #                 self.assertEqual(key, r)  # should succeed
-        #             else:
-        #                 self.assertNotEqual(key, r)  # should fail
-        # print(times)
-        X = ["Non-Masked", "ISW-2", "ISW-3", "ISW-4", "MINQ", "QL-2"]
-        times = {'asconP_2R_NCA-clear': 5.526602745056152, 'asconP_2R_NCA-isw2': 16.88768172264099,
-                 'asconP_2R_NCA-isw3': 51.91937470436096, 'asconP_2R_NCA-isw4': 144.25258374214172,
-                 'asconP_2R_NCA-minq': 462.48216485977173, 'asconP_2R_NCA-ql2': 609.8035924434662}
-        # times = {'asconP_2R_NCA-clear': 5.050966739654541, 'asconP_2R_NCA-isw2': 16.82824683189392,
-        #          'asconP_2R_NCA-isw3': 35.9543673992157, 'asconP_2R_NCA-isw4': 54.096439361572266,
-        #          'asconP_2R_NCA-minq': 168.81626796722412, 'asconP_2R_NCA-ql2': 215.08399510383606}
+        # Proof of concept
+        ascon_array = [(ascon_key_1, [ascon_clear1, ascon_isw2_1,
+                                      ascon_isw3_1, ascon_isw4_1,
+                                      ascon_minq_1, ascon_ql2_1,
+                                      ascon_cl2_1])]
+        # window_size = 64; window_step = 16; nr_traces = window_size + 50  # 2^50
+        window_size = 320; window_step = 80; nr_traces = window_size + 50  # 2^50
+        times = {}
+        KEY_BYTES = tuple(i for i in range(64))
+        for key, masks in ascon_array:
+            for i in range(0, len(masks)):
+                with self.subTest(name=(masks[i], nr_traces), T=nr_traces):
+                    start = time.time()
+                    r = Ascon_LDA.ascon_lda(traces=nr_traces, traces_dir=masks[i], window_size=window_size,
+                                            window_step=window_step, KEY_BYTES=KEY_BYTES, verbose=False,
+                                            RANKING=True)  # non-masked
+                    end = time.time()
+                    elapsed = end - start
+                    times[masks[i].name] = elapsed
+                    print("{} elapsed time: {} with {} traces".format(masks[i].name, elapsed, nr_traces))
+                    if i < 4:
+                        self.assertEqual(key, r)  # should succeed
+                    else:
+                        self.assertNotEqual(key, r)  # should fail
+        print(times)
+        X = ["Non-Masked", "ISW-2", "ISW-3", "ISW-4", "MINQ", "QL-2", "CL-2"]
+        # 19 minutes with ranking
+        # times = {'asconP_2R_NCA-clear': 6.200167417526245, 'asconP_2R_NCA-isw2': 19.89973473548889,
+        #          'asconP_2R_NCA-isw3': 37.717557191848755, 'asconP_2R_NCA-isw4': 61.533440828323364,
+        #          'asconP_2R_NCA-minq': 185.23308968544006, 'asconP_2R_NCA-ql2': 238.8431453704834,
+        #          'asconP_2R_NCA-cl2': 594.5485622882843}
+        # 28 minutes regular LDA
+        times = {'asconP_2R_NCA-clear': 9.879488229751587, 'asconP_2R_NCA-isw2': 27.809111833572388,
+                 'asconP_2R_NCA-isw3': 53.3114013671875, 'asconP_2R_NCA-isw4': 86.45544505119324,
+                 'asconP_2R_NCA-minq': 265.3355219364166, 'asconP_2R_NCA-ql2': 349.8343336582184,
+                 'asconP_2R_NCA-cl2': 871.4701390266418}
         Y = list(times.values())
         for x, y in zip(X, Y):
             rects = plt.bar(x, int(y))
             plt.bar_label(rects, padding=3)
-        plt.title("Ascon LDA (370 traces, 320 window size, 80 window step)")
         # plt.title("Ascon LDA + Ranking (104 traces, 64 window size, 16 window step)")
+        plt.title("Ascon LDA (370 traces, 320 window size, 80 window step)")
         plt.grid(axis='y', alpha=0.25, color='grey')
         plt.xlabel("Implementations")
-        # plt.xticks(X)
         plt.ylabel("Time (in seconds)")
-        # plt.legend(["Non-Masked", "ISW-2", "ISW-3", "ISW-4", "MINQ", "QL-2"], loc='upper left')
         plt.show()
 
     def test_Ascon_Obfuscation(self):
         # Impact of obfuscation
-        # test runs for approx. 3 minutes [64 mins]
-        # ascon_array = [(ascon_key_1, [ascon_clear1, ascon_clear_obfus_1,
-        #                               ascon_isw2_1, ascon_isw2_obfus_1,
-        #                               ascon_isw3_1, ascon_isw3_obfus_1,
-        #                               ascon_isw4_1, ascon_isw4_obfus_1,
-        #                               ascon_minq_1, ascon_minq_obfus_1,
-        #                               ascon_ql2_1, ascon_ql2_obfus_1,
-        #                               ])]
-        # window_size = 256
-        # window_step = 128
-        # nr_traces = window_size + 50  # 2^50
-        # times = {}
-        # KEY_BYTES = tuple(i for i in range(64))
-        # for key, masks in ascon_array:
-        #     for i in range(0, len(masks)):
-        #         with self.subTest(name=(masks[i], nr_traces), T=nr_traces):
-        #             start = time.time()
-        #             r = Ascon_LDA.ascon_lda(traces=nr_traces, traces_dir=masks[i], window_size=window_size,
-        #                                     window_step=window_step, KEY_BYTES=KEY_BYTES, verbose=False,
-        #                                     RANKING=True)  # non-masked
-        #             if i < 8:
-        #                 self.assertEqual(key, r)  # should succeed
-        #             else:
-        #                 self.assertNotEqual(key, r)  # should fail
-        #             end = time.time()
-        #             elapsed = end - start
-        #             times[masks[i].name] = elapsed
-        #             print("{} elapsed time: {} with {} traces".format(masks[i].name, elapsed, nr_traces))
-        # print("Times:", times)
-        times = {'asconP_2R_NCA-clear': 5.329787015914917, 'asconP_2R_NCA-clear_obfus': 39.920722246170044,
-                 'asconP_2R_NCA-isw2': 13.455626964569092, 'asconP_2R_NCA-isw2_obfus': 128.6323697566986,
-                 'asconP_2R_NCA-isw3': 24.097255229949950, 'asconP_2R_NCA-isw3_obfus': 243.27532172203064,
-                 'asconP_2R_NCA-isw4': 38.605958461761475, 'asconP_2R_NCA-isw4_obfus': 393.8332350254059,
-                 'asconP_2R_NCA-minq': 118.43666768074036, 'asconP_2R_NCA-minq_obfus': 1188.7132730484009,
-                 'asconP_2R_NCA-ql2': 154.983089685440060, 'asconP_2R_NCA-ql2_obfus': 1509.6942660808563}
+        ascon_array = [(ascon_key_1, [ascon_clear1, ascon_clear_obfus_1,  #
+                                      ascon_isw2_1, ascon_isw2_obfus_1,  # 52 2 1 vs 58 8 1 min
+                                      ascon_isw3_1, ascon_isw3_obfus_1,  #
+                                      ascon_isw4_1, ascon_isw4_obfus_1,  #
+                                      ascon_minq_1, ascon_minq_obfus_1,
+                                      ascon_ql2_1, ascon_ql2_obfus_1,
+                                      ])]
+        window_size = [1, 1, 2, 2, 16, 16, 16, 16, 16, 16, 16, 16]
+        window_step = 1
+        times = {}
+        KEY_BYTES = tuple(i for i in range(64))
+        for key, masks in ascon_array:
+            for i in range(0, len(masks)):
+                with self.subTest(name=(masks[i], window_size[i] + 50), T=window_size[i] + 50):
+                    start = time.time()
+                    nr_traces = window_size[i] + 50  # 2^50
+                    r = Ascon_LDA.ascon_lda(traces=nr_traces, traces_dir=masks[i], window_size=window_size[i],
+                                            window_step=window_step, KEY_BYTES=KEY_BYTES, verbose=False,
+                                            RANKING=True)  # non-masked
+                    print("R", r)
+                    end = time.time()
+                    elapsed = end - start
+                    times[masks[i].name] = elapsed
+                    print("{} elapsed time: {} with {} traces {} {}".format(masks[i].name, elapsed, nr_traces,
+                                                                            window_size[i], window_step))
+                    if i < 8:
+                        self.assertEqual(key, r)  # should succeed
+                    else:
+                        self.assertNotEqual(key, r)  # should fail
+        print("Times:", times)
+        # times = {'asconP_2R_NCA-clear': 5.329787015914917, 'asconP_2R_NCA-clear_obfus': 39.920722246170044,
+        #          'asconP_2R_NCA-isw2': 13.455626964569092, 'asconP_2R_NCA-isw2_obfus': 128.6323697566986,
+        #          'asconP_2R_NCA-isw3': 24.097255229949950, 'asconP_2R_NCA-isw3_obfus': 243.27532172203064,
+        #          'asconP_2R_NCA-isw4': 38.605958461761475, 'asconP_2R_NCA-isw4_obfus': 393.8332350254059,
+        #          'asconP_2R_NCA-minq': 118.43666768074036, 'asconP_2R_NCA-minq_obfus': 1188.7132730484009,
+        #          'asconP_2R_NCA-ql2': 154.983089685440060, 'asconP_2R_NCA-ql2_obfus': 1509.6942660808563}
+        # X = ["Clear", "Clear-obfus","ISW-2", "ISW-2-obfus","ISW-3", "ISW-3-obfus",
+        #      "ISW-4", "ISW-4-obfus","MINQ", "MINQ-obfus", "QL-2", "QL-2-obfus"]
+        X = ["Clear", "ISW-2", "ISW-3", "ISW-4", "MINQ", "QL-2"]
+        Y = list(times.values())
+        Y = [int(_) for _ in Y]
+        Y1 = Y[::2]
+        Y2 = Y[1::2]
+        XX = np.arange(len(X), dtype=np.float64)
+        fig, ax = plt.subplots()
+        rects1 = ax.bar(XX - 0.35 / 2, Y1, 0.35)
+        # ax.plot(XX-0.35/2, Y1, marker='*')
+        rects2 = ax.bar(XX + 0.35 / 2, Y2, 0.35)
+        # ax.plot(XX+0.35/2, Y2, marker='*')
+        ax.set_ylabel('Time (in seconds)')
+        ax.grid(axis='y', alpha=0.25, color='grey', which='both')
+        ax.set_title('Obfuscation')
+        ax.set_xticks(XX, X)
+        ax.legend(["Masked", "Masked+Obfuscated"], loc='upper left')
+        ax.bar_label(rects1, padding=3)
+        ax.bar_label(rects2, padding=3)
+        fig.tight_layout()
+        plt.show()
+        # attack_testing.TestMethods.test_Ascon_Obfuscation: 3858.980 seconds
+
+    def test_Ascon_Obfuscation2(self):
+        # Impact of obfuscation on window
+        ascon_array = [(ascon_key_1, [ascon_clear1, ascon_clear_obfus_1,    # 51 1 1    51 1 1  6 mins
+                                      ascon_isw2_1, ascon_isw2_obfus_1,     # 52 2 1 vs 58 8 1 20 mins
+                                      ascon_isw3_1, ascon_isw3_obfus_1,     #
+                                      ascon_isw4_1, ascon_isw4_obfus_1,     #
+                                      # ascon_minq_1, ascon_minq_obfus_1,   # these cannot succeed
+                                      # ascon_ql2_1, ascon_ql2_obfus_1,
+                                      ])]
+        window_size = [1, 1, 2, 8, 16, 0, 16, 0]
+        window_step = 1
+        times = {}
+        KEY_BYTES = tuple(i for i in range(64))
+        for key, masks in ascon_array:
+            for i in range(0, len(masks)):
+                with self.subTest(name=(masks[i], window_size[i] + 50), T=window_size[i] + 50):
+                    start = time.time()
+                    nr_traces = window_size[i] + 50  # 2^50
+                    r = Ascon_LDA.ascon_lda(traces=nr_traces, traces_dir=masks[i], window_size=window_size[i],
+                                            window_step=window_step, KEY_BYTES=KEY_BYTES, verbose=False,
+                                            RANKING=True)  # non-masked
+                    print("R", r)
+                    end = time.time()
+                    elapsed = end - start
+                    times[masks[i].name] = elapsed
+                    print("{} elapsed time: {} with {} traces {} {}".format(masks[i].name, elapsed, nr_traces, window_size[i], window_step))
+                    if i < 8:
+                        self.assertEqual(key, r)  # should succeed
+                    else:
+                        self.assertNotEqual(key, r)  # should fail
+        print("Times:", times)
+        # times = {'asconP_2R_NCA-clear': 5.329787015914917, 'asconP_2R_NCA-clear_obfus': 39.920722246170044,
+        #          'asconP_2R_NCA-isw2': 13.455626964569092, 'asconP_2R_NCA-isw2_obfus': 128.6323697566986,
+        #          'asconP_2R_NCA-isw3': 24.097255229949950, 'asconP_2R_NCA-isw3_obfus': 243.27532172203064,
+        #          'asconP_2R_NCA-isw4': 38.605958461761475, 'asconP_2R_NCA-isw4_obfus': 393.8332350254059,
+        #          'asconP_2R_NCA-minq': 118.43666768074036, 'asconP_2R_NCA-minq_obfus': 1188.7132730484009,
+        #          'asconP_2R_NCA-ql2': 154.983089685440060, 'asconP_2R_NCA-ql2_obfus': 1509.6942660808563}
         # X = ["Clear", "Clear-obfus","ISW-2", "ISW-2-obfus","ISW-3", "ISW-3-obfus",
         #      "ISW-4", "ISW-4-obfus","MINQ", "MINQ-obfus", "QL-2", "QL-2-obfus"]
         X = ["Clear", "ISW-2", "ISW-3", "ISW-4", "MINQ", "QL-2"]
@@ -629,45 +688,6 @@ class TestMethods(unittest.TestCase):
         plt.ylabel("Time (in seconds)")
         plt.legend(["5-bit", "2-bit"], loc='upper left')
         plt.show()
-
-    def test_ranking(self):
-        # proof ranking -- no need
-        ascon_array = [(ascon_key_1, [
-            # ascon_clear1,
-            ascon_isw2_1,
-            # ascon_isw3_1, ascon_isw4_1,
-            # ascon_minq_1, ascon_ql2_1,
-            # ascon_ql3_1, ascon_ql4_1,
-            # ascon_cl2_1, ascon_cl3_1,
-            # ascon_cl4_1
-        ])]
-        window_size = 32
-        window_step = 32
-        # nr_traces = window_size + 50  # 2^50
-        times = {}
-        KEY_BYTES = tuple(i for i in range(64))
-        for key, masks in ascon_array:
-            for i in range(0, len(masks)):
-                for w in range(window_size, window_size * 15, window_step):
-                    print("w", w)
-                    for _ in range(2):
-                        if _ == 0:
-                            ranking = True
-                        else:
-                            ranking = False
-                        with self.subTest(name=(masks[i], w + 50), T=w + 50):
-                            start = time.time()
-                            r = Ascon_LDA.ascon_lda(traces=w + 50, traces_dir=masks[i], window_size=w,
-                                                    window_step=w // 1, KEY_BYTES=KEY_BYTES,
-                                                    verbose=True,
-                                                    RANKING=ranking)
-                            print(r)
-                            end = time.time()
-                            elapsed = end - start
-                            times[masks[i].name + "-" + str(w)] = elapsed
-                            print("{} elapsed time: {} with {} traces".format(masks[i].name, elapsed, w + 50))
-                            self.assertEqual(key, r)
-        print(times)
 
 
 if __name__ == '__main__':

@@ -29,7 +29,7 @@ def even_mansour():
 
     pt = b"aaaaaaaabbbbbbbbccccccccddddddddeeeeeeee"
     nam = data.get("naming")
-    # res = perm(state=pt, key=k1, nr_rounds=2, naming=nam, SERIALIZE=True, STATS=True, NCA=True)
+    # res = perm(state=pt, key=k1, nr_rounds=2, naming=nam, SERIALIZE=True, STATS=True, NCA=True, OBFUS=False)
     res = perm(state=pt, key=k1, nr_rounds=2, naming=nam, SERIALIZE=True, STATS=True, NCA=True, OBFUS=True)
     res = binary_to_int(res)
     print("output:   ", res)
