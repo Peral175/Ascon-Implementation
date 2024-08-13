@@ -391,7 +391,7 @@ if __name__ == "__main__":
 
     start = datetime.datetime.now()
     full_tuple = tuple(i for i in range(64))
-    ascon_lda(
+    r = ascon_lda(
         args.n_traces,
         args.trace_dir,
         args.window_size,
@@ -399,9 +399,10 @@ if __name__ == "__main__":
         KEY_BYTES=full_tuple,
         # KEY_BYTES=(0, 1, 2, 3, 4, 5, 6, 7)
         # KEY_BYTES=(0,),
-        verbose=True,
+        verbose=False,
         RANKING=True
     )
+    print(r)
     end = datetime.datetime.now()
     print("Time: ", end - start)
 

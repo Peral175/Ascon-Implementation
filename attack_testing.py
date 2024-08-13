@@ -33,24 +33,24 @@ aes_cl2_2 = pathlib.PosixPath("traces/0123456789:;<=>?/aes2-cl2/")
 aes_cl3_2 = pathlib.PosixPath("traces/0123456789:;<=>?/aes2-cl3/")
 aes_cl4_2 = pathlib.PosixPath("traces/0123456789:;<=>?/aes2-cl4/")
 
-ascon_clear1 = pathlib.PosixPath("traces/abcdefghijklmnopqrstuvwxyz1234567890ABCD/asconP_2R_NCA-clear/")
-ascon_isw2_1 = pathlib.PosixPath("traces/abcdefghijklmnopqrstuvwxyz1234567890ABCD/asconP_2R_NCA-isw2/")
-ascon_isw3_1 = pathlib.PosixPath("traces/abcdefghijklmnopqrstuvwxyz1234567890ABCD/asconP_2R_NCA-isw3/")
-ascon_isw4_1 = pathlib.PosixPath("traces/abcdefghijklmnopqrstuvwxyz1234567890ABCD/asconP_2R_NCA-isw4/")
-ascon_minq_1 = pathlib.PosixPath("traces/abcdefghijklmnopqrstuvwxyz1234567890ABCD/asconP_2R_NCA-minq/")
-ascon_ql2_1 = pathlib.PosixPath("traces/abcdefghijklmnopqrstuvwxyz1234567890ABCD/asconP_2R_NCA-ql2/")
-ascon_ql3_1 = pathlib.PosixPath("traces/abcdefghijklmnopqrstuvwxyz1234567890ABCD/asconP_2R_NCA-ql3/")
-ascon_ql4_1 = pathlib.PosixPath("traces/abcdefghijklmnopqrstuvwxyz1234567890ABCD/asconP_2R_NCA-ql4/")
-ascon_cl2_1 = pathlib.PosixPath("traces/abcdefghijklmnopqrstuvwxyz1234567890ABCD/asconP_2R_NCA-cl2/")
-ascon_cl3_1 = pathlib.PosixPath("traces/abcdefghijklmnopqrstuvwxyz1234567890ABCD/asconP_2R_NCA-cl3/")
-ascon_cl4_1 = pathlib.PosixPath("traces/abcdefghijklmnopqrstuvwxyz1234567890ABCD/asconP_2R_NCA-cl4/")
+ascon_clear1 = pathlib.PosixPath("traces/aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa/asconP_2R_NCA-clear/")
+ascon_isw2_1 = pathlib.PosixPath("traces/aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa/asconP_2R_NCA-isw2/")
+ascon_isw3_1 = pathlib.PosixPath("traces/aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa/asconP_2R_NCA-isw3/")
+ascon_isw4_1 = pathlib.PosixPath("traces/aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa/asconP_2R_NCA-isw4/")
+ascon_minq_1 = pathlib.PosixPath("traces/aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa/asconP_2R_NCA-minq/")
+ascon_ql2_1 = pathlib.PosixPath("traces/aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa/asconP_2R_NCA-ql2/")
+ascon_ql3_1 = pathlib.PosixPath("traces/aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa/asconP_2R_NCA-ql3/")
+ascon_ql4_1 = pathlib.PosixPath("traces/aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa/asconP_2R_NCA-ql4/")
+ascon_cl2_1 = pathlib.PosixPath("traces/aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa/asconP_2R_NCA-cl2/")
+ascon_cl3_1 = pathlib.PosixPath("traces/aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa/asconP_2R_NCA-cl3/")
+ascon_cl4_1 = pathlib.PosixPath("traces/aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa/asconP_2R_NCA-cl4/")
 
-ascon_clear_obfus_1 = pathlib.PosixPath("traces/abcdefghijklmnopqrstuvwxyz1234567890ABCD/asconP_2R_NCA-clear_obfus/")
-ascon_isw2_obfus_1 = pathlib.PosixPath("traces/abcdefghijklmnopqrstuvwxyz1234567890ABCD/asconP_2R_NCA-isw2_obfus/")
-ascon_isw3_obfus_1 = pathlib.PosixPath("traces/abcdefghijklmnopqrstuvwxyz1234567890ABCD/asconP_2R_NCA-isw3_obfus/")
-ascon_isw4_obfus_1 = pathlib.PosixPath("traces/abcdefghijklmnopqrstuvwxyz1234567890ABCD/asconP_2R_NCA-isw4_obfus/")
-ascon_minq_obfus_1 = pathlib.PosixPath("traces/abcdefghijklmnopqrstuvwxyz1234567890ABCD/asconP_2R_NCA-minq_obfus/")
-ascon_ql2_obfus_1 = pathlib.PosixPath("traces/abcdefghijklmnopqrstuvwxyz1234567890ABCD/asconP_2R_NCA-ql2_obfus/")
+ascon_clear_obfus_1 = pathlib.PosixPath("traces/aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa/asconP_2R_NCA-clear_obfus/")
+ascon_isw2_obfus_1 = pathlib.PosixPath("traces/aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa/asconP_2R_NCA-isw2_obfus/")
+ascon_isw3_obfus_1 = pathlib.PosixPath("traces/aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa/asconP_2R_NCA-isw3_obfus/")
+ascon_isw4_obfus_1 = pathlib.PosixPath("traces/aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa/asconP_2R_NCA-isw4_obfus/")
+ascon_minq_obfus_1 = pathlib.PosixPath("traces/aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa/asconP_2R_NCA-minq_obfus/")
+ascon_ql2_obfus_1 = pathlib.PosixPath("traces/aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa/asconP_2R_NCA-ql2_obfus/")
 
 ascon_clear2 = pathlib.PosixPath("traces/0123456789:;<=>?@ABCDEFGHIJKLMNOPQRSTUVW/asconP_2R_NCA-clear/")
 ascon_isw2_2 = pathlib.PosixPath("traces/0123456789:;<=>?@ABCDEFGHIJKLMNOPQRSTUVW/asconP_2R_NCA-isw2/")
@@ -265,7 +265,13 @@ class TestMethods(unittest.TestCase):
                                       # ascon_minq_1, ascon_minq_obfus_1,   # these cannot succeed
                                       # ascon_ql2_1, ascon_ql2_obfus_1,
                                       ])]
-        window_size = [1, 1, 2, 8, 16, 0, 16, 0]
+        window_size = [1, 1, 16, 12, 16, 0, 16, 0]
+        # isw2 02:52.422175     66 16 1
+        # isw3 05: 23.713229    66 16 1
+        # isw4                  67 16 1
+        # isw2-o                66 16 1
+        # isw3-o
+        # isw4-o                67 17 1
         window_step = 1
         times = {}
         KEY_BYTES = tuple(i for i in range(64))
