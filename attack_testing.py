@@ -33,24 +33,24 @@ aes_cl2_2 = pathlib.PosixPath("traces/0123456789:;<=>?/aes2-cl2/")
 aes_cl3_2 = pathlib.PosixPath("traces/0123456789:;<=>?/aes2-cl3/")
 aes_cl4_2 = pathlib.PosixPath("traces/0123456789:;<=>?/aes2-cl4/")
 
-ascon_clear1 = pathlib.PosixPath("traces/aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa/asconP_2R_NCA-clear/")
-ascon_isw2_1 = pathlib.PosixPath("traces/aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa/asconP_2R_NCA-isw2/")
-ascon_isw3_1 = pathlib.PosixPath("traces/aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa/asconP_2R_NCA-isw3/")
-ascon_isw4_1 = pathlib.PosixPath("traces/aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa/asconP_2R_NCA-isw4/")
-ascon_minq_1 = pathlib.PosixPath("traces/aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa/asconP_2R_NCA-minq/")
-ascon_ql2_1 = pathlib.PosixPath("traces/aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa/asconP_2R_NCA-ql2/")
-ascon_ql3_1 = pathlib.PosixPath("traces/aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa/asconP_2R_NCA-ql3/")
-ascon_ql4_1 = pathlib.PosixPath("traces/aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa/asconP_2R_NCA-ql4/")
-ascon_cl2_1 = pathlib.PosixPath("traces/aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa/asconP_2R_NCA-cl2/")
-ascon_cl3_1 = pathlib.PosixPath("traces/aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa/asconP_2R_NCA-cl3/")
-ascon_cl4_1 = pathlib.PosixPath("traces/aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa/asconP_2R_NCA-cl4/")
+ascon_clear1 = pathlib.PosixPath("traces/abcdefghijklmnopqrstuvwxyz1234567890ABCD/asconP_2R_NCA-clear/")
+ascon_isw2_1 = pathlib.PosixPath("traces/abcdefghijklmnopqrstuvwxyz1234567890ABCD/asconP_2R_NCA-isw2/")
+ascon_isw3_1 = pathlib.PosixPath("traces/abcdefghijklmnopqrstuvwxyz1234567890ABCD/asconP_2R_NCA-isw3/")
+ascon_isw4_1 = pathlib.PosixPath("traces/abcdefghijklmnopqrstuvwxyz1234567890ABCD/asconP_2R_NCA-isw4/")
+ascon_minq_1 = pathlib.PosixPath("traces/abcdefghijklmnopqrstuvwxyz1234567890ABCD/asconP_2R_NCA-minq/")
+ascon_ql2_1 = pathlib.PosixPath("traces/abcdefghijklmnopqrstuvwxyz1234567890ABCD/asconP_2R_NCA-ql2/")
+ascon_ql3_1 = pathlib.PosixPath("traces/abcdefghijklmnopqrstuvwxyz1234567890ABCD/asconP_2R_NCA-ql3/")
+ascon_ql4_1 = pathlib.PosixPath("traces/abcdefghijklmnopqrstuvwxyz1234567890ABCD/asconP_2R_NCA-ql4/")
+ascon_cl2_1 = pathlib.PosixPath("traces/abcdefghijklmnopqrstuvwxyz1234567890ABCD/asconP_2R_NCA-cl2/")
+ascon_cl3_1 = pathlib.PosixPath("traces/abcdefghijklmnopqrstuvwxyz1234567890ABCD/asconP_2R_NCA-cl3/")
+ascon_cl4_1 = pathlib.PosixPath("traces/abcdefghijklmnopqrstuvwxyz1234567890ABCD/asconP_2R_NCA-cl4/")
 
-ascon_clear_obfus_1 = pathlib.PosixPath("traces/aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa/asconP_2R_NCA-clear_obfus/")
-ascon_isw2_obfus_1 = pathlib.PosixPath("traces/aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa/asconP_2R_NCA-isw2_obfus/")
-ascon_isw3_obfus_1 = pathlib.PosixPath("traces/aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa/asconP_2R_NCA-isw3_obfus/")
-ascon_isw4_obfus_1 = pathlib.PosixPath("traces/aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa/asconP_2R_NCA-isw4_obfus/")
-ascon_minq_obfus_1 = pathlib.PosixPath("traces/aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa/asconP_2R_NCA-minq_obfus/")
-ascon_ql2_obfus_1 = pathlib.PosixPath("traces/aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa/asconP_2R_NCA-ql2_obfus/")
+ascon_clear_obfus_1 = pathlib.PosixPath("traces/abcdefghijklmnopqrstuvwxyz1234567890ABCD/asconP_2R_NCA-clear_obfus/")
+ascon_isw2_obfus_1 = pathlib.PosixPath("traces/abcdefghijklmnopqrstuvwxyz1234567890ABCD/asconP_2R_NCA-isw2_obfus/")
+ascon_isw3_obfus_1 = pathlib.PosixPath("traces/abcdefghijklmnopqrstuvwxyz1234567890ABCD/asconP_2R_NCA-isw3_obfus/")
+ascon_isw4_obfus_1 = pathlib.PosixPath("traces/abcdefghijklmnopqrstuvwxyz1234567890ABCD/asconP_2R_NCA-isw4_obfus/")
+ascon_minq_obfus_1 = pathlib.PosixPath("traces/abcdefghijklmnopqrstuvwxyz1234567890ABCD/asconP_2R_NCA-minq_obfus/")
+ascon_ql2_obfus_1 = pathlib.PosixPath("traces/abcdefghijklmnopqrstuvwxyz1234567890ABCD/asconP_2R_NCA-ql2_obfus/")
 
 ascon_clear2 = pathlib.PosixPath("traces/0123456789:;<=>?@ABCDEFGHIJKLMNOPQRSTUVW/asconP_2R_NCA-clear/")
 ascon_isw2_2 = pathlib.PosixPath("traces/0123456789:;<=>?@ABCDEFGHIJKLMNOPQRSTUVW/asconP_2R_NCA-isw2/")
@@ -134,7 +134,7 @@ class TestMethods(unittest.TestCase):
         plt.grid(axis='y', alpha=0.25, color='grey')
         plt.xlabel("Nr. traces")
         plt.ylabel("Time (in seconds)")
-        plt.legend(["Non-Masked", "ISW-2", "MINQ"], loc='upper left')
+        plt.legend(["Clear", "ISW-2", "MINQ"], loc='upper left')
         k2 = times[3:]
         plt.subplot(1, 2, 2)
         for x, y in k2:
@@ -143,52 +143,52 @@ class TestMethods(unittest.TestCase):
         plt.grid(axis='y', alpha=0.5, color='grey')
         plt.xlabel("Nr. traces")
         plt.ylabel("Time (in seconds)")
-        plt.legend(["Non-Masked", "ISW-2", "MINQ"], loc='upper left')
+        plt.legend(["Clear", "ISW-2", "MINQ"], loc='upper left')
         plt.show()
 
     def test_Ascon_POC(self):
-        # Proof of concept
-        ascon_array = [(ascon_key_1, [ascon_clear1, ascon_isw2_1,
-                                      ascon_isw3_1, ascon_isw4_1,
-                                      ascon_minq_1, ascon_ql2_1,
-                                      ascon_cl2_1])]
-        # window_size = 64; window_step = 16; nr_traces = window_size + 50  # 2^50
-        window_size = 320; window_step = 80; nr_traces = window_size + 50  # 2^50
-        times = {}
-        KEY_BYTES = tuple(i for i in range(64))
-        for key, masks in ascon_array:
-            for i in range(0, len(masks)):
-                with self.subTest(name=(masks[i], nr_traces), T=nr_traces):
-                    start = time.time()
-                    r = Ascon_LDA.ascon_lda(traces=nr_traces, traces_dir=masks[i], window_size=window_size,
-                                            window_step=window_step, KEY_BYTES=KEY_BYTES, verbose=False,
-                                            RANKING=True)  # non-masked
-                    end = time.time()
-                    elapsed = end - start
-                    times[masks[i].name] = elapsed
-                    print("{} elapsed time: {} with {} traces".format(masks[i].name, elapsed, nr_traces))
-                    if i < 4:
-                        self.assertEqual(key, r)  # should succeed
-                    else:
-                        self.assertNotEqual(key, r)  # should fail
-        print(times)
-        X = ["Non-Masked", "ISW-2", "ISW-3", "ISW-4", "MINQ", "QL-2", "CL-2"]
+        # # Proof of concept
+        # ascon_array = [(ascon_key_1, [ascon_clear1, ascon_isw2_1,
+        #                               ascon_isw3_1, ascon_isw4_1,
+        #                               ascon_minq_1, ascon_ql2_1,
+        #                               ascon_cl2_1])]
+        # # window_size = 64; window_step = 16; nr_traces = window_size + 50  # 2^50
+        # window_size = 320; window_step = 80; nr_traces = window_size + 50  # 2^50
+        # times = {}
+        # KEY_BYTES = tuple(i for i in range(64))
+        # for key, masks in ascon_array:
+        #     for i in range(0, len(masks)):
+        #         with self.subTest(name=(masks[i], nr_traces), T=nr_traces):
+        #             start = time.time()
+        #             r = Ascon_LDA.ascon_lda(traces=nr_traces, traces_dir=masks[i], window_size=window_size,
+        #                                     window_step=window_step, KEY_BYTES=KEY_BYTES, verbose=False,
+        #                                     RANKING=True)  # non-masked
+        #             end = time.time()
+        #             elapsed = end - start
+        #             times[masks[i].name] = elapsed
+        #             print("{} elapsed time: {} with {} traces".format(masks[i].name, elapsed, nr_traces))
+        #             if i < 4:
+        #                 self.assertEqual(key, r)  # should succeed
+        #             else:
+        #                 self.assertNotEqual(key, r)  # should fail
+        # print(times)
+        X = ["Clear", "ISW-2", "ISW-3", "ISW-4", "MINQ", "QL-2", "CL-2"]
         # 19 minutes with ranking
-        # times = {'asconP_2R_NCA-clear': 6.200167417526245, 'asconP_2R_NCA-isw2': 19.89973473548889,
-        #          'asconP_2R_NCA-isw3': 37.717557191848755, 'asconP_2R_NCA-isw4': 61.533440828323364,
-        #          'asconP_2R_NCA-minq': 185.23308968544006, 'asconP_2R_NCA-ql2': 238.8431453704834,
-        #          'asconP_2R_NCA-cl2': 594.5485622882843}
+        times = {'asconP_2R_NCA-clear': 6.200167417526245, 'asconP_2R_NCA-isw2': 19.89973473548889,
+                 'asconP_2R_NCA-isw3': 37.717557191848755, 'asconP_2R_NCA-isw4': 61.533440828323364,
+                 'asconP_2R_NCA-minq': 185.23308968544006, 'asconP_2R_NCA-ql2': 238.8431453704834,
+                 'asconP_2R_NCA-cl2': 594.5485622882843}
         # 28 minutes regular LDA
-        times = {'asconP_2R_NCA-clear': 9.879488229751587, 'asconP_2R_NCA-isw2': 27.809111833572388,
-                 'asconP_2R_NCA-isw3': 53.3114013671875, 'asconP_2R_NCA-isw4': 86.45544505119324,
-                 'asconP_2R_NCA-minq': 265.3355219364166, 'asconP_2R_NCA-ql2': 349.8343336582184,
-                 'asconP_2R_NCA-cl2': 871.4701390266418}
+        # times = {'asconP_2R_NCA-clear': 9.879488229751587, 'asconP_2R_NCA-isw2': 27.809111833572388,
+        #          'asconP_2R_NCA-isw3': 53.3114013671875, 'asconP_2R_NCA-isw4': 86.45544505119324,
+        #          'asconP_2R_NCA-minq': 265.3355219364166, 'asconP_2R_NCA-ql2': 349.8343336582184,
+        #          'asconP_2R_NCA-cl2': 871.4701390266418}
         Y = list(times.values())
         for x, y in zip(X, Y):
             rects = plt.bar(x, int(y))
             plt.bar_label(rects, padding=3)
-        # plt.title("Ascon LDA + Ranking (104 traces, 64 window size, 16 window step)")
-        plt.title("Ascon LDA (370 traces, 320 window size, 80 window step)")
+        plt.title("Ascon LDA + Ranking (104 traces, 64 window size, 16 window step)")
+        # plt.title("Ascon LDA (370 traces, 320 window size, 80 window step)")
         plt.grid(axis='y', alpha=0.25, color='grey')
         plt.xlabel("Implementations")
         plt.ylabel("Time (in seconds)")
