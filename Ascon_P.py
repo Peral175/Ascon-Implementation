@@ -9,7 +9,7 @@ from obfuscated_masking import ObfuscatedTransformer
 
 nfsr = NFSR(
     taps=[[], [11], [50], [3, 107]],
-    clocks_initial=100,
+    clocks_initial=171,
     clocks_per_step=1,
 )
 prng = Pool(prng=nfsr, n=256)
@@ -100,7 +100,7 @@ def perm(state, key=b'\x00'*40, nr_rounds=1, naming="", SERIALIZE=False, STATS=F
 
     if SERIALIZE:
         if OBFUS:
-            C_obfus = ObfuscatedTransformer(prng=prng, n=5, c=(98, 98, 98)).transform(C)
+            C_obfus = ObfuscatedTransformer(prng=prng, n=2, c=(98, 98, 98)).transform(C)
             C_obfus.in_place_remove_unused_nodes()
             C_obfus.print_stats()
             serialize_circuit(C, "-clear")
@@ -115,10 +115,10 @@ def perm(state, key=b'\x00'*40, nr_rounds=1, naming="", SERIALIZE=False, STATS=F
         if OBFUS:
             serialize_circuit(ASCON_ISW, "-isw2")
 
-            ASCON_ISW = ObfuscatedTransformer(prng=prng, n=5, c=(98, 98, 98)).transform(ASCON_ISW)
-            ASCON_ISW.in_place_remove_unused_nodes()
-            ASCON_ISW.print_stats()
-            serialize_circuit(ASCON_ISW, "-isw2_obfus")
+            ASCON_ISW_O = ObfuscatedTransformer(prng=prng, n=2, c=(98, 98, 98)).transform(ASCON_ISW)
+            ASCON_ISW_O.in_place_remove_unused_nodes()
+            ASCON_ISW_O.print_stats()
+            serialize_circuit(ASCON_ISW_O, "-isw2_obfus")
         else:
             serialize_circuit(ASCON_ISW, "-isw2")
 
@@ -129,10 +129,10 @@ def perm(state, key=b'\x00'*40, nr_rounds=1, naming="", SERIALIZE=False, STATS=F
         if OBFUS:
             serialize_circuit(ASCON_ISW, "-isw3")
 
-            ASCON_ISW = ObfuscatedTransformer(prng=prng, n=5, c=(98, 98, 98)).transform(ASCON_ISW)
-            ASCON_ISW.in_place_remove_unused_nodes()
-            ASCON_ISW.print_stats()
-            serialize_circuit(ASCON_ISW, "-isw3_obfus")
+            ASCON_ISW_O = ObfuscatedTransformer(prng=prng, n=2, c=(98, 98, 98)).transform(ASCON_ISW)
+            ASCON_ISW_O.in_place_remove_unused_nodes()
+            ASCON_ISW_O.print_stats()
+            serialize_circuit(ASCON_ISW_O, "-isw3_obfus")
         else:
             serialize_circuit(ASCON_ISW, "-isw3")
 
@@ -143,110 +143,110 @@ def perm(state, key=b'\x00'*40, nr_rounds=1, naming="", SERIALIZE=False, STATS=F
         if OBFUS:
             serialize_circuit(ASCON_ISW, "-isw4")
 
-            ASCON_ISW = ObfuscatedTransformer(prng=prng, n=5, c=(98, 98, 98)).transform(ASCON_ISW)
-            ASCON_ISW.in_place_remove_unused_nodes()
-            ASCON_ISW.print_stats()
-            serialize_circuit(ASCON_ISW, "-isw4_obfus")
+            ASCON_ISW_O = ObfuscatedTransformer(prng=prng, n=2, c=(98, 98, 98)).transform(ASCON_ISW)
+            ASCON_ISW_O.in_place_remove_unused_nodes()
+            ASCON_ISW_O.print_stats()
+            serialize_circuit(ASCON_ISW_O, "-isw4_obfus")
         else:
             serialize_circuit(ASCON_ISW, "-isw4")
 
-    ASCON_MINQ = MINQ_transform(C, STATS)
-    out_minq = ASCON_MINQ.evaluate(inp)  # minimalistic non-linear masking
-    assert out == out_minq
-    if SERIALIZE:
-        if OBFUS:
-            serialize_circuit(ASCON_MINQ, "-minq")
-
-            ASCON_MINQ = ObfuscatedTransformer(prng=prng, n=5, c=(98, 98, 98)).transform(ASCON_MINQ)
-            ASCON_MINQ.in_place_remove_unused_nodes()
-            ASCON_MINQ.print_stats()
-            serialize_circuit(ASCON_MINQ, "-minq_obfus")
-        else:
-            serialize_circuit(ASCON_MINQ, "-minq")
-
-    ASCON_QL = QuadLin_transform(C, n_linear=2, STATS=STATS)
-    out_ql = ASCON_QL.evaluate(inp)  # combined masking - 2 linear shares 2 non-linear shares
-    assert out == out_ql
-    if SERIALIZE:
-        if OBFUS:
-            serialize_circuit(ASCON_QL, "-ql2")
-
-            ASCON_QL = ObfuscatedTransformer(prng=prng, n=5, c=(98, 98, 98)).transform(ASCON_QL)
-            ASCON_QL.in_place_remove_unused_nodes()
-            ASCON_QL.print_stats()
-            serialize_circuit(ASCON_QL, "-ql2_obfus")
-        else:
-            serialize_circuit(ASCON_QL, "-ql2")
-
-    ASCON_QL = QuadLin_transform(C, n_linear=3, STATS=STATS)
-    out_ql = ASCON_QL.evaluate(inp)  # combined masking - 3 linear shares 2 non-linear shares
-    assert out == out_ql
-    if SERIALIZE:
-        if OBFUS:
-            serialize_circuit(ASCON_QL, "-ql3")
-
-            ASCON_QL = ObfuscatedTransformer(prng=prng, n=5, c=(98, 98, 98)).transform(ASCON_QL)
-            ASCON_QL.in_place_remove_unused_nodes()
-            ASCON_QL.print_stats()
-            serialize_circuit(ASCON_QL, "-ql3_obfus")
-        else:
-            serialize_circuit(ASCON_QL, "-ql3")
-
-    ASCON_QL = QuadLin_transform(C, n_linear=4, STATS=STATS)
-    out_ql = ASCON_QL.evaluate(inp)  # combined masking - 4 linear shares 2 non-linear shares
-    assert out == out_ql
-    if SERIALIZE:
-        if OBFUS:
-            serialize_circuit(ASCON_QL, "-ql4")
-
-            ASCON_QL = ObfuscatedTransformer(prng=prng, n=5, c=(98, 98, 98)).transform(ASCON_QL)
-            ASCON_QL.in_place_remove_unused_nodes()
-            ASCON_QL.print_stats()
-            serialize_circuit(ASCON_QL, "-ql4_obfus")
-        else:
-            serialize_circuit(ASCON_QL, "-ql4")
-
-    ASCON_CL = CubeLin_transform(C, n_linear=2, STATS=STATS)
-    out_cl = ASCON_CL.evaluate(inp)  # combined masking - 2 linear shares 3 non-linear shares
-    assert out == out_cl
-    if SERIALIZE:
-        if OBFUS:
-            serialize_circuit(ASCON_CL, "-cl2")
-
-            ASCON_CL = ObfuscatedTransformer(prng=prng, n=5, c=(98, 98, 98)).transform(ASCON_CL)
-            ASCON_CL.in_place_remove_unused_nodes()
-            ASCON_CL.print_stats()
-            serialize_circuit(ASCON_CL, "-cl2_obfus")
-        else:
-            serialize_circuit(ASCON_CL, "-cl2")
-
-    ASCON_CL = CubeLin_transform(C, n_linear=3, STATS=STATS)
-    out_cl = ASCON_CL.evaluate(inp)  # combined masking - 3 linear shares 3 non-linear shares
-    assert out == out_cl
-    if SERIALIZE:
-        if OBFUS:
-            serialize_circuit(ASCON_CL, "-cl3")
-
-            ASCON_CL = ObfuscatedTransformer(prng=prng, n=5, c=(98, 98, 98)).transform(ASCON_CL)
-            ASCON_CL.in_place_remove_unused_nodes()
-            ASCON_CL.print_stats()
-            serialize_circuit(ASCON_CL, "-cl3_obfus")
-        else:
-            serialize_circuit(ASCON_CL, "-cl3")
-
-    ASCON_CL = CubeLin_transform(C, n_linear=4, STATS=STATS)
-    out_cl = ASCON_CL.evaluate(inp)  # combined masking - 4 linear shares 3 non-linear shares
-    assert out == out_cl
-    if SERIALIZE:
-        if OBFUS:
-            serialize_circuit(ASCON_CL, "-cl4")
-
-            ASCON_CL = ObfuscatedTransformer(prng=prng, n=5, c=(98, 98, 98)).transform(ASCON_CL)
-            ASCON_CL.in_place_remove_unused_nodes()
-            ASCON_CL.print_stats()
-            serialize_circuit(ASCON_CL, "-cl4_obfus")
-        else:
-            serialize_circuit(ASCON_CL, "-cl4")
+    # ASCON_MINQ = MINQ_transform(C, STATS)
+    # out_minq = ASCON_MINQ.evaluate(inp)  # minimalistic non-linear masking
+    # assert out == out_minq
+    # if SERIALIZE:
+    #     if OBFUS:
+    #         # serialize_circuit(ASCON_MINQ, "-minq")
+    #
+    #         ASCON_MINQ = ObfuscatedTransformer(prng=prng, n=5, c=(98, 98, 98)).transform(ASCON_MINQ)
+    #         ASCON_MINQ.in_place_remove_unused_nodes()
+    #         ASCON_MINQ.print_stats()
+    #         serialize_circuit(ASCON_MINQ, "-minq_obfus")
+    #     else:
+    #         serialize_circuit(ASCON_MINQ, "-minq")
+    #
+    # ASCON_QL = QuadLin_transform(C, n_linear=2, STATS=STATS)
+    # out_ql = ASCON_QL.evaluate(inp)  # combined masking - 2 linear shares 2 non-linear shares
+    # assert out == out_ql
+    # if SERIALIZE:
+    #     if OBFUS:
+    #         # serialize_circuit(ASCON_QL, "-ql2")
+    #
+    #         ASCON_QL = ObfuscatedTransformer(prng=prng, n=5, c=(98, 98, 98)).transform(ASCON_QL)
+    #         ASCON_QL.in_place_remove_unused_nodes()
+    #         ASCON_QL.print_stats()
+    #         serialize_circuit(ASCON_QL, "-ql2_obfus")
+    #     else:
+    #         serialize_circuit(ASCON_QL, "-ql2")
+    #
+    # ASCON_QL = QuadLin_transform(C, n_linear=3, STATS=STATS)
+    # out_ql = ASCON_QL.evaluate(inp)  # combined masking - 3 linear shares 2 non-linear shares
+    # assert out == out_ql
+    # if SERIALIZE:
+    #     if OBFUS:
+    #         # serialize_circuit(ASCON_QL, "-ql3")
+    #
+    #         ASCON_QL = ObfuscatedTransformer(prng=prng, n=5, c=(98, 98, 98)).transform(ASCON_QL)
+    #         ASCON_QL.in_place_remove_unused_nodes()
+    #         ASCON_QL.print_stats()
+    #         serialize_circuit(ASCON_QL, "-ql3_obfus")
+    #     else:
+    #         serialize_circuit(ASCON_QL, "-ql3")
+    #
+    # ASCON_QL = QuadLin_transform(C, n_linear=4, STATS=STATS)
+    # out_ql = ASCON_QL.evaluate(inp)  # combined masking - 4 linear shares 2 non-linear shares
+    # assert out == out_ql
+    # if SERIALIZE:
+    #     if OBFUS:
+    #         # serialize_circuit(ASCON_QL, "-ql4")
+    #
+    #         ASCON_QL = ObfuscatedTransformer(prng=prng, n=5, c=(98, 98, 98)).transform(ASCON_QL)
+    #         ASCON_QL.in_place_remove_unused_nodes()
+    #         ASCON_QL.print_stats()
+    #         serialize_circuit(ASCON_QL, "-ql4_obfus")
+    #     else:
+    #         serialize_circuit(ASCON_QL, "-ql4")
+    #
+    # ASCON_CL = CubeLin_transform(C, n_linear=2, STATS=STATS)
+    # out_cl = ASCON_CL.evaluate(inp)  # combined masking - 2 linear shares 3 non-linear shares
+    # assert out == out_cl
+    # if SERIALIZE:
+    #     if OBFUS:
+    #         # serialize_circuit(ASCON_CL, "-cl2")
+    #
+    #         ASCON_CL = ObfuscatedTransformer(prng=prng, n=5, c=(98, 98, 98)).transform(ASCON_CL)
+    #         ASCON_CL.in_place_remove_unused_nodes()
+    #         ASCON_CL.print_stats()
+    #         serialize_circuit(ASCON_CL, "-cl2_obfus")
+    #     else:
+    #         serialize_circuit(ASCON_CL, "-cl2")
+    #
+    # ASCON_CL = CubeLin_transform(C, n_linear=3, STATS=STATS)
+    # out_cl = ASCON_CL.evaluate(inp)  # combined masking - 3 linear shares 3 non-linear shares
+    # assert out == out_cl
+    # if SERIALIZE:
+    #     if OBFUS:
+    #         # serialize_circuit(ASCON_CL, "-cl3")
+    #
+    #         ASCON_CL = ObfuscatedTransformer(prng=prng, n=5, c=(98, 98, 98)).transform(ASCON_CL)
+    #         ASCON_CL.in_place_remove_unused_nodes()
+    #         ASCON_CL.print_stats()
+    #         serialize_circuit(ASCON_CL, "-cl3_obfus")
+    #     else:
+    #         serialize_circuit(ASCON_CL, "-cl3")
+    #
+    # ASCON_CL = CubeLin_transform(C, n_linear=4, STATS=STATS)
+    # out_cl = ASCON_CL.evaluate(inp)  # combined masking - 4 linear shares 3 non-linear shares
+    # assert out == out_cl
+    # if SERIALIZE:
+    #     if OBFUS:
+    #         # serialize_circuit(ASCON_CL, "-cl4")
+    #
+    #         ASCON_CL = ObfuscatedTransformer(prng=prng, n=5, c=(98, 98, 98)).transform(ASCON_CL)
+    #         ASCON_CL.in_place_remove_unused_nodes()
+    #         ASCON_CL.print_stats()
+    #         serialize_circuit(ASCON_CL, "-cl4_obfus")
+    #     else:
+    #         serialize_circuit(ASCON_CL, "-cl4")
 
     return out
 

@@ -173,6 +173,34 @@ class TestMethods(unittest.TestCase):
         #                 self.assertNotEqual(key, r)  # should fail
         # print(times)
         X = ["Clear", "ISW-2", "ISW-3", "ISW-4", "MINQ", "QL-2", "CL-2"]
+        # Proof of concept
+        ascon_array = [(ascon_key_1, [ascon_clear1, ascon_isw2_1,
+                                      ascon_isw3_1, ascon_isw4_1,
+                                      ascon_minq_1, ascon_ql2_1,
+                                      ascon_cl2_1])]
+        # window_size = 64; window_step = 16; nr_traces = window_size + 50  # 2^50
+        window_size = 320;
+        window_step = 80;
+        nr_traces = window_size + 50  # 2^50
+        times = {}
+        KEY_BYTES = tuple(i for i in range(64))
+        for key, masks in ascon_array:
+            for i in range(0, len(masks)):
+                with self.subTest(name=(masks[i], nr_traces), T=nr_traces):
+                    start = time.time()
+                    r = Ascon_LDA.ascon_lda(traces=nr_traces, traces_dir=masks[i], window_size=window_size,
+                                            window_step=window_step, KEY_BYTES=KEY_BYTES, verbose=False,
+                                            RANKING=True)  # non-masked
+                    end = time.time()
+                    elapsed = end - start
+                    times[masks[i].name] = elapsed
+                    print("{} elapsed time: {} with {} traces".format(masks[i].name, elapsed, nr_traces))
+                    if i < 4:
+                        self.assertEqual(key, r)  # should succeed
+                    else:
+                        self.assertNotEqual(key, r)  # should fail
+        print(times)
+        X = ["Clear", "ISW-2", "ISW-3", "ISW-4", "MINQ", "QL-2", "CL-2"]
         # 19 minutes with ranking
         times = {'asconP_2R_NCA-clear': 6.200167417526245, 'asconP_2R_NCA-isw2': 19.89973473548889,
                  'asconP_2R_NCA-isw3': 37.717557191848755, 'asconP_2R_NCA-isw4': 61.533440828323364,
@@ -258,40 +286,53 @@ class TestMethods(unittest.TestCase):
 
     def test_Ascon_Obfuscation2(self):
         # Impact of obfuscation on window
-        ascon_array = [(ascon_key_1, [ascon_clear1, ascon_clear_obfus_1,    # 51 1 1    51 1 1  6 mins
-                                      ascon_isw2_1, ascon_isw2_obfus_1,     # 52 2 1 vs 58 8 1 20 mins
-                                      ascon_isw3_1, ascon_isw3_obfus_1,     #
-                                      ascon_isw4_1, ascon_isw4_obfus_1,     #
-                                      # ascon_minq_1, ascon_minq_obfus_1,   # these cannot succeed
-                                      # ascon_ql2_1, ascon_ql2_obfus_1,
-                                      ])]
-        window_size = [1, 1, 16, 12, 16, 0, 16, 0]
-        # isw2 02:52.422175     66 16 1
-        # isw3 05: 23.713229    66 16 1
-        # isw4                  67 16 1
-        # isw2-o                66 16 1
+        ascon_array = [(ascon_key_1, [
+            ascon_clear1,  #ascon_clear_obfus_1,    # 51 1 1    51 1 1  6 mins
+            ascon_isw2_1,  #ascon_isw2_obfus_1,     #
+            ascon_isw3_1,  #ascon_isw3_obfus_1,     #
+            # ascon_isw4_1,  #ascon_isw4_obfus_1,     #
+            ascon_clear_obfus_1,
+            ascon_isw2_obfus_1,
+            ascon_isw3_obfus_1,
+            # ascon_isw4_obfus_1
+            # ascon_minq_1, ascon_minq_obfus_1,   # these cannot succeed
+            # ascon_ql2_1, ascon_ql2_obfus_1,
+        ])]
+        # window_size = [1, 1, 2, 8, 16, 17, 16, 17]
+        window_size = [1, 16, 16, 1, 15, 15]
+        # isw2
+        # isw3
+        # isw4
+        # isw2-o
         # isw3-o
-        # isw4-o                67 17 1
+        # isw4-o
         window_step = 1
         times = {}
         KEY_BYTES = tuple(i for i in range(64))
         for key, masks in ascon_array:
             for i in range(0, len(masks)):
-                with self.subTest(name=(masks[i], window_size[i] + 50), T=window_size[i] + 50):
+                # for _ in range(1+i, 20, 2):
+                nr_traces = window_size[i] + 30  # 2^50
+                # nr_traces = _ + 30  # 2^50
+                with self.subTest(name=(masks[i], nr_traces), T=nr_traces):
                     start = time.time()
-                    nr_traces = window_size[i] + 50  # 2^50
                     r = Ascon_LDA.ascon_lda(traces=nr_traces, traces_dir=masks[i], window_size=window_size[i],
                                             window_step=window_step, KEY_BYTES=KEY_BYTES, verbose=False,
                                             RANKING=True)  # non-masked
                     print("R", r)
+                    print("K", key)
                     end = time.time()
                     elapsed = end - start
                     times[masks[i].name] = elapsed
-                    print("{} elapsed time: {} with {} traces {} {}".format(masks[i].name, elapsed, nr_traces, window_size[i], window_step))
-                    if i < 8:
-                        self.assertEqual(key, r)  # should succeed
-                    else:
-                        self.assertNotEqual(key, r)  # should fail
+                    print("{} elapsed time: {} with {} traces {} {}".format(masks[i].name, elapsed, nr_traces,
+                                                                            window_size[i], window_step))
+                    # if r == key:
+                    #     break
+                    self.assertEqual(key, r)
+                    # if i < 8:
+                    #     self.assertEqual(key, r)  # should succeed
+                    # else:
+                    #     self.assertNotEqual(key, r)  # should fail
         print("Times:", times)
         # times = {'asconP_2R_NCA-clear': 5.329787015914917, 'asconP_2R_NCA-clear_obfus': 39.920722246170044,
         #          'asconP_2R_NCA-isw2': 13.455626964569092, 'asconP_2R_NCA-isw2_obfus': 128.6323697566986,
@@ -301,27 +342,27 @@ class TestMethods(unittest.TestCase):
         #          'asconP_2R_NCA-ql2': 154.983089685440060, 'asconP_2R_NCA-ql2_obfus': 1509.6942660808563}
         # X = ["Clear", "Clear-obfus","ISW-2", "ISW-2-obfus","ISW-3", "ISW-3-obfus",
         #      "ISW-4", "ISW-4-obfus","MINQ", "MINQ-obfus", "QL-2", "QL-2-obfus"]
-        X = ["Clear", "ISW-2", "ISW-3", "ISW-4", "MINQ", "QL-2"]
-        Y = list(times.values())
-        Y = [int(_) for _ in Y]
-        Y1 = Y[::2]
-        Y2 = Y[1::2]
-        XX = np.arange(len(X), dtype=np.float64)
-        fig, ax = plt.subplots()
-        rects1 = ax.bar(XX - 0.35 / 2, Y1, 0.35)
-        # ax.plot(XX-0.35/2, Y1, marker='*')
-        rects2 = ax.bar(XX + 0.35 / 2, Y2, 0.35)
-        # ax.plot(XX+0.35/2, Y2, marker='*')
-        ax.set_ylabel('Time (in seconds)')
-        ax.grid(axis='y', alpha=0.25, color='grey', which='both')
-        ax.set_title('Obfuscation')
-        ax.set_xticks(XX, X)
-        ax.legend(["Masked", "Masked+Obfuscated"], loc='upper left')
-        ax.bar_label(rects1, padding=3)
-        ax.bar_label(rects2, padding=3)
-        fig.tight_layout()
-        plt.show()
-        # attack_testing.TestMethods.test_Ascon_Obfuscation: 3858.980 seconds
+        # X = ["Clear", "ISW-2", "ISW-3", "ISW-4", "MINQ", "QL-2"]
+        # Y = list(times.values())
+        # Y = [int(_) for _ in Y]
+        # Y1 = Y[::2]
+        # Y2 = Y[1::2]
+        # XX = np.arange(len(X), dtype=np.float64)
+        # fig, ax = plt.subplots()
+        # rects1 = ax.bar(XX - 0.35 / 2, Y1, 0.35)
+        # # ax.plot(XX-0.35/2, Y1, marker='*')
+        # rects2 = ax.bar(XX + 0.35 / 2, Y2, 0.35)
+        # # ax.plot(XX+0.35/2, Y2, marker='*')
+        # ax.set_ylabel('Time (in seconds)')
+        # ax.grid(axis='y', alpha=0.25, color='grey', which='both')
+        # ax.set_title('Obfuscation')
+        # ax.set_xticks(XX, X)
+        # ax.legend(["Masked", "Masked+Obfuscated"], loc='upper left')
+        # ax.bar_label(rects1, padding=3)
+        # ax.bar_label(rects2, padding=3)
+        # fig.tight_layout()
+        # plt.show()
+        # # attack_testing.TestMethods.test_Ascon_Obfuscation: 3858.980 seconds
 
     def test_minimal_window(self):
         # # get the minimal window size for all

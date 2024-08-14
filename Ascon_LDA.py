@@ -188,7 +188,7 @@ def ascon_lda(traces, traces_dir, window_size, window_step, KEY_BYTES=(0,), verb
         except IndexError:
             continue
         except TypeError:
-            print(recovered_key_bits[i][0])
+            # print(recovered_key_bits[i][0])
             bits = bin(recovered_key_bits[i][0][0])[2:].zfill(5)
             recovered_key[i + 0] = bits[0]
             recovered_key[i + 64] = bits[1]
@@ -399,7 +399,7 @@ if __name__ == "__main__":
         KEY_BYTES=full_tuple,
         # KEY_BYTES=(0, 1, 2, 3, 4, 5, 6, 7)
         # KEY_BYTES=(0,),
-        verbose=False,
+        verbose=True,
         RANKING=True
     )
     print(r)
