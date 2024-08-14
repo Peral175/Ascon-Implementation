@@ -100,7 +100,7 @@ def perm(state, key=b'\x00'*40, nr_rounds=1, naming="", SERIALIZE=False, STATS=F
 
     if SERIALIZE:
         if OBFUS:
-            C_obfus = ObfuscatedTransformer(prng=prng, n=2, c=(98, 98, 98)).transform(C)
+            C_obfus = ObfuscatedTransformer(prng=prng, n=10, c=(99, 98, 97)).transform(C)
             C_obfus.in_place_remove_unused_nodes()
             C_obfus.print_stats()
             serialize_circuit(C, "-clear")
@@ -115,7 +115,7 @@ def perm(state, key=b'\x00'*40, nr_rounds=1, naming="", SERIALIZE=False, STATS=F
         if OBFUS:
             serialize_circuit(ASCON_ISW, "-isw2")
 
-            ASCON_ISW_O = ObfuscatedTransformer(prng=prng, n=2, c=(98, 98, 98)).transform(ASCON_ISW)
+            ASCON_ISW_O = ObfuscatedTransformer(prng=prng, n=10, c=(91, 92, 93)).transform(ASCON_ISW)
             ASCON_ISW_O.in_place_remove_unused_nodes()
             ASCON_ISW_O.print_stats()
             serialize_circuit(ASCON_ISW_O, "-isw2_obfus")
@@ -129,7 +129,7 @@ def perm(state, key=b'\x00'*40, nr_rounds=1, naming="", SERIALIZE=False, STATS=F
         if OBFUS:
             serialize_circuit(ASCON_ISW, "-isw3")
 
-            ASCON_ISW_O = ObfuscatedTransformer(prng=prng, n=2, c=(98, 98, 98)).transform(ASCON_ISW)
+            ASCON_ISW_O = ObfuscatedTransformer(prng=prng, n=10, c=(94, 95, 96)).transform(ASCON_ISW)
             ASCON_ISW_O.in_place_remove_unused_nodes()
             ASCON_ISW_O.print_stats()
             serialize_circuit(ASCON_ISW_O, "-isw3_obfus")
@@ -143,7 +143,7 @@ def perm(state, key=b'\x00'*40, nr_rounds=1, naming="", SERIALIZE=False, STATS=F
         if OBFUS:
             serialize_circuit(ASCON_ISW, "-isw4")
 
-            ASCON_ISW_O = ObfuscatedTransformer(prng=prng, n=2, c=(98, 98, 98)).transform(ASCON_ISW)
+            ASCON_ISW_O = ObfuscatedTransformer(prng=prng, n=10, c=(97, 98, 99)).transform(ASCON_ISW)
             ASCON_ISW_O.in_place_remove_unused_nodes()
             ASCON_ISW_O.print_stats()
             serialize_circuit(ASCON_ISW_O, "-isw4_obfus")
