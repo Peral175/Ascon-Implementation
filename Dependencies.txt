@@ -57,4 +57,4 @@ Below are some explanations of what files are used for:
     CubeLinMasking.py       --> in this file I implemented cubic monomial according to SEL (2021) paper
     Even_Mansour.py         --> even-mansour construction to be used with Ascon permutation function to create simple block ciphter for testing
     obfuscated_masking.py   --> this file implements obfuscation layer to be placed on top of masking layer.
-    old_*.py                --> backup files that are no longer relevant
+    old_*.py                --> backup files that are no longer relevant [removed]

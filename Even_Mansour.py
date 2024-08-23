@@ -5,7 +5,7 @@ from random import randbytes
 from Ascon128 import binary_to_int
 
 parser = argparse.ArgumentParser(
-    description='Ascon AEAD implementation',
+    description='EM-Ascon-P implementation',
     formatter_class=argparse.ArgumentDefaultsHelpFormatter
 )
 parser.add_argument(

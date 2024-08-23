@@ -121,7 +121,7 @@ def circuit(key=b'\x00'*16, nr_rounds=2, SERIALIZE=False, STATS=False):
 
 if __name__ == '__main__':
     parser = argparse.ArgumentParser(
-        description='aes implementation',
+        description='AES-128 implementation',
         formatter_class=argparse.ArgumentDefaultsHelpFormatter
     )
     parser.add_argument(
