@@ -19,7 +19,7 @@ args = parser.parse_args()
 
 def even_mansour():
 
-    with open("myconfig.json", "r") as f:
+    with open("keys.json", "r") as f:
         data = json.load(f)
     try:
         k1 = bytes(args.key, encoding="utf-8")

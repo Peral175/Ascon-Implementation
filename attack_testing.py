@@ -284,59 +284,59 @@ class TestMethods(unittest.TestCase):
         # attack_testing.TestMethods.test_Ascon_Obfuscation: 3858.980 seconds
 
     def test_Ascon_Obfuscation_w(self):
-        # # Impact of obfuscation on window
-        # ascon_array = [(ascon_key_1, [
-        #     ascon_clear1,
-        #     ascon_isw2_1,
-        #     ascon_isw3_1,
-        #     ascon_clear_obfus_1,
-        #     ascon_isw2_obfus_1,
-        #     ascon_isw3_obfus_1,
-        # ])]
-        # window_size = [1, 1, 2, 8, 16, 16]     # manually determined
-        # window_step = 1
-        # times = {}
-        # KEY_BYTES = tuple(i for i in range(64))
-        # for key, masks in ascon_array:
-        #     for i in range(0, len(masks)):
-        #         nr_traces = window_size[i] + 30  # 2^30
-        #         with self.subTest(name=(masks[i], nr_traces), T=nr_traces):
-        #             start = time.time()
-        #             r = Ascon_LDA.ascon_lda(traces=nr_traces, traces_dir=masks[i], window_size=window_size[i],
-        #                                     window_step=window_step, KEY_BYTES=KEY_BYTES, verbose=False,
-        #                                     RANKING=True)
-        #             print("R", r)
-        #             print("K", key)
-        #             end = time.time()
-        #             elapsed = end - start
-        #             times[masks[i].name] = (window_size[i],elapsed)
-        #             print("{} elapsed time: {} with {} traces {} {}".format(masks[i].name, elapsed, nr_traces,
-        #                                                                     window_size[i], window_step))
-        #             self.assertEqual(key, r)
-        # print("Times:", times)
-        times = {'asconP_2R_NCA-clear': (1, 32.8889), 'asconP_2R_NCA-clear_obfus': (1, 229.1315),
-                 'asconP_2R_NCA-isw2': (2, 97.5260), 'asconP_2R_NCA-isw2_obfus': (8, 798.2096),
-                 'asconP_2R_NCA-isw3': (16, 226.4606), 'asconP_2R_NCA-isw3_obfus': (14, 1781.0717)}
-        X = ["Clear", "ISW-2", "ISW-3"]
-        Y = list(times.values())
-        Y = [w for w, t in Y]
-        Y1 = Y[::2]
-        Y2 = Y[1::2]
-        XX = np.arange(len(X), dtype=np.float64)
-        fig, ax = plt.subplots()
-        rects1 = ax.bar(XX - 0.35 / 2, Y1, 0.35)
-        # ax.plot(XX-0.35/2, Y1, marker='*')
-        rects2 = ax.bar(XX + 0.35 / 2, Y2, 0.35)
-        # ax.plot(XX+0.35/2, Y2, marker='*')
-        ax.set_ylabel('Minimum Window Size')
-        ax.grid(axis='y', alpha=0.25, color='grey', which='both')
-        ax.set_title('Obfuscation')
-        ax.set_xticks(XX, X)
-        ax.legend(["Masked", "Masked+Obfuscated"], loc='upper left')
-        ax.bar_label(rects1, padding=3)
-        ax.bar_label(rects2, padding=3)
-        fig.tight_layout()
-        plt.show()
+        # Impact of obfuscation on window
+        ascon_array = [(ascon_key_1, [
+            ascon_clear1,
+            ascon_isw2_1,
+            ascon_isw3_1,
+            ascon_clear_obfus_1,
+            ascon_isw2_obfus_1,
+            ascon_isw3_obfus_1,
+        ])]
+        window_size = [1, 2, 16, 1, 8, 14]  # manually determined
+        window_step = 1
+        times = {}
+        KEY_BYTES = tuple(i for i in range(64))
+        for key, masks in ascon_array:
+            for i in range(0, len(masks)):
+                nr_traces = window_size[i] + 30  # 2^30
+                with self.subTest(name=(masks[i], nr_traces), T=nr_traces):
+                    start = time.time()
+                    r = Ascon_LDA.ascon_lda(traces=nr_traces, traces_dir=masks[i], window_size=window_size[i],
+                                            window_step=window_step, KEY_BYTES=KEY_BYTES, verbose=False,
+                                            RANKING=True)
+                    print("R", r)
+                    print("K", key)
+                    end = time.time()
+                    elapsed = end - start
+                    times[masks[i].name] = (window_size[i], elapsed)
+                    print("{} elapsed time: {} with {} traces {} {}".format(masks[i].name, elapsed, nr_traces,
+                                                                            window_size[i], window_step))
+                    self.assertEqual(key, r)
+        print("Times:", times)
+        # times = {'asconP_2R_NCA-clear': (1, 32.8889), 'asconP_2R_NCA-clear_obfus': (1, 229.1315),
+        #          'asconP_2R_NCA-isw2': (2, 97.5260), 'asconP_2R_NCA-isw2_obfus': (8, 798.2096),
+        #          'asconP_2R_NCA-isw3': (16, 226.4606), 'asconP_2R_NCA-isw3_obfus': (14, 1781.0717)}
+        # X = ["Clear", "ISW-2", "ISW-3"]
+        # Y = list(times.values())
+        # Y = [w for w, t in Y]
+        # Y1 = Y[::2]
+        # Y2 = Y[1::2]
+        # XX = np.arange(len(X), dtype=np.float64)
+        # fig, ax = plt.subplots()
+        # rects1 = ax.bar(XX - 0.35 / 2, Y1, 0.35)
+        # # ax.plot(XX-0.35/2, Y1, marker='*')
+        # rects2 = ax.bar(XX + 0.35 / 2, Y2, 0.35)
+        # # ax.plot(XX+0.35/2, Y2, marker='*')
+        # ax.set_ylabel('Minimum Window Size')
+        # ax.grid(axis='y', alpha=0.25, color='grey', which='both')
+        # ax.set_title('Obfuscation')
+        # ax.set_xticks(XX, X)
+        # ax.legend(["Masked", "Masked+Obfuscated"], loc='upper left')
+        # ax.bar_label(rects1, padding=3)
+        # ax.bar_label(rects2, padding=3)
+        # fig.tight_layout()
+        # plt.show()
 
     def test_minimal_window(self):
         # # get the minimal window size for all
